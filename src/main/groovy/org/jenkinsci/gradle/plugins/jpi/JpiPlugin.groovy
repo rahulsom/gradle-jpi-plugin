@@ -52,6 +52,7 @@ import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.util.GradleVersion
 import org.jenkinsci.gradle.plugins.jpi.internal.DependencyLookup
 import org.jenkinsci.gradle.plugins.jpi.legacy.LegacyWorkaroundsPlugin
+import org.jenkinsci.gradle.plugins.jpi.restricted.CheckAccessModifierTask
 import org.jenkinsci.gradle.plugins.jpi.server.GenerateHplTask
 import org.jenkinsci.gradle.plugins.jpi.server.InstallJenkinsServerPluginsTask
 import org.jenkinsci.gradle.plugins.jpi.server.JenkinsServerTask
@@ -205,6 +206,13 @@ class JpiPlugin implements Plugin<Project> {
         gradleProject.afterEvaluate {
             gradleProject.setProperty('archivesBaseName', ext.shortName)
         }
+
+        def camName = CheckAccessModifierTask.TASK_NAME
+        def cam = gradleProject.tasks.register(camName, CheckAccessModifierTask) { CheckAccessModifierTask t ->
+            t.configuration = gradleProject.configurations.compileClasspath
+            t.dependsOn('classes')
+        }
+        gradleProject.tasks.findByName('check')?.dependsOn(cam)
     }
 
     private static Properties loadDotJenkinsOrg() {

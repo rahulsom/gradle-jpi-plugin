@@ -1,5 +1,8 @@
 ## 0.41.0 (unreleased)
 
+  * introduce `checkAccessModifier` task as a dependency of `check`
+  * support `-PcheckAccessModifier.useBeta=true` to opt into beta APIs
+
 ## 0.40.0 (2020-12-14)
 
   * use `jenkinsPlugin.shortName` as base name of jar [#163](https://github.com/jenkinsci/gradle-jpi-plugin/issues/163)
