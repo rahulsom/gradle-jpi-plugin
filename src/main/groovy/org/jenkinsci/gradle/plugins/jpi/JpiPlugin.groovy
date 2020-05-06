@@ -31,11 +31,11 @@ import org.gradle.api.attributes.java.TargetJvmVersion
 import org.gradle.api.component.AdhocComponentWithVariants
 import org.gradle.api.execution.TaskExecutionGraph
 import org.gradle.api.plugins.BasePlugin
+import org.gradle.api.plugins.GroovyPlugin
 import org.gradle.api.plugins.JavaLibraryPlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.plugins.JavaPluginExtension
-import org.gradle.api.plugins.GroovyPlugin
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
@@ -48,6 +48,9 @@ import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.testing.Test
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.util.GradleVersion
+import org.jenkinsci.gradle.plugins.jpi.server.GenerateJenkinsServerHplTask
+
+import org.jenkinsci.gradle.plugins.jpi.server.InstallJenkinsServerPluginsTask
 
 import static org.gradle.api.logging.LogLevel.INFO
 import static org.gradle.api.tasks.SourceSet.MAIN_SOURCE_SET_NAME
@@ -94,10 +97,28 @@ class JpiPlugin implements Plugin<Project> {
 
         def ext = gradleProject.extensions.create('jenkinsPlugin', JpiExtension, gradleProject)
 
+        def generateHpl = gradleProject.tasks.register(GenerateJenkinsServerHplTask.TASK_NAME,
+                GenerateJenkinsServerHplTask) { GenerateJenkinsServerHplTask t ->
+            t.fileName.set(ext.shortName)
+            t.description = 'Generate hpl (Hudson plugin link) for running locally'
+            t.group = 'Jenkins Server'
+        }
+
+        def installPlugins = gradleProject.tasks.register(InstallJenkinsServerPluginsTask.TASK_NAME,
+                InstallJenkinsServerPluginsTask) {
+            it.group = 'Jenkins Server'
+            it.description = 'Install plugins to the server\'s Jenkins Home directory'
+            it.jenkinsHome.set(ext.workDir)
+            def serverRuntime = project.configurations.getByName(SERVER_JENKINS_RUNTIME_CLASSPATH_CONFIGURATION_NAME)
+            it.pluginsConfiguration.set(serverRuntime)
+            it.hpl.set(generateHpl.flatMap { it.hpl })
+            it.dependsOn(generateHpl)
+        }
+
         gradleProject.tasks.register(ServerTask.TASK_NAME, ServerTask) {
             it.description = 'Run Jenkins in place with the plugin being developed'
             it.group = BasePlugin.BUILD_GROUP // TODO
-            it.dependsOn(ext.mainSourceTree().runtimeClasspath)
+            it.dependsOn(ext.mainSourceTree().runtimeClasspath, generateHpl, installPlugins)
         }
 
         // set build directory for Jenkins test harness, JENKINS-26331

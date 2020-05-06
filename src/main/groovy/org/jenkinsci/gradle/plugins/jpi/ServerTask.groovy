@@ -15,13 +15,11 @@
  */
 package org.jenkinsci.gradle.plugins.jpi
 
-import java.util.jar.JarFile
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.tasks.TaskAction
-import org.gradle.util.GFileUtils
 
-import static JpiPlugin.SERVER_JENKINS_RUNTIME_CLASSPATH_CONFIGURATION_NAME
+import java.util.jar.JarFile
 
 /**
  * Task that starts Jenkins in place with the current plugin.
@@ -46,9 +44,6 @@ class ServerTask extends DefaultTask {
         }
         File war = files.first()
 
-        generateHpl()
-        copyPluginDependencies()
-
         def conv = project.extensions.getByType(JpiExtension)
         System.setProperty('JENKINS_HOME', conv.workDir.absolutePath)
         setSystemPropertyIfEmpty('stapler.trace', 'true')
@@ -68,26 +63,6 @@ class ServerTask extends DefaultTask {
 
         // make the thread hang
         Thread.currentThread().join()
-    }
-
-    void generateHpl() {
-        def m = new JpiHplManifest(project)
-        def conv = project.extensions.getByType(JpiExtension)
-
-        def hpl = new File(conv.workDir, "plugins/${conv.shortName}.hpl")
-        hpl.parentFile.mkdirs()
-        hpl.withOutputStream { m.write(it) }
-    }
-
-    private copyPluginDependencies() {
-        def artifacts = project.configurations[SERVER_JENKINS_RUNTIME_CLASSPATH_CONFIGURATION_NAME].
-                resolvedConfiguration.resolvedArtifacts
-
-        // copy the resolved HPI/JPI files to the plugins directory
-        def workDir = project.extensions.getByType(JpiExtension).workDir
-        artifacts.findAll { it.extension in ['hpi', 'jpi'] }.each {
-            GFileUtils.copyFile(it.file, new File(workDir, "plugins/${it.name}.${it.extension}"))
-        }
     }
 
     private static void setSystemPropertyIfEmpty(String name, String value) {
