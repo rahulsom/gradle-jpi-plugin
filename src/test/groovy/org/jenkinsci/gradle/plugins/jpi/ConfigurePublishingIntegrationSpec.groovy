@@ -4,6 +4,8 @@ import groovy.json.JsonSlurper
 import org.gradle.testkit.runner.BuildResult
 import spock.lang.Unroll
 
+import java.nio.file.Paths
+
 class ConfigurePublishingIntegrationSpec extends IntegrationSpec {
     private final String projectName = TestDataGenerator.generateName()
     private File settings
@@ -260,6 +262,6 @@ class ConfigurePublishingIntegrationSpec extends IntegrationSpec {
     }
 
     private static String inBuildLibs(String rest) {
-        "build/libs/${rest}"
+        Paths.get('build', 'libs', rest).toString()
     }
 }
