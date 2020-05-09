@@ -37,7 +37,9 @@ class ConfigurePublishingIntegrationSpec extends IntegrationSpec {
                                 version     : it.version,
                                 pomPackaging: it.pom.packaging,
                                 artifacts   : it.artifacts.collect {
-                                    [classifier: it.classifier, extension: it.extension, file: it.file.path]
+                                    [classifier: it.classifier,
+                                     extension : it.extension,
+                                     file      : project.projectDir.toPath().relativize(it.file.toPath()).toString()]
                                 }
                         ]
                         ]
@@ -257,7 +259,7 @@ class ConfigurePublishingIntegrationSpec extends IntegrationSpec {
         new JsonSlurper().parseText(result.output)['publications'] as Map<String, Map<String, Object>>
     }
 
-    private String inBuildLibs(String rest) {
-        new File(projectDir.root, "build/libs/${rest}").path
+    private static String inBuildLibs(String rest) {
+        "build/libs/${rest}"
     }
 }
