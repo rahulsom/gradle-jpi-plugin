@@ -1,5 +1,6 @@
 package org.jenkinsci.gradle.plugins.jpi
 
+import groovy.json.JsonSlurper
 import org.gradle.testkit.runner.TaskOutcome
 import spock.lang.Unroll
 
@@ -179,6 +180,34 @@ class JpiIntegrationSpec extends IntegrationSpec {
     }
 
     @Unroll
+    def '#task task should be setup'(String task) {
+        given:
+        build << '''
+            tasks.register('describeTasks') {
+                doLast {
+                    def result = tasks.collectEntries {
+                        [(it.name): [group: it.group, description: it.description]]
+                    }
+                    println groovy.json.JsonOutput.toJson(result)
+                }
+            }
+            '''.stripIndent()
+
+        when:
+        def result = gradleRunner()
+            .withArguments('describeTasks', '-q')
+            .build()
+        def actual = new JsonSlurper().parseText(result.output)
+
+        then:
+        actual[task]['group']
+        actual[task]['description']
+
+        where:
+        task << ['jpi', 'server', 'localizer', 'insertTest']
+    }
+
+    @Unroll
     def 'compileTestJava should run :insertTest as #outcome (configured: #value)'(boolean value, TaskOutcome outcome) {
         given:
         build << """
@@ -247,94 +276,6 @@ class JpiIntegrationSpec extends IntegrationSpec {
         new File(projectDir.root, "build/libs/${projectName}.jar").exists()
         new File(projectDir.root, "build/libs/${projectName}-sources.jar").exists()
         new File(projectDir.root, "build/libs/${projectName}-javadoc.jar").exists()
-    }
-
-    def 'does not create sources and javadoc jars if configurePublishing is disabled'() {
-        given:
-        build << '''
-            jenkinsPlugin {
-                configurePublishing = false
-            }
-            '''.stripIndent()
-        when:
-        gradleRunner()
-                .withArguments('build')
-                .build()
-
-        then:
-        new File(projectDir.root, "build/libs/${projectName}.hpi").exists()
-        new File(projectDir.root, "build/libs/${projectName}.jar").exists()
-        !new File(projectDir.root, "build/libs/${projectName}-sources.jar").exists()
-        !new File(projectDir.root, "build/libs/${projectName}-javadoc.jar").exists()
-    }
-
-    def 'javadoc jar can be created if configurePublishing is disabled but other plugin does it'() {
-        given:
-        build.text = """
-            plugins {
-                id 'org.jenkins-ci.jpi'
-                id "nebula.maven-publish" version "17.0.5"
-                id "nebula.javadoc-jar" version "17.0.5"
-             }
-            jenkinsPlugin {
-                configurePublishing = false
-            }
-            """.stripIndent()
-
-        when:
-        gradleRunner()
-                .withArguments('build')
-                .build()
-
-        then:
-        new File(projectDir.root, "build/libs/${projectName}.hpi").exists()
-        new File(projectDir.root, "build/libs/${projectName}.jar").exists()
-        new File(projectDir.root, "build/libs/${projectName}-javadoc.jar").exists()
-    }
-
-    def 'javadoc and source jar can be created if configurePublishing is disabled but plugin consumer configures publication'() {
-        given:
-        build.text = """
-            plugins {
-                id 'org.jenkins-ci.jpi'
-                id "maven-publish"
-                id "nebula.source-jar" version "17.0.5"
-                id "nebula.javadoc-jar" version "17.0.5"
-            }
-            jenkinsPlugin {
-                configurePublishing = false
-            }
-
-            afterEvaluate {
-                publishing {
-                    publications {
-                        mavenJpi(MavenPublication) {
-                            groupId = 'org.jenkinsci.sample'
-                            artifactId = '${projectName}'
-                            version = '1.0'
-                            artifact jar
-                            artifact sourceJar
-                            artifact javadocJar
-                        }
-                    }
-                    repositories {
-                        maven {
-                            name = 'testRepo'
-                            url = 'build/testRepo'
-                        }
-                    }
-                }
-            }
-            """.stripIndent()
-
-        when:
-        gradleRunner()
-                .withArguments('publishMavenJpiPublicationToTestRepoRepository')
-                .build()
-
-        then:
-        new File(projectDir.root, "build/testRepo/org/jenkinsci/sample/${projectName}/1.0/${projectName}-1.0-javadoc.jar").exists()
-        new File(projectDir.root, "build/testRepo/org/jenkinsci/sample/${projectName}/1.0/${projectName}-1.0-sources.jar").exists()
     }
 
     def 'handles dependencies coming from ivy repository and do not fail with variants'() {

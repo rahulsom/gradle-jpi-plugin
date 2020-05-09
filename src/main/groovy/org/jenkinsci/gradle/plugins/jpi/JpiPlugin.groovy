@@ -244,6 +244,8 @@ class JpiPlugin implements Plugin<Project> {
         testSourceSet.java.srcDirs += root
 
         def testInsertionTask = project.tasks.register(TestInsertionTask.TASK_NAME, TestInsertionTask) {
+            it.group = 'Verification'
+            it.description = 'Generates a Jenkins Test'
             it.onlyIf { !jpiExtension.disabledTestInjection }
         }
 
