@@ -284,7 +284,6 @@ class JpiPlugin implements Plugin<Project> {
             if (project.extensions.getByType(JpiExtension).configureRepositories) {
                 project.repositories {
                     mavenCentral()
-                    mavenLocal()
                     maven {
                         name 'jenkins'
                         url('https://repo.jenkins-ci.org/public/')
