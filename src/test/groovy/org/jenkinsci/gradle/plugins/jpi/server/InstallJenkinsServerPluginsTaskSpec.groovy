@@ -75,6 +75,38 @@ class InstallJenkinsServerPluginsTaskSpec extends IntegrationSpec {
         ['org.jenkins-ci.plugins:git:4.0.0']                                     | _
     }
 
+    def 'should sync plugins without version subprojects'() {
+        given:
+        def aDeps = ['org.jenkins-ci.plugins:git:4.0.0']
+        def bDeps = ['org.jenkins-ci.plugins:apache-httpcomponents-client-4-api:4.5.10-1.0']
+        Neptune.newBuilder(ProjectFile.newBuilder().withName('my-root').build())
+                .addSubproject(projectBuilder
+                        .withName('sub-a')
+                        .clearDependencies()
+                        .withDependencies(DependenciesBlock.newBuilder()
+                                .addAllToImplementation(aDeps)
+                                .build())
+                        .build())
+                .addSubproject(projectBuilder
+                        .withName('sub-b')
+                        .clearDependencies()
+                        .withDependencies(DependenciesBlock.newBuilder()
+                                .addAllToImplementation(bDeps)
+                                .build())
+                        .build())
+                .build()
+                .writeTo(projectDir)
+
+        when:
+        def result = runInstallJenkinsServerPlugins()
+
+        then:
+        result.task(':sub-a:installJenkinsServerPlugins').outcome == TaskOutcome.SUCCESS
+        result.task(':sub-b:installJenkinsServerPlugins').outcome == TaskOutcome.SUCCESS
+        actualPluginsDir('sub-a/work') == expectedPluginsDir(aDeps, 'implementation', 'sub-a.hpl')
+        actualPluginsDir('sub-b/work') == expectedPluginsDir(bDeps, 'implementation', 'sub-b.hpl')
+    }
+
     @Unroll
     def 'should rerun if #config dependencies #description'(String config,
                                                             String description,
@@ -248,8 +280,9 @@ class InstallJenkinsServerPluginsTaskSpec extends IntegrationSpec {
                 .toSet()
     }
 
-    private Set<String> expectedPluginsDir(Collection<String> dependencies, String configuration = 'implementation') {
-        def hpl = projectName + '.hpl'
+    private Set<String> expectedPluginsDir(Collection<String> dependencies,
+                                           String configuration = 'implementation',
+                                           String hpl = "${projectName}.hpl") {
         def result = [hpl] as Set
         result.addAll(DEFAULT)
         if (!['api', 'implementation', 'runtimeOnly', 'testImplementation', 'testRuntimeOnly'].contains(configuration)) {

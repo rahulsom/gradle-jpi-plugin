@@ -1,7 +1,6 @@
 package org.jenkinsci.gradle.plugins.jpi.support;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public class SettingsFile implements Emitable {
     private final List<Statement> statements;
@@ -14,9 +13,9 @@ public class SettingsFile implements Emitable {
     public String emit(Indenter indenter) {
         StringBuilder sb = new StringBuilder();
         for (Statement statement : statements) {
-            sb.append(indenter.indent()).append(statement.emit(indenter));
+            sb.append(indenter.indent()).append(statement.emit(indenter)).append('\n');
         }
-        return sb.append('\n').toString();
+        return sb.toString();
     }
 
     public static Builder builder() {
@@ -25,6 +24,7 @@ public class SettingsFile implements Emitable {
 
     public static class Builder {
         private String name;
+        private final Set<String> includes = new HashSet<>();
 
         public Builder withRootProjectName(String name) {
             this.name = name;
@@ -33,8 +33,18 @@ public class SettingsFile implements Emitable {
 
         public SettingsFile build() {
             List<Statement> statements = new LinkedList<>();
-            statements.add(Statement.create("rootProject.name = $S", name));
+            if (name != null) {
+                statements.add(Statement.create("rootProject.name = $S", name));
+            }
+            for (String include : includes) {
+                statements.add(Statement.create("include $S", include));
+            }
             return new SettingsFile(statements);
+        }
+
+        public Builder addSubprojects(Collection<String> projectNames) {
+            includes.addAll(projectNames);
+            return this;
         }
     }
 }

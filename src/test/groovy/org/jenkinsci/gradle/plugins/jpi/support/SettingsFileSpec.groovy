@@ -15,4 +15,14 @@ class SettingsFileSpec extends Specification {
                 '''.stripIndent()
     }
 
+    def 'should include subprojects'() {
+        expect:
+        SettingsFile.builder()
+                .addSubprojects(['a', 'b'])
+                .build()
+                .emit(indenter) == '''\
+                    include 'a'
+                    include 'b'
+                    '''.stripIndent()
+    }
 }

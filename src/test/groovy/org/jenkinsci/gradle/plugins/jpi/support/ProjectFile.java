@@ -34,7 +34,7 @@ public class ProjectFile implements Emitable {
         private final List<CodeBlock> blocks = new LinkedList<>();
 
         public ProjectFile build() {
-            return new ProjectFile(name, blocks);
+            return new ProjectFile(name, new LinkedList<>(blocks));
         }
 
         public Builder withPlugins(PluginsBlock block) {

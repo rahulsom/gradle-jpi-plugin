@@ -79,16 +79,26 @@ class ProjectFileSpec extends Specification {
                         .addImplementation('com.google.guava:guava:19.0')
                         .add('testImplementation', 'junit:junit:4.12')
                         .build())
+        def one = builder.build()
+        def two = builder
                 .clearDependencies()
                 .withDependencies(DependenciesBlock.newBuilder()
                         .addImplementation('com.squareup.okio:okio:2.6.0')
                         .build())
+                .build()
 
         when:
-        def actual = builder.build().emit(indenter)
+        def first = one.emit(indenter)
+        def second = two.emit(indenter)
 
         then:
-        actual == '''\
+        first == '''\
+                    dependencies {
+                        implementation 'com.google.guava:guava:19.0'
+                        testImplementation 'junit:junit:4.12'
+                    }
+                    '''.stripIndent()
+        second == '''\
                     dependencies {
                         implementation 'com.squareup.okio:okio:2.6.0'
                     }
