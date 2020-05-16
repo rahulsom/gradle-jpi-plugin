@@ -6,6 +6,10 @@ name: Regression
 on:
   schedule:
     - cron: "37 7 * * 0" # weekly
+  push:
+    paths:
+    - ".github/workflows/regression.yml"
+
 
 jobs:
   build:
@@ -30,13 +34,9 @@ jobs:
         restore-keys: ${{ runner.os }}-gradle 
     - name: Test ${{ matrix.gradle_version }}
       run: ./gradlew testGradle${{ matrix.gradle_version }}
-    - name: Archive Codenarc Report
-      uses: actions/upload-artifact@v1
-      with:
-        name: codenarc-results
-        path: build/reports/codenarc
     - name: Archive Test Results
       uses: actions/upload-artifact@v1
+      if: ${{ always() }}
       with:
         name: test-results
         path: build/reports/tests
