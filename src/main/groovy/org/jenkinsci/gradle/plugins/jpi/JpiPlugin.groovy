@@ -19,6 +19,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.attributes.AttributeCompatibilityRule
 import org.gradle.api.attributes.AttributeDisambiguationRule
 import org.gradle.api.attributes.Bundling
@@ -51,6 +52,7 @@ import org.gradle.util.GradleVersion
 import org.jenkinsci.gradle.plugins.jpi.server.GenerateJenkinsServerHplTask
 
 import org.jenkinsci.gradle.plugins.jpi.server.InstallJenkinsServerPluginsTask
+import org.jenkinsci.gradle.plugins.jpi.server.JenkinsServerTask
 
 import static org.gradle.api.logging.LogLevel.INFO
 import static org.gradle.api.tasks.SourceSet.MAIN_SOURCE_SET_NAME
@@ -115,10 +117,26 @@ class JpiPlugin implements Plugin<Project> {
             it.dependsOn(generateHpl)
         }
 
-        gradleProject.tasks.register(ServerTask.TASK_NAME, ServerTask) {
-            it.description = 'Run Jenkins in place with the plugin being developed'
-            it.group = BasePlugin.BUILD_GROUP // TODO
-            it.dependsOn(ext.mainSourceTree().runtimeClasspath, generateHpl, installPlugins)
+        def serverRuntime = gradleProject.configurations.create('jenkinsServerRuntimeOnly') { Configuration c ->
+            c.withDependencies { DependencySet deps ->
+                deps.add(gradleProject.dependencies.create("org.jenkins-ci.main:jenkins-war:${ext.coreVersion}@war"))
+            }
+        }
+
+        gradleProject.tasks.register(JenkinsServerTask.TASK_NAME, JenkinsServerTask) {
+            it.description = 'Run Jenkins server locally with the plugin being developed'
+            it.group = 'Jenkins Server'
+            it.dependsOn(installPlugins)
+            it.jenkinsServerRuntime.set(serverRuntime)
+            it.jenkinsHome.set(ext.workDir)
+            def sysPropPort = System.getProperty('jenkins.httpPort')
+            if (sysPropPort) {
+                it.port.convention(sysPropPort)
+            }
+            def propPort = project.findProperty('jenkins.httpPort') as String
+            if (propPort) {
+                it.port.convention(propPort)
+            }
         }
 
         // set build directory for Jenkins test harness, JENKINS-26331

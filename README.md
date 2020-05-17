@@ -143,12 +143,104 @@ Examples:
   local Maven repository.
 * `gradle publish` - Deploy your plugin to
   the Jenkins Maven repository to be included in the Update Center.
-* `gradle server` - Start a local instance of Jenkins (http://localhost:8080) with the plugin pre-installed for testing
-  and debugging. The HTTP port can be changed with the `jenkins.httpPort` project or system property, e.g.
-  `gradle server -Djenkins.httpPort=8082`. Since the server runs in the Gradle process, [increasing the memory available
-  to Gradle][configure-jvm] also increases the memory available to Jenkins.
+* `gradle server` - Start a local instance of Jenkins with the plugin pre-installed for testing
+  and debugging.
   
-[configure-jvm]: https://docs.gradle.org/current/userguide/build_environment.html#sec:configuring_jvm_memory
+### Running Jenkins Locally
+
+The `server` task creates a [hpl][hpl], installs plugins, and starts up Jenkins on port 8080. The server runs
+in the foreground.
+
+Plugins added to any of these configurations will be installed to `${jenkinsPlugin.workDir}/plugins`:
+- `api`
+- `implementation`
+- `runtimeOnly`
+- `jenkinsServer`
+
+#### Default System Properties
+
+Jenkins starts up with these system properties set to `true`:
+- `stapler.trace`
+- `stapler.jelly.noCache`
+- `debug.YUI`
+- `hudson.Main.development`
+
+Each can be overridden as described in the _Customizing Further_ section below.
+
+[hpl]: https://wiki.jenkins.io/display/JENKINS/Plugin+Structure#PluginStructure-DebugPluginLayout:.hpl
+
+
+#### Customizing Port
+
+Jenkins starts by default on port 8080. This can be changed with the `--port` flag or `port` property.
+
+For example to run on port 7000:
+
+```
+$ ./gradlew server --port=7000
+```
+
+or in build.gradle:
+
+```groovy
+tasks.named('server').configure {
+    it.port.set(7000)
+}
+```
+
+#### Customizing Further
+
+The `server` task accepts a [`JavaExecSpec`][javaexecspec] that allows extensive customization.
+
+Here's an example with common options:
+
+```groovy
+tasks.named('server').configure {
+    execSpec {
+        systemProperty 'some.property', 'true'
+        environment 'SOME_ENV_VAR', 'HelloWorld'
+        maxHeapSize = '2g'
+    }
+}
+```
+
+
+#### Debugging
+
+To start Jenkins in a suspended state with a debug port of 5005, add the `--debug-jvm` flag:
+
+```
+$ ./gradlew server --debug-jvm
+
+> Task :server
+Listening for transport dt_socket at address: 5005
+```
+
+Debug options can be customized by the `server` task's `execSpec` action:
+
+```groovy
+tasks.named('server').configure {
+    execSpec {
+        debugOptions {
+            port.set(6000)
+            suspend.set(false)
+        }
+    }
+}
+```
+```
+$ ./gradlew server --debug-jvm
+
+> Task :server
+Listening for transport dt_socket at address: 6000
+```
+
+
+
+#### Additional Server Dependencies
+
+Any additional dependencies for the `server` task's classpath can be added to the `jenkinsServerRuntimeOnly`
+configuration. This can be useful for alternative logging implementations.
 
 ## Disabling SHA256 and SHA512 checksums when releasing a plugin
 
@@ -174,23 +266,6 @@ If you combine java and groovy code and both provide extensions you need to eith
 - Use joint compilation, i.e. put your java source files into the groovy source path (src/main/groovy)
 - or force Gradle to use the old layout by including something like `sourceSets.main.output.classesDir = new File(buildDir, "classes/main")` in your build.gradle as a workaround.
 
-## Debugging
-
-It is possible to attach a remote debugger to the Jenkins instance started by `gradle server`.
-
-    $ ./gradlew server -Dorg.gradle.debug=true
-
-This command will run the gradle JVM with the appropriate options on the default debug port.
-If more control is required, the JVM options can be set in more detail:
-
-    $ ./gradlew server -Dorg.gradle.jvmargs=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005
-
-The `server` task enables several debug options: `stapler.trace`, `stapler.jelly.noCache` and `debug.YUI`. This
-increases the page load time. All option can be changed and new options can be added by passing them as system
-properties to the Gradle command line.
-
-    $ ./gradlew -Dstapler.jelly.noCache=false server
-
 ## Examples
 
 Here are some real world examples of Jenkins plugins using the Gradle JPI plugin:
@@ -198,3 +273,5 @@ Here are some real world examples of Jenkins plugins using the Gradle JPI plugin
 * [Job DSL Plugin](https://github.com/jenkinsci/job-dsl-plugin)
 * [Selenium Axis Plugin](https://github.com/jenkinsci/selenium-axis-plugin)
 * [Doktor Plugin](https://github.com/jenkinsci/doktor-plugin)
+
+[javaexecspec]: https://docs.gradle.org/current/javadoc/org/gradle/process/JavaExecSpec.html

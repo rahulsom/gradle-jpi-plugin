@@ -1,15 +1,16 @@
-package org.jenkinsci.gradle.plugins.jpi
+package org.jenkinsci.gradle.plugins.jpi.server
 
+import org.jenkinsci.gradle.plugins.jpi.IntegrationSpec
 import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
 @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
-class ServerTaskSpec extends IntegrationSpec {
+class JenkinsServerTaskSpec extends IntegrationSpec {
 
     @Unroll
     def 'server task is working - Jenkins #jenkinsVersion'() {
         given:
-        projectDir.newFile('settings.gradle')  << """\
+        projectDir.newFile('settings.gradle') << """\
             rootProject.name = "test-project"
             includeBuild('${path(new File(''))}')
         """
@@ -44,15 +45,14 @@ class ServerTaskSpec extends IntegrationSpec {
             }
         }
 
-        // run a separate process because the Jenkins shutdown kills the daemon
-        def gradleProcess = "${path(new File('gradlew'))} server -Djenkins.httpPort=8456 --no-daemon".
-                execute(null, projectDir.root)
-        def output = gradleProcess.text
+        def result = gradleRunner()
+                .withArguments('server', '--port=8456')
+                .build()
+        def output = result.output
 
         then:
         output.contains("/jenkins-war-${jenkinsVersion}.war")
         output.contains('webroot: System.getProperty("JENKINS_HOME")')
-        new File(projectDir.root, 'work/plugins/git.hpi').exists()
 
         where:
         jenkinsVersion | additionalPlugin

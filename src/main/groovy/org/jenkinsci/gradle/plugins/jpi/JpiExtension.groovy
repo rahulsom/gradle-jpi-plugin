@@ -31,6 +31,7 @@ import org.gradle.util.ConfigureUtil
  */
 class JpiExtension {
     final Project project
+    @Deprecated
     Map<String, String> jenkinsWarCoordinates
 
     JpiExtension(Project project) {

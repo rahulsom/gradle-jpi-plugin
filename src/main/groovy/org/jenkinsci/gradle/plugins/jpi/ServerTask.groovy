@@ -26,6 +26,7 @@ import java.util.jar.JarFile
  *
  * @author Kohsuke Kawaguchi
  */
+@Deprecated
 class ServerTask extends DefaultTask {
     public static final String TASK_NAME = 'server'
 
