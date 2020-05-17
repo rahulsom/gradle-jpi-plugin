@@ -165,6 +165,13 @@ class InstallJenkinsServerPluginsTaskSpec extends IntegrationSpec {
         'runtimeOnly'        | 'added jar'   | []                                   | ['com.google.guava:guava:20.0']
         'runtimeOnly'        | 'removed jar' | ['com.google.guava:guava:20.0']      | []
 
+        'jenkinsServer'      | 'changed jpi' | ['org.jenkins-ci.plugins:git:4.0.0'] | ['org.jenkins-ci.plugins:git:4.0.1']
+        'jenkinsServer'      | 'added jpi'   | []                                   | ['org.jenkins-ci.plugins:git:4.0.1']
+        'jenkinsServer'      | 'removed jpi' | ['org.jenkins-ci.plugins:git:4.0.0'] | []
+        'jenkinsServer'      | 'changed jar' | ['com.google.guava:guava:19.0']      | ['com.google.guava:guava:20.0']
+        'jenkinsServer'      | 'added jar'   | []                                   | ['com.google.guava:guava:20.0']
+        'jenkinsServer'      | 'removed jar' | ['com.google.guava:guava:20.0']      | []
+
         'testImplementation' | 'changed jpi' | ['org.jenkins-ci.plugins:git:4.0.0'] | ['org.jenkins-ci.plugins:git:4.0.1']
         'testImplementation' | 'added jpi'   | []                                   | ['org.jenkins-ci.plugins:git:4.0.1']
         'testImplementation' | 'removed jpi' | ['org.jenkins-ci.plugins:git:4.0.0'] | []
@@ -222,6 +229,8 @@ class InstallJenkinsServerPluginsTaskSpec extends IntegrationSpec {
         'implementation'     | 'stay jar'    | ['com.google.guava:guava:20.0']      | ['com.google.guava:guava:20.0']
         'runtimeOnly'        | 'stay jpi'    | ['org.jenkins-ci.plugins:git:4.0.0'] | ['org.jenkins-ci.plugins:git:4.0.0']
         'runtimeOnly'        | 'stay jar'    | ['com.google.guava:guava:20.0']      | ['com.google.guava:guava:20.0']
+        'jenkinsServer'      | 'stay jpi'    | ['org.jenkins-ci.plugins:git:4.0.0'] | ['org.jenkins-ci.plugins:git:4.0.0']
+        'jenkinsServer'      | 'stay jar'    | ['com.google.guava:guava:20.0']      | ['com.google.guava:guava:20.0']
         'testImplementation' | 'stay jpi'    | ['org.jenkins-ci.plugins:git:4.0.0'] | ['org.jenkins-ci.plugins:git:4.0.0']
         'testImplementation' | 'stay jar'    | ['com.google.guava:guava:20.0']      | ['com.google.guava:guava:20.0']
         'testRuntimeOnly'    | 'stay jpi'    | ['org.jenkins-ci.plugins:git:4.0.0'] | ['org.jenkins-ci.plugins:git:4.0.0']
@@ -285,7 +294,14 @@ class InstallJenkinsServerPluginsTaskSpec extends IntegrationSpec {
                                            String hpl = "${projectName}.hpl") {
         def result = [hpl] as Set
         result.addAll(DEFAULT)
-        if (!['api', 'implementation', 'runtimeOnly', 'testImplementation', 'testRuntimeOnly'].contains(configuration)) {
+        if (![
+                'api',
+                'implementation',
+                'jenkinsServer',
+                'runtimeOnly',
+                'testImplementation',
+                'testRuntimeOnly',
+        ].contains(configuration)) {
             return result
         }
         if (dependencies.contains('org.jenkins-ci.plugins:git:4.0.0')) {
