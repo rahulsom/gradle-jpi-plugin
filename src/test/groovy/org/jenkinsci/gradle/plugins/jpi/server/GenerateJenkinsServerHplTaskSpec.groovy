@@ -23,11 +23,12 @@ class GenerateJenkinsServerHplTaskSpec extends IntegrationSpec {
                 id 'org.jenkins-ci.jpi'
             }
             '''.stripIndent()
+        def realProjectDir = projectDir.root.toPath().toRealPath()
         minimalAttributes = [
                 'Long-Name'              : 'strawberry',
                 'Minimum-Java-Version'   : '1.8',
                 'Support-Dynamic-Loading': 'true',
-                'Resource-Path'          : new File(projectDir.root, 'src/main/webapp').path,
+                'Resource-Path'          : realProjectDir.resolve('src/main/webapp').toString(),
                 'Libraries'              : '',
                 'Plugin-Version'         : '6.0.13',
                 'Jenkins-Version'        : '2.222.3',
