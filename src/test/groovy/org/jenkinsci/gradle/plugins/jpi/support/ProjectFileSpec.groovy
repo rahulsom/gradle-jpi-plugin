@@ -105,12 +105,27 @@ class ProjectFileSpec extends Specification {
                     '''.stripIndent()
     }
 
+    def 'should handle top-level statement'() {
+        expect:
+        ProjectFile.newBuilder()
+                .setStatement('group = $S', 'com.example')
+                .setStatement('version = $S', '1.2.3')
+                .build()
+                .emit(indenter) == '''\
+                    group = 'com.example'
+                    version = '1.2.3'
+                    '''.stripIndent()
+    }
+
     def 'should do it all'() {
         expect:
         ProjectFile.newBuilder()
                 .withPlugins(PluginsBlock.newBuilder()
                         .withPlugin('org.jenkins-ci.jpi')
                         .build())
+                .setStatement('group = $S', 'org.example')
+                .setStatement('version = $S', '3.3.1')
+                .setStatement('group = $S', 'org.example.something')
                 .withBlock(CodeBlock.newBuilder('jenkinsPlugin')
                         .addStatement('coreVersion = $S', '2.222.3')
                         .build())
@@ -122,6 +137,9 @@ class ProjectFileSpec extends Specification {
                     plugins {
                         id 'org.jenkins-ci.jpi'
                     }
+
+                    version = '3.3.1'
+                    group = 'org.example.something'
 
                     jenkinsPlugin {
                         coreVersion = '2.222.3'
