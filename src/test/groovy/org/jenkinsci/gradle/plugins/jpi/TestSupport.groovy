@@ -8,7 +8,6 @@ import org.junit.Assert
 import org.junit.Test
 
 import javax.lang.model.element.Modifier
-import java.nio.charset.StandardCharsets
 import java.util.function.Function
 
 @CompileStatic
@@ -50,7 +49,7 @@ class TestSupport {
                             .addModifiers(Modifier.PUBLIC)
                             .returns(void)
                             .addException(Exception)
-                            .addStatement('$1T writer = new $1T($2S, $3T.UTF_8)', FileWriter, file, StandardCharsets)
+                            .addStatement('$1T writer = new $1T($2S)', FileWriter, file)
                             .addStatement('$T.getProperties().store(writer, null)', System)
                             .build())
                     .build()).build()
