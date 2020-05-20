@@ -126,12 +126,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
             }
             '''.stripIndent()
 
-        projectDir.newFolder('src', 'main', 'java', 'my', 'example')
-        projectDir.newFile('src/main/java/my/example/Foo.java') << '''\
-            package my.example;
-
-            class Foo {}
-            '''.stripIndent()
+        TestSupport.CALCULATOR.writeTo(new File(projectDir.root, 'src/main/java'))
 
         when:
         def run = gradleRunner()
@@ -155,7 +150,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
         def jarFile = new ZipFile(generatedJar)
         def jarEntries = jarFile.entries()*.name
 
-        jarEntries.contains('my/example/Foo.class')
+        jarEntries.contains('org/example/Calculator.class')
     }
 
     @Unroll
@@ -239,21 +234,9 @@ class JpiIntegrationSpec extends IntegrationSpec {
                 testImplementation 'junit:junit:4.12'
             }
             '''.stripIndent()
-        projectDir.newFolder('src', 'test', 'java')
         def actualFile = projectDir.newFile()
-        def normalizedPath = actualFile.absolutePath.replaceAll('\\\\', '/')
-        def file = projectDir.newFile('src/test/java/ExampleTest.java')
-        file << """
-            public class ExampleTest {
-                @org.junit.Test
-                public void shouldHaveSystemPropertySet() throws Exception {
-                    java.nio.file.Files.write(
-                        java.nio.file.Paths.get("${normalizedPath}"),
-                        java.util.Collections.singletonList(System.getProperty("buildDirectory")),
-                        java.nio.charset.StandardCharsets.UTF_8);
-                }
-            }
-            """.stripIndent()
+        TestSupport.TEST_THAT_WRITES_SYSTEM_PROPERTIES_TO.apply(actualFile)
+                .writeTo(new File(projectDir.root, 'src/test/java'))
 
         when:
         gradleRunner()
@@ -261,8 +244,10 @@ class JpiIntegrationSpec extends IntegrationSpec {
                 .build()
 
         then:
+        def actual = new Properties()
+        actual.load(new FileReader(actualFile))
         def expected = new File(projectDir.root, 'build').toPath().toRealPath().toString()
-        actualFile.text.trim() == expected
+        actual.get('buildDirectory') == expected
     }
 
     def 'sources and javadoc jars are created by default'() {

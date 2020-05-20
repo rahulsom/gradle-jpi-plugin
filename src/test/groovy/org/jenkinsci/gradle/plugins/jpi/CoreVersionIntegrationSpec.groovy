@@ -49,16 +49,7 @@ class CoreVersionIntegrationSpec extends IntegrationSpec {
                 coreVersion = '${version}'
             }
             """.stripIndent()
-        def exampleTest = new File(projectDir.root, 'src/test/java/ExampleTest.java')
-        exampleTest.parentFile.mkdirs()
-        exampleTest << '''\
-            public class ExampleTest {
-                @org.junit.Test
-                public void shouldAdd() {
-                    System.out.println("this is only a test");
-                }
-            }
-            '''.stripIndent()
+        TestSupport.PASSING_TEST.writeTo(new File(projectDir.root, 'src/test/java'))
 
         expect:
         def result = gradleRunner()

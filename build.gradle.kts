@@ -36,6 +36,7 @@ dependencies {
     }
     testImplementation("org.xmlunit:xmlunit-core:2.6.3")
     testImplementation("org.apache.commons:commons-text:1.8")
+    testImplementation("com.squareup:javapoet:1.12.1")
 }
 
 publishing {
