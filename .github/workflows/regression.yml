@@ -4,11 +4,10 @@
 name: Regression
 
 on:
-  schedule:
-    - cron: "37 7 * * 0" # weekly
   push:
-    paths:
-    - ".github/workflows/regression.yml"
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
 
 
 jobs:
