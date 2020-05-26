@@ -1,7 +1,10 @@
 # Gradle JPI plugin
 
-![CI](https://github.com/jenkinsci/gradle-jpi-plugin/workflows/CI/badge.svg)
-![Regression](https://github.com/jenkinsci/gradle-jpi-plugin/workflows/Regression/badge.svg)
+[![CI](https://github.com/jenkinsci/gradle-jpi-plugin/workflows/CI/badge.svg)][ci-workflow]
+[![Regression](https://github.com/jenkinsci/gradle-jpi-plugin/workflows/Regression/badge.svg)][regression-workflow]
+
+[ci-workflow]: https://github.com/jenkinsci/gradle-jpi-plugin/actions?query=workflow%3ACI
+[regression-workflow]: https://github.com/jenkinsci/gradle-jpi-plugin/actions?query=workflow%3ARegression
 
 This is a Gradle plugin for building [Jenkins](http://jenkins-ci.org)
 plugins, written in Groovy or Java.
