@@ -11,6 +11,7 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.options.Option
 import org.gradle.process.JavaExecSpec
+import org.gradle.util.GradleVersion
 
 import java.util.jar.JarFile
 
@@ -56,7 +57,11 @@ class JenkinsServerTask extends DefaultTask {
         doLast {
             project.javaexec { JavaExecSpec s ->
                 s.classpath(jenkinsServerRuntime.get())
-                s.mainClass.set(extractedMainClass)
+                if (GradleVersion.current() < GradleVersion.version('6.4')) {
+                    s.main = extractedMainClass.get()
+                } else {
+                    s.mainClass.set(extractedMainClass)
+                }
                 s.args("--httpPort=${port.get()}")
                 s.systemProperty('JENKINS_HOME', jenkinsHome.get())
                 for (String prop : DEFAULTED_PROPERTIES) {
