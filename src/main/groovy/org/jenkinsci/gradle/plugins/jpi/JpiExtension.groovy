@@ -137,13 +137,6 @@ class JpiExtension {
             throw new GradleException('The gradle-jpi-plugin requires Jenkins 1.420 or later')
         }
 
-        // workarounds for JENKINS-26331
-        if (new VersionNumber(this.coreVersion) >= new VersionNumber('1.545') &&
-                new VersionNumber(this.coreVersion) < new VersionNumber('1.592')) {
-            project.tasks.test.doFirst {
-                project.file('target').mkdirs()
-            }
-        }
         if (new VersionNumber(this.coreVersion) < new VersionNumber('1.598')) {
             Delete clean = project.tasks.clean as Delete
             clean.delete('target')

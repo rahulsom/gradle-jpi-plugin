@@ -49,6 +49,7 @@ import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.testing.Test
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.util.GradleVersion
+import org.jenkinsci.gradle.plugins.jpi.legacy.LegacyWorkaroundsPlugin
 import org.jenkinsci.gradle.plugins.jpi.server.GenerateJenkinsServerHplTask
 
 import org.jenkinsci.gradle.plugins.jpi.server.InstallJenkinsServerPluginsTask
@@ -96,6 +97,7 @@ class JpiPlugin implements Plugin<Project> {
 
         gradleProject.plugins.apply(JavaLibraryPlugin)
         gradleProject.plugins.apply(GroovyPlugin)
+        gradleProject.plugins.apply(LegacyWorkaroundsPlugin)
 
         def ext = gradleProject.extensions.create('jenkinsPlugin', JpiExtension, gradleProject)
 
