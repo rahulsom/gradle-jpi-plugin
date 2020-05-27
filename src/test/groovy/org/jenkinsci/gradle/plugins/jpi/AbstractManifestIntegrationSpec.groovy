@@ -30,6 +30,11 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
 
     def 'should have defaults'() {
         given:
+        build << """\
+            jenkinsPlugin {
+                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+            }
+            """.stripIndent()
         def expected = [
                 'Long-Name'              : projectName,
                 'Support-Dynamic-Loading': 'true',
@@ -38,6 +43,7 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
                 'Manifest-Version'       : '1.0',
                 'Short-Name'             : projectName,
                 'Minimum-Java-Version'   : System.getProperty('java.specification.version'),
+                'Jenkins-Version'        : TestSupport.RECENT_JENKINS_VERSION,
         ]
         when:
         def actual = generateManifestThroughGradle()
@@ -48,12 +54,12 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
 
     def 'should populate Long-Name from Short-Name if unset'() {
         given:
-        build << '''
+        build << """\
             jenkinsPlugin {
-                coreVersion = '2.222.3'
+                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
                 shortName = 'hello'
             }
-            '''.stripIndent()
+            """.stripIndent()
 
         when:
         def actual = generateManifestThroughGradle(projectVersion, 'hello')
@@ -64,13 +70,13 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
 
     def 'should populate Long-Name'() {
         given:
-        build << '''
+        build << """\
             jenkinsPlugin {
-                coreVersion = '2.222.3'
+                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
                 shortName = 'hello'
                 displayName = 'The Hello Plugin'
             }
-            '''.stripIndent()
+            """.stripIndent()
 
         when:
         def actual = generateManifestThroughGradle(projectVersion, 'hello')
@@ -80,6 +86,12 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
     }
 
     def 'should populate Plugin-Version from project version if not defined'() {
+        given:
+        build << """\
+            jenkinsPlugin {
+                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+            }
+            """.stripIndent()
         when:
         def actual = generateManifestThroughGradle(null)
 
@@ -89,6 +101,11 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
 
     def 'should populate Plugin-Version from calculated project version if defined as -SNAPSHOT'() {
         given:
+        build << """\
+            jenkinsPlugin {
+                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+            }
+            """.stripIndent()
         def snapshotVersion = "${projectVersion}-SNAPSHOT"
 
         when:
@@ -103,6 +120,9 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
         String expected = 'org.example.myplugin'
         build << """\
             group = "$expected"
+            jenkinsPlugin {
+                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+            }
             """.stripIndent()
 
         when:
@@ -134,7 +154,7 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
         String name = 'TestPlugin'
         build << """\
             jenkinsPlugin {
-                coreVersion = '2.150.1'
+                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
         projectDir.newFolder('src', 'main', 'java', 'my', 'example')
@@ -158,6 +178,7 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
         build << """\
             jenkinsPlugin {
                 compatibleSinceVersion = '$expected'
+                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
 
@@ -172,6 +193,9 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
         given:
         build << """\
             targetCompatibility = $input
+            jenkinsPlugin {
+                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+            }
             """.stripIndent()
 
         expect:
@@ -192,6 +216,7 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
         build << """\
             jenkinsPlugin {
                 maskClasses = '$expected'
+                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
 
@@ -208,6 +233,7 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
         build << """\
             jenkinsPlugin {
                 pluginFirstClassLoader = $value
+                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
 
@@ -227,6 +253,7 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
         build << """\
             jenkinsPlugin {
                 sandboxStatus = $value
+                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
 
@@ -243,6 +270,9 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
     def 'should populate Plugin-Dependencies with expected format for sole required dependency'() {
         given:
         build << """\
+            jenkinsPlugin {
+                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+            }
             dependencies {
                 api 'org.jenkins-ci.plugins:ant:1.2'
             }
@@ -258,6 +288,9 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
     def 'should populate Plugin-Dependencies with expected ordered format for multiple required dependencies'() {
         given:
         build << """\
+            jenkinsPlugin {
+                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+            }
             dependencies {
                 api 'org.jenkinsci.plugins:git:1.1.15'
                 implementation 'org.jenkins-ci.plugins:ant:1.2'
@@ -274,6 +307,9 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
     def 'should populate Plugin-Dependencies with expected format for sole optional dependency'() {
         given:
         build << """\
+            jenkinsPlugin {
+                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+            }
             java {
                 registerFeature('ant') {
                     usingSourceSet(sourceSets.main)
@@ -294,6 +330,9 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
     def 'should populate Plugin-Dependencies with expected ordered format for multiple optional dependencies'() {
         given:
         build << """\
+            jenkinsPlugin {
+                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+            }
             java {
                 registerFeature('git') {
                     usingSourceSet(sourceSets.main)
@@ -318,6 +357,9 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
     def 'should populate Plugin-Dependencies with expected ordered format for multiple dependencies'() {
         given:
         build << """\
+            jenkinsPlugin {
+                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+            }
             java {
                 registerFeature('folder') {
                     usingSourceSet(sourceSets.main)
@@ -348,6 +390,10 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
     def 'can use bom to manage plugin dependencies'() {
         given:
         build << """\
+            jenkinsPlugin {
+                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+            }
+
             dependencies {
                 api platform("io.jenkins.tools.bom:bom-2.138.x:4")
                 implementation 'org.jenkins-ci.plugins.workflow:workflow-api'
@@ -365,6 +411,7 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
         given:
         build << """\
             jenkinsPlugin {
+                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
                 developers {
                     developer {
                         id 'abayer'
@@ -386,6 +433,7 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
         given:
         build << """\
             jenkinsPlugin {
+                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
                 developers {
                     developer {
                         id 'abayer'
@@ -411,7 +459,7 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
         given:
         build << """\
             jenkinsPlugin {
-                coreVersion = '2.150.1'
+                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
         projectDir.newFolder('src', 'main', 'java', 'my', 'example')
@@ -440,6 +488,7 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
         build << """\
             jenkinsPlugin {
                 shortName = 'unchanged'
+                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
         def firstRun = runTask()
@@ -458,6 +507,7 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
         build << """\
             jenkinsPlugin {
                 shortName = 'before'
+                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
         def firstRun = runTask()

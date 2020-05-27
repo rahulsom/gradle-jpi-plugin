@@ -54,11 +54,12 @@ class ConfigurePublishingIntegrationSpec extends IntegrationSpec {
 
     def 'does not create sources and javadoc jars if configurePublishing is disabled'() {
         given:
-        build << '''
+        build << """
             jenkinsPlugin {
                 configurePublishing = false
+                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
-            '''.stripIndent()
+            """.stripIndent()
         when:
         gradleRunner()
                 .withArguments('build')
@@ -81,6 +82,7 @@ class ConfigurePublishingIntegrationSpec extends IntegrationSpec {
              }
             jenkinsPlugin {
                 configurePublishing = false
+                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
 
@@ -106,6 +108,7 @@ class ConfigurePublishingIntegrationSpec extends IntegrationSpec {
             }
             jenkinsPlugin {
                 configurePublishing = false
+                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
 
             afterEvaluate {
@@ -149,6 +152,7 @@ class ConfigurePublishingIntegrationSpec extends IntegrationSpec {
         build << """
             jenkinsPlugin {
                 $declaration
+                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             version = '$version'
             """.stripIndent()
@@ -176,6 +180,7 @@ class ConfigurePublishingIntegrationSpec extends IntegrationSpec {
         build << """
             jenkinsPlugin {
                 configurePublishing = false
+                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             version = '$version'
             """.stripIndent()
@@ -199,8 +204,8 @@ class ConfigurePublishingIntegrationSpec extends IntegrationSpec {
         def version = '12.1'
         build << """
             jenkinsPlugin {
-                coreVersion = '2.222.3'
                 $declaration
+                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             version = '$version'
             """.stripIndent()
@@ -235,8 +240,8 @@ class ConfigurePublishingIntegrationSpec extends IntegrationSpec {
         given:
         build << """
             jenkinsPlugin {
-                coreVersion = '2.222.3'
                 $declaration
+                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
 

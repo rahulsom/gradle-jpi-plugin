@@ -70,6 +70,9 @@ class JpiPublishingAndConsumptionTest extends IntegrationSpec {
     def 'publishes compile, runtime and jenkins runtime variant'() {
         given:
         producerBuild << """\
+            jenkinsPlugin {
+                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+            }
             dependencies {
                 api 'org.jenkins-ci.plugins:credentials:1.9.4'
                 implementation 'org.jenkins-ci.plugins:git:3.12.1'
@@ -177,6 +180,9 @@ class JpiPublishingAndConsumptionTest extends IntegrationSpec {
     def 'publishes feature variant with compile, runtime and jenkins runtime variant'() {
         given:
         producerBuild << """\
+            jenkinsPlugin {
+                coreVersion = '1.580.1'
+            }
             java {
                 registerFeature('credentials') {
                     usingSourceSet(sourceSets.main)
@@ -193,19 +199,26 @@ class JpiPublishingAndConsumptionTest extends IntegrationSpec {
 
         when:
         consumerBuild << """
+            jenkinsPlugin {
+                coreVersion = '1.580.1'
+            }
             dependencies {
                 implementation 'org:producer:1.0'
             }
         """
 
         then:
-        resolveConsumer('compile') == [ 'producer-1.0.jar' ] as Set
+        resolveConsumer('compile') == JENKINS_CORE_DEPS + [ 'producer-1.0.jar' ] as Set
         resolveConsumer('runtime') == [
                 'producer-1.0.jar',
                 'ant-1.2.jar',
                 'commons-lang3-3.9.jar' ] as Set
         resolveConsumer('jenkinsRuntime') == [ 'producer-1.0.hpi', 'ant-1.2.hpi' ] as Set
-        resolveConsumer('jenkinsTestRuntime') == [ 'producer-1.0.hpi', 'ant-1.2.hpi' ] as Set
+        resolveConsumer('jenkinsTestRuntime') == [
+                'jenkins-war-1.580.1-war-for-test.jar',
+                'ui-samples-plugin-2.0.hpi',
+                'producer-1.0.hpi',
+                'ant-1.2.hpi' ] as Set
 
         when:
         consumerBuild << """
@@ -217,7 +230,7 @@ class JpiPublishingAndConsumptionTest extends IntegrationSpec {
         """
 
         then:
-        resolveConsumer('compile') == [ 'producer-1.0.jar' ] as Set
+        resolveConsumer('compile') == JENKINS_CORE_DEPS + [ 'producer-1.0.jar' ] as Set
         resolveConsumer('runtime') == [
                 'producer-1.0.jar',
                 'ant-1.2.jar',
@@ -230,7 +243,11 @@ class JpiPublishingAndConsumptionTest extends IntegrationSpec {
         resolveConsumer('jenkinsRuntime') ==
                 [ 'producer-1.0.hpi', 'ant-1.2.hpi', 'credentials-1.9.4.hpi' ] as Set
         resolveConsumer('jenkinsTestRuntime') ==
-                [ 'producer-1.0.hpi', 'ant-1.2.hpi', 'credentials-1.9.4.hpi' ] as Set
+                [ 'jenkins-war-1.580.1-war-for-test.jar',
+                  'ui-samples-plugin-2.0.hpi',
+                  'producer-1.0.hpi',
+                  'ant-1.2.hpi',
+                  'credentials-1.9.4.hpi' ] as Set
 
         manifestEntry('consumer', 'Plugin-Dependencies') ==
                 'producer:1.0,credentials:1.9.4'
@@ -244,6 +261,11 @@ class JpiPublishingAndConsumptionTest extends IntegrationSpec {
 
     def 'has Jenkins core dependencies if a Jenkins version is configured'() {
         given:
+        producerBuild << """
+            jenkinsPlugin {
+                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+            }
+            """.stripIndent()
         publishProducer()
 
         when:

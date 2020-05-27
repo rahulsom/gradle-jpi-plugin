@@ -29,6 +29,13 @@ class JpiIntegrationSpec extends IntegrationSpec {
     }
 
     def 'uses hpi file extension by default'() {
+        given:
+        build << """\
+            jenkinsPlugin {
+                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+            }
+            """.stripIndent()
+
         when:
         gradleRunner()
                 .withArguments('jpi')
@@ -44,6 +51,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
         build << """
             jenkinsPlugin {
                 $declaration
+                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
 
@@ -66,6 +74,13 @@ class JpiIntegrationSpec extends IntegrationSpec {
     }
 
     def 'uses project name as shortName by default'() {
+        given:
+        build << """\
+            jenkinsPlugin {
+                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+            }
+            """.stripIndent()
+
         when:
         gradleRunner()
                 .withArguments('jpi')
@@ -77,6 +92,11 @@ class JpiIntegrationSpec extends IntegrationSpec {
 
     def 'uses project name with trimmed -plugin as shortName by default'() {
         given:
+        build << """\
+            jenkinsPlugin {
+                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+            }
+            """.stripIndent()
         def expected = 'test-333'
         settings.text = "rootProject.name = '$expected-plugin'"
 
@@ -95,6 +115,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
         build << """
             jenkinsPlugin {
                 $shortName
+                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
 
@@ -118,13 +139,16 @@ class JpiIntegrationSpec extends IntegrationSpec {
         given:
         def jarPathInHpi = "WEB-INF/lib/${projectName}-${projectVersion}.jar" as String
 
-        build << '''\
+        build << """\
             repositories { mavenCentral() }
             dependencies {
                 implementation 'junit:junit:4.12'
                 api 'org.jenkins-ci.plugins:credentials:1.9.4'
             }
-            '''.stripIndent()
+            jenkinsPlugin {
+                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+            }
+            """.stripIndent()
 
         TestSupport.CALCULATOR.writeTo(new File(projectDir.root, 'src/main/java'))
 
@@ -155,6 +179,13 @@ class JpiIntegrationSpec extends IntegrationSpec {
 
     @Unroll
     def '#task should run #dependency'(String task, String dependency, TaskOutcome outcome) {
+        given:
+        build << """\
+            jenkinsPlugin {
+                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+            }
+            """.stripIndent()
+
         when:
         def result = gradleRunner()
                 .withArguments(task)
@@ -167,7 +198,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
         task                                         | dependency                                    | outcome
         'jar'                                        | ':configureManifest'                          | TaskOutcome.SUCCESS
         'jpi'                                        | ':configureManifest'                          | TaskOutcome.SUCCESS
-        'processTestResources'                       | ':resolveTestDependencies'                    | TaskOutcome.NO_SOURCE
+        'processTestResources'                       | ':resolveTestDependencies'                    | TaskOutcome.SUCCESS
         'compileTestJava'                            | ':insertTest'                                 | TaskOutcome.SKIPPED
         'testClasses'                                | ':generate-test-hpl'                          | TaskOutcome.SUCCESS
         'compileJava'                                | ':localizer'                                  | TaskOutcome.SUCCESS
@@ -228,12 +259,15 @@ class JpiIntegrationSpec extends IntegrationSpec {
 
     def 'set buildDirectory system property in test'() {
         given:
-        build << '''
+        build << """\
             repositories { mavenCentral() }
             dependencies {
                 testImplementation 'junit:junit:4.12'
             }
-            '''.stripIndent()
+            jenkinsPlugin {
+                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+            }
+            """.stripIndent()
         def actualFile = projectDir.newFile()
         TestSupport.TEST_THAT_WRITES_SYSTEM_PROPERTIES_TO.apply(actualFile)
                 .writeTo(new File(projectDir.root, 'src/test/java'))
@@ -251,6 +285,13 @@ class JpiIntegrationSpec extends IntegrationSpec {
     }
 
     def 'sources and javadoc jars are created by default'() {
+        given:
+        build << """\
+            jenkinsPlugin {
+                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+            }
+            """.stripIndent()
+
         when:
         gradleRunner()
                 .withArguments('build')
@@ -272,6 +313,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
             }
             jenkinsPlugin {
                 configurePublishing = false
+                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             repositories {
                 ivy {
@@ -302,6 +344,9 @@ class JpiIntegrationSpec extends IntegrationSpec {
             repositories { mavenCentral() }
             dependencies {
                 $configuration 'junit:junit:4.12'
+            }
+            jenkinsPlugin {
+                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
 
