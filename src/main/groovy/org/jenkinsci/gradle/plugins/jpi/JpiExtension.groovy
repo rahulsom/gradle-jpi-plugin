@@ -24,6 +24,7 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.SourceSet
 import org.gradle.util.ConfigureUtil
+import org.jenkinsci.gradle.plugins.jpi.internal.DependencyLookup
 
 /**
  * This gets exposed to the project as 'jpi' to offer additional convenience methods.
@@ -128,37 +129,9 @@ class JpiExtension {
     void setCoreVersion(String v) {
         jenkinsVersion.convention(v)
         this.coreVersion = v
-        def uiSamplesVersion = v
-        def testHarnessVersion = v
-        def servletApiArtifact = 'servlet-api'
-        def servletApiVersion = '2.4'
-        def findBugsGroup = 'findbugs'
-        def findBugsVersion = '1.0.0'
 
         if (new VersionNumber(this.coreVersion) <= new VersionNumber('1.419.99')) {
             throw new GradleException('The gradle-jpi-plugin requires Jenkins 1.420 or later')
-        }
-
-        if (new VersionNumber(this.coreVersion) >= new VersionNumber('1.533')) {
-            uiSamplesVersion = '2.0'
-        }
-
-        if (new VersionNumber(this.coreVersion) >= new VersionNumber('1.618')) {
-            findBugsGroup = 'com.google.code.findbugs'
-            findBugsVersion = '3.0.0'
-        }
-
-        if (new VersionNumber(this.coreVersion) > new VersionNumber('1.644')) {
-            testHarnessVersion = '2.0'
-        }
-
-        if (new VersionNumber(this.coreVersion) >= new VersionNumber('2.0')) {
-            servletApiArtifact = 'javax.servlet-api'
-            servletApiVersion = '3.1.0'
-        }
-
-        if (new VersionNumber(this.coreVersion) >= new VersionNumber('2.64')) {
-            testHarnessVersion = '2.60'
         }
 
         // workarounds for JENKINS-26331
@@ -175,22 +148,10 @@ class JpiExtension {
 
         if (this.coreVersion) {
             jenkinsWarCoordinates = [group: 'org.jenkins-ci.main', name: 'jenkins-war', version: v]
-            project.dependencies {
-                testRuntimeOnly(jenkinsWarCoordinates)
-
-                annotationProcessor "org.jenkins-ci.main:jenkins-core:$v"
-
-                compileOnly(
-                        [group: 'org.jenkins-ci.main', name: 'jenkins-core', version: v],
-                        [group: findBugsGroup, name: 'annotations', version: findBugsVersion],
-                        [group: 'javax.servlet', name: servletApiArtifact, version: servletApiVersion],
-                )
-
-                testImplementation("org.jenkins-ci.main:jenkins-core:$v")
-                testImplementation("org.jenkins-ci.main:jenkins-test-harness:${testHarnessVersion}")
-                testImplementation("org.jenkins-ci.main:ui-samples-plugin:${uiSamplesVersion}")
-                if (new VersionNumber(this.coreVersion) < new VersionNumber('1.505')) {
-                    testImplementation('junit:junit-dep:4.10')
+            def lookup = new DependencyLookup()
+            for (String config : lookup.configurations()) {
+                lookup.find(config, this.coreVersion).each {
+                    project.dependencies.add(config, it)
                 }
             }
         }

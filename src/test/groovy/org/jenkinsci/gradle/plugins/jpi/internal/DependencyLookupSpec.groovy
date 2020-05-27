@@ -1,0 +1,70 @@
+package org.jenkinsci.gradle.plugins.jpi.internal
+
+import spock.lang.Specification
+import spock.lang.Unroll
+
+class DependencyLookupSpec extends Specification {
+    def 'should get annotationProcessor dependencies by version'() {
+        given:
+        DependencyLookup lookup = new DependencyLookup()
+
+        when:
+        def actual = lookup.find('annotationProcessor', '2.0')
+
+        then:
+        actual == [
+                'org.jenkins-ci.main:jenkins-core:2.0',
+        ] as Set
+    }
+
+    @Unroll
+    def 'should get compileOnly dependencies for #version'(String version, Set<String> expected) {
+        given:
+        DependencyLookup lookup = new DependencyLookup()
+
+        when:
+        def actual = lookup.find('compileOnly', version)
+
+        then:
+        actual == expected
+
+        where:
+        version | expected
+        '1.617' | ['org.jenkins-ci.main:jenkins-core:1.617', 'findbugs:annotations:1.0.0', 'javax.servlet:servlet-api:2.4'] as Set
+        '1.618' | ['org.jenkins-ci.main:jenkins-core:1.618', 'com.google.code.findbugs:annotations:3.0.0', 'javax.servlet:servlet-api:2.4'] as Set
+        '2.0'   | ['org.jenkins-ci.main:jenkins-core:2.0', 'com.google.code.findbugs:annotations:3.0.0', 'javax.servlet:javax.servlet-api:3.1.0'] as Set
+    }
+
+    @Unroll
+    def 'should get testImplementation dependencies for #version'(String version, Set<String> expected) {
+        given:
+        DependencyLookup lookup = new DependencyLookup()
+
+        when:
+        def actual = lookup.find('testImplementation', version)
+
+        then:
+        actual == expected
+
+        where:
+        version | expected
+        '1.504' | ['org.jenkins-ci.main:jenkins-core:1.504', 'org.jenkins-ci.main:jenkins-test-harness:1.504', 'org.jenkins-ci.main:ui-samples-plugin:1.504', 'junit:junit-dep:4.10'] as Set
+        '1.532' | ['org.jenkins-ci.main:jenkins-core:1.532', 'org.jenkins-ci.main:jenkins-test-harness:1.532', 'org.jenkins-ci.main:ui-samples-plugin:1.532'] as Set
+        '1.644' | ['org.jenkins-ci.main:jenkins-core:1.644', 'org.jenkins-ci.main:jenkins-test-harness:1.644', 'org.jenkins-ci.main:ui-samples-plugin:2.0'] as Set
+        '1.645' | ['org.jenkins-ci.main:jenkins-core:1.645', 'org.jenkins-ci.main:jenkins-test-harness:2.0', 'org.jenkins-ci.main:ui-samples-plugin:2.0'] as Set
+        '2.64'  | ['org.jenkins-ci.main:jenkins-core:2.64', 'org.jenkins-ci.main:jenkins-test-harness:2.60', 'org.jenkins-ci.main:ui-samples-plugin:2.0'] as Set
+    }
+
+    def 'should get testRuntimeOnly dependencies for version'() {
+        given:
+        DependencyLookup lookup = new DependencyLookup()
+
+        when:
+        def actual = lookup.find('testRuntimeOnly', '2.222.3')
+
+        then:
+        actual == [
+                'org.jenkins-ci.main:jenkins-war:2.222.3',
+        ] as Set<String>
+    }
+}
