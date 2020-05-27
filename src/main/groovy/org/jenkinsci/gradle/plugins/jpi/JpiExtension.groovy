@@ -18,6 +18,9 @@ package org.jenkinsci.gradle.plugins.jpi
 import hudson.util.VersionNumber
 import org.gradle.api.GradleException
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.model.ReplacedBy
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.provider.Property
@@ -150,8 +153,15 @@ class JpiExtension {
             jenkinsWarCoordinates = [group: 'org.jenkins-ci.main', name: 'jenkins-war', version: v]
             def lookup = new DependencyLookup()
             for (String config : lookup.configurations()) {
-                lookup.find(config, this.coreVersion).each {
-                    project.dependencies.add(config, it)
+                def toAdd = lookup.find(config, coreVersion).collect {
+                    project.dependencies.create(it) { Dependency d ->
+                        d.because('Added by org.jenkins-ci.jpi plugin')
+                    }
+                }
+                project.configurations.getByName(config) { Configuration c ->
+                    c.withDependencies { DependencySet deps ->
+                        deps.addAll(toAdd)
+                    }
                 }
             }
         }
