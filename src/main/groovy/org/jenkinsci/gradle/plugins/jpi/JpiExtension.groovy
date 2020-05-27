@@ -18,7 +18,9 @@ package org.jenkinsci.gradle.plugins.jpi
 import hudson.util.VersionNumber
 import org.gradle.api.GradleException
 import org.gradle.api.Project
+import org.gradle.api.model.ReplacedBy
 import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.SourceSet
 import org.gradle.util.ConfigureUtil
@@ -33,9 +35,11 @@ class JpiExtension {
     final Project project
     @Deprecated
     Map<String, String> jenkinsWarCoordinates
+    final Property<String> jenkinsVersion
 
     JpiExtension(Project project) {
         this.project = project
+        this.jenkinsVersion = project.objects.property(String)
     }
 
     private String shortName
@@ -109,13 +113,20 @@ class JpiExtension {
     /**
      * Version of core that we depend on.
      */
+    @Deprecated
+    @ReplacedBy('jenkinsVersion')
     private String coreVersion
 
+    @Deprecated
+    @ReplacedBy('jenkinsVersion')
     String getCoreVersion() {
         coreVersion
     }
 
+    @Deprecated
+    @ReplacedBy('jenkinsVersion')
     void setCoreVersion(String v) {
+        jenkinsVersion.convention(v)
         this.coreVersion = v
         def uiSamplesVersion = v
         def testHarnessVersion = v

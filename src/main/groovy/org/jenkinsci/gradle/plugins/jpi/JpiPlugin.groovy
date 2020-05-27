@@ -119,7 +119,8 @@ class JpiPlugin implements Plugin<Project> {
 
         def serverRuntime = gradleProject.configurations.create('jenkinsServerRuntimeOnly') { Configuration c ->
             c.withDependencies { DependencySet deps ->
-                deps.add(gradleProject.dependencies.create("org.jenkins-ci.main:jenkins-war:${ext.coreVersion}@war"))
+                def warNotation = "org.jenkins-ci.main:jenkins-war:${ext.jenkinsVersion.get()}@war"
+                deps.add(gradleProject.dependencies.create(warNotation))
             }
         }
 

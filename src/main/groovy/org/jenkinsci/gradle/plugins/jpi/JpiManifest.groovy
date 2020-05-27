@@ -78,7 +78,7 @@ class JpiManifest extends Manifest {
         def version = new VersionCalculator().calculate(project.version.toString())
         mainAttributes.putValue('Plugin-Version', version.toString())
 
-        mainAttributes.putValue('Jenkins-Version', conv.coreVersion)
+        mainAttributes.putValue('Jenkins-Version', conv.jenkinsVersion.get())
         mainAttributes.putValue('Minimum-Java-Version', javaPluginConvention.targetCompatibility.toString())
 
         mainAttributes.putValue('Mask-Classes', conv.maskClasses)
