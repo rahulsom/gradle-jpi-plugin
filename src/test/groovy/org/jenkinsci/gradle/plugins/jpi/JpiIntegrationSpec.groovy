@@ -208,7 +208,10 @@ class JpiIntegrationSpec extends IntegrationSpec {
     @Unroll
     def '#task task should be setup'(String task) {
         given:
-        build << '''
+        build << """
+            jenkinsPlugin {
+                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+            }
             tasks.register('describeTasks') {
                 doLast {
                     def result = tasks.collectEntries {
@@ -217,7 +220,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
                     println groovy.json.JsonOutput.toJson(result)
                 }
             }
-            '''.stripIndent()
+            """.stripIndent()
 
         when:
         def result = gradleRunner()

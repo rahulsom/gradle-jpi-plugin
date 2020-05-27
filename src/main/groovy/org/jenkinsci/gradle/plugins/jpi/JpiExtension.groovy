@@ -24,7 +24,6 @@ import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.model.ReplacedBy
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.provider.Property
-import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.SourceSet
 import org.gradle.util.ConfigureUtil
 import org.jenkinsci.gradle.plugins.jpi.internal.DependencyLookup
@@ -135,11 +134,6 @@ class JpiExtension {
 
         if (new VersionNumber(this.coreVersion) <= new VersionNumber('1.419.99')) {
             throw new GradleException('The gradle-jpi-plugin requires Jenkins 1.420 or later')
-        }
-
-        if (new VersionNumber(this.coreVersion) < new VersionNumber('1.598')) {
-            Delete clean = project.tasks.clean as Delete
-            clean.delete('target')
         }
 
         if (this.coreVersion) {

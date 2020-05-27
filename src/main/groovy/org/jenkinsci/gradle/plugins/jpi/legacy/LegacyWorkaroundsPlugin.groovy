@@ -4,6 +4,7 @@ import groovy.transform.CompileStatic
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.tasks.Delete
 import org.gradle.util.GradleVersion
 import org.jenkinsci.gradle.plugins.jpi.JpiExtension
 
@@ -18,12 +19,23 @@ class LegacyWorkaroundsPlugin implements Plugin<Project> {
                 project.file('target').mkdirs()
             }
         }
+        project.tasks.named('clean', Delete).configure { Delete t ->
+            def ext = project.extensions.getByType(JpiExtension)
+            if (isOlderThan(ext.coreVersion, '1.598')) {
+                t.delete('target')
+            }
+        }
     }
 
     private static boolean isBetween(String subject, String lowerBoundInclusive, String upperExclusive) {
         def current = GradleVersion.version(subject)
         def lower = GradleVersion.version(lowerBoundInclusive)
+        current >= lower && isOlderThan(subject, upperExclusive)
+    }
+
+    private static boolean isOlderThan(String subject, String upperExclusive) {
+        def current = GradleVersion.version(subject)
         def upper = GradleVersion.version(upperExclusive)
-        current >= lower && current < upper
+        current < upper
     }
 }

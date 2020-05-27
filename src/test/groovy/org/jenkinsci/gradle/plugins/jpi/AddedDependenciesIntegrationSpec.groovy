@@ -21,7 +21,10 @@ class AddedDependenciesIntegrationSpec extends IntegrationSpec {
 
     def 'resolves test dependencies'() {
         given:
-        build << '''\
+        build << """\
+           jenkinsPlugin {
+                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+           }
            java {
                 registerFeature('configFile') {
                     usingSourceSet(sourceSets.main)
@@ -32,7 +35,7 @@ class AddedDependenciesIntegrationSpec extends IntegrationSpec {
                 configFileApi 'org.jenkins-ci.plugins:config-file-provider:2.8.1'
                 testImplementation 'org.jenkins-ci.plugins:cloudbees-folder:4.4'
             }
-            '''.stripIndent()
+            """.stripIndent()
 
         when:
         def result = gradleRunner()
@@ -46,7 +49,7 @@ class AddedDependenciesIntegrationSpec extends IntegrationSpec {
         dir.directory
         new File(dir, 'index').text == [
                 'config-file-provider', 'structs', 'cloudbees-folder',
-                'token-macro', 'credentials',
+                'ui-samples-plugin', 'token-macro', 'credentials',
         ].join('\n')
         new File(dir, 'structs.hpi').exists()
         new File(dir, 'config-file-provider.hpi').exists()
