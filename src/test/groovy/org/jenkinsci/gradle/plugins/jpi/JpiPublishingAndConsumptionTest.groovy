@@ -84,19 +84,22 @@ class JpiPublishingAndConsumptionTest extends IntegrationSpec {
 
         when:
         consumerBuild << """
+            jenkinsPlugin {
+                coreVersion = '1.580.1'
+            }
             dependencies {
                 implementation 'org:producer:1.0'
             }
         """
 
         then:
-        resolveConsumer('compile') == [
+        resolveConsumer('compile') == JENKINS_CORE_DEPS + [
                 'producer-1.0.jar',
                 'credentials-1.9.4.jar',
                 'commons-lang3-3.9.jar',
                 'jcip-annotations-1.0.jar',
                 'findbugs-annotations-1.3.9-1.jar',
-                'jsr305-1.3.9.jar',
+                'jsr305-2.0.1.jar',
         ] as Set
 
         resolveConsumer('runtime') == [
@@ -158,6 +161,8 @@ class JpiPublishingAndConsumptionTest extends IntegrationSpec {
         ] as Set
 
         resolveConsumer('jenkinsTestRuntime') == [
+                'jenkins-war-1.580.1-war-for-test.jar',
+                'ui-samples-plugin-2.0.hpi',
                 'producer-1.0.hpi',
                 'git-3.12.1.hpi',
                 'git-client-2.7.7.hpi',

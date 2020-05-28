@@ -140,13 +140,13 @@ class JpiExtension {
             jenkinsWarCoordinates = [group: 'org.jenkins-ci.main', name: 'jenkins-war', version: v]
             def lookup = new DependencyLookup()
             for (String config : lookup.configurations()) {
-                def toAdd = lookup.find(config, coreVersion).collect {
-                    project.dependencies.create(it) { Dependency d ->
-                        d.because('Added by org.jenkins-ci.jpi plugin')
-                    }
-                }
                 project.configurations.getByName(config) { Configuration c ->
                     c.withDependencies { DependencySet deps ->
+                        def toAdd = lookup.find(c.name, coreVersion).collect {
+                            project.dependencies.create(it) { Dependency d ->
+                                d.because('Added by org.jenkins-ci.jpi plugin')
+                            }
+                        }
                         deps.addAll(toAdd)
                     }
                 }
