@@ -15,14 +15,14 @@
  */
 package org.jenkinsci.gradle.plugins.jpi
 
-import hudson.util.VersionNumber
-import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.model.ReplacedBy
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.SourceSet
 import org.gradle.util.ConfigureUtil
+import org.gradle.util.GradleVersion
 
 /**
  * This gets exposed to the project as 'jpi' to offer additional convenience methods.
@@ -35,10 +35,18 @@ class JpiExtension {
     @Deprecated
     Map<String, String> jenkinsWarCoordinates
     final Property<String> jenkinsVersion
+    final Provider<String> validatedJenkinsVersion
 
     JpiExtension(Project project) {
         this.project = project
         this.jenkinsVersion = project.objects.property(String)
+        this.validatedJenkinsVersion = jenkinsVersion.map {
+            def resolved = it ?: coreVersion
+            if (GradleVersion.version(resolved) < GradleVersion.version('1.420')) {
+                throw new IllegalArgumentException('The gradle-jpi-plugin requires Jenkins 1.420 or later')
+            }
+            resolved
+        }
     }
 
     private String shortName
@@ -127,11 +135,6 @@ class JpiExtension {
     void setCoreVersion(String v) {
         jenkinsVersion.convention(v)
         this.coreVersion = v
-
-        if (new VersionNumber(this.coreVersion) <= new VersionNumber('1.419.99')) {
-            throw new GradleException('The gradle-jpi-plugin requires Jenkins 1.420 or later')
-        }
-
         if (this.coreVersion) {
             jenkinsWarCoordinates = [group: 'org.jenkins-ci.main', name: 'jenkins-war', version: v]
         }

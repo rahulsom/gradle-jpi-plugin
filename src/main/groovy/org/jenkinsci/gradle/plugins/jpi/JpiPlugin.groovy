@@ -53,7 +53,6 @@ import org.gradle.util.GradleVersion
 import org.jenkinsci.gradle.plugins.jpi.internal.DependencyLookup
 import org.jenkinsci.gradle.plugins.jpi.legacy.LegacyWorkaroundsPlugin
 import org.jenkinsci.gradle.plugins.jpi.server.GenerateJenkinsServerHplTask
-
 import org.jenkinsci.gradle.plugins.jpi.server.InstallJenkinsServerPluginsTask
 import org.jenkinsci.gradle.plugins.jpi.server.JenkinsServerTask
 
@@ -169,7 +168,7 @@ class JpiPlugin implements Plugin<Project> {
         for (String config : lookup.configurations()) {
             gradleProject.configurations.getByName(config) { Configuration c ->
                 c.withDependencies { DependencySet deps ->
-                    def toAdd = lookup.find(c.name, ext.coreVersion).collect {
+                    def toAdd = lookup.find(c.name, ext.validatedJenkinsVersion.get()).collect {
                         gradleProject.dependencies.create(it) { Dependency d ->
                             d.because('Added by org.jenkins-ci.jpi plugin')
                         }
