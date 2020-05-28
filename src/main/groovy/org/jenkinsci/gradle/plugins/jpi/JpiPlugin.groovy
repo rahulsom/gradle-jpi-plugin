@@ -19,6 +19,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.attributes.AttributeCompatibilityRule
 import org.gradle.api.attributes.AttributeDisambiguationRule
@@ -49,6 +50,7 @@ import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.testing.Test
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.util.GradleVersion
+import org.jenkinsci.gradle.plugins.jpi.internal.DependencyLookup
 import org.jenkinsci.gradle.plugins.jpi.legacy.LegacyWorkaroundsPlugin
 import org.jenkinsci.gradle.plugins.jpi.server.GenerateJenkinsServerHplTask
 
@@ -163,6 +165,19 @@ class JpiPlugin implements Plugin<Project> {
             groovyOptions.javaAnnotationProcessing = true
         }
 
+        def lookup = new DependencyLookup()
+        for (String config : lookup.configurations()) {
+            gradleProject.configurations.getByName(config) { Configuration c ->
+                c.withDependencies { DependencySet deps ->
+                    def toAdd = lookup.find(c.name, ext.coreVersion).collect {
+                        gradleProject.dependencies.create(it) { Dependency d ->
+                            d.because('Added by org.jenkins-ci.jpi plugin')
+                        }
+                    }
+                    deps.addAll(toAdd)
+                }
+            }
+        }
         configureRepositories(gradleProject)
         configureJpi(gradleProject)
         configureConfigurations(gradleProject)
