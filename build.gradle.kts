@@ -27,7 +27,6 @@ dependencies {
     annotationProcessor(sezpoz)
     implementation(gradleApi())
     implementation("org.jvnet.localizer:maven-localizer-plugin:1.24")
-    implementation("org.jenkins-ci:version-number:1.1")
     implementation(sezpoz)
     implementation(localGroovy())
     testAnnotationProcessor(sezpoz)
