@@ -14,17 +14,21 @@ class LegacyWorkaroundsPlugin implements Plugin<Project> {
     void apply(Project project) {
         // workarounds for JENKINS-26331
         project.tasks.named('test').configure { Task t ->
-            def ext = project.extensions.getByType(JpiExtension)
-            def jenkinsVersion = ext.validatedJenkinsVersion
-            if (isBetween(jenkinsVersion.get(), '1.545', '1.592')) {
+            t.doFirst {
                 project.file('target').mkdirs()
+            }.onlyIf {
+                def ext = project.extensions.getByType(JpiExtension)
+                def jenkinsVersion = ext.validatedJenkinsVersion
+                isBetween(jenkinsVersion.get(), '1.545', '1.592')
             }
         }
         project.tasks.named('clean', Delete).configure { Delete t ->
-            def ext = project.extensions.getByType(JpiExtension)
-            def jenkinsVersion = ext.validatedJenkinsVersion
-            if (isOlderThan(jenkinsVersion.get(), '1.598')) {
+            t.doFirst {
                 t.delete('target')
+            }.onlyIf {
+                def ext = project.extensions.getByType(JpiExtension)
+                def jenkinsVersion = ext.validatedJenkinsVersion
+                isOlderThan(jenkinsVersion.get(), '1.598')
             }
         }
     }

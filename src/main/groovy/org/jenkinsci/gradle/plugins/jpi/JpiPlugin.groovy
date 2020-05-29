@@ -98,9 +98,9 @@ class JpiPlugin implements Plugin<Project> {
 
         gradleProject.plugins.apply(JavaLibraryPlugin)
         gradleProject.plugins.apply(GroovyPlugin)
-        gradleProject.plugins.apply(LegacyWorkaroundsPlugin)
 
         def ext = gradleProject.extensions.create('jenkinsPlugin', JpiExtension, gradleProject)
+        gradleProject.plugins.apply(LegacyWorkaroundsPlugin)
 
         def generateHpl = gradleProject.tasks.register(GenerateJenkinsServerHplTask.TASK_NAME,
                 GenerateJenkinsServerHplTask) { GenerateJenkinsServerHplTask t ->
