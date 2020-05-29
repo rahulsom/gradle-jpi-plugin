@@ -32,7 +32,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
         given:
         build << """\
             jenkinsPlugin {
-                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
 
@@ -51,7 +51,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
         build << """
             jenkinsPlugin {
                 $declaration
-                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
 
@@ -77,7 +77,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
         given:
         build << """\
             jenkinsPlugin {
-                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
 
@@ -94,7 +94,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
         given:
         build << """\
             jenkinsPlugin {
-                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
         def expected = 'test-333'
@@ -115,7 +115,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
         build << """
             jenkinsPlugin {
                 $shortName
-                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
 
@@ -146,7 +146,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
                 api 'org.jenkins-ci.plugins:credentials:1.9.4'
             }
             jenkinsPlugin {
-                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
 
@@ -182,7 +182,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
         given:
         build << """\
             jenkinsPlugin {
-                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
 
@@ -210,7 +210,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
         given:
         build << """
             jenkinsPlugin {
-                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             tasks.register('describeTasks') {
                 doLast {
@@ -241,7 +241,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
         given:
         build << """
             jenkinsPlugin {
-                coreVersion = '2.190.2'
+                jenkinsVersion = '2.190.2'
                 disabledTestInjection = $value
             }
             """.stripIndent()
@@ -268,7 +268,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
                 testImplementation 'junit:junit:4.12'
             }
             jenkinsPlugin {
-                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
         def actualFile = projectDir.newFile()
@@ -291,7 +291,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
         given:
         build << """\
             jenkinsPlugin {
-                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
 
@@ -316,7 +316,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
             }
             jenkinsPlugin {
                 configurePublishing = false
-                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             repositories {
                 ivy {
@@ -349,7 +349,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
                 $configuration 'junit:junit:4.12'
             }
             jenkinsPlugin {
-                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
 
@@ -373,7 +373,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
         given:
         build << """\
             jenkinsPlugin {
-                coreVersion = '$version'
+                jenkinsVersion = '$version'
             }
             """.stripIndent()
 
@@ -394,7 +394,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
         given:
         build << """\
             jenkinsPlugin {
-                coreVersion = '2.222.3'
+                jenkinsVersion = '2.222.3'
                 repoUrl = $url
             }
 
@@ -426,7 +426,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
         given:
         build << """\
             jenkinsPlugin {
-                coreVersion = '2.222.3'
+                jenkinsVersion = '2.222.3'
                 repoUrl = 'https://maven.example.org/'
             }
 
@@ -454,7 +454,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
         given:
         build << """\
             jenkinsPlugin {
-                coreVersion = '2.222.3'
+                jenkinsVersion = '2.222.3'
                 snapshotRepoUrl = $url
             }
             version = '0.40.0-SNAPSHOT'
@@ -487,7 +487,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
         given:
         build << """\
             jenkinsPlugin {
-                coreVersion = '2.222.3'
+                jenkinsVersion = '2.222.3'
                 repoUrl = 'https://maven.example.org/'
             }
             version = '0.40.0-SNAPSHOT'

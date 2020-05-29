@@ -57,7 +57,7 @@ class ConfigurePublishingIntegrationSpec extends IntegrationSpec {
         build << """
             jenkinsPlugin {
                 configurePublishing = false
-                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
         when:
@@ -82,7 +82,7 @@ class ConfigurePublishingIntegrationSpec extends IntegrationSpec {
              }
             jenkinsPlugin {
                 configurePublishing = false
-                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
 
@@ -108,7 +108,7 @@ class ConfigurePublishingIntegrationSpec extends IntegrationSpec {
             }
             jenkinsPlugin {
                 configurePublishing = false
-                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
 
             afterEvaluate {
@@ -152,7 +152,7 @@ class ConfigurePublishingIntegrationSpec extends IntegrationSpec {
         build << """
             jenkinsPlugin {
                 $declaration
-                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             version = '$version'
             """.stripIndent()
@@ -180,7 +180,7 @@ class ConfigurePublishingIntegrationSpec extends IntegrationSpec {
         build << """
             jenkinsPlugin {
                 configurePublishing = false
-                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             version = '$version'
             """.stripIndent()
@@ -205,7 +205,7 @@ class ConfigurePublishingIntegrationSpec extends IntegrationSpec {
         build << """
             jenkinsPlugin {
                 $declaration
-                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             version = '$version'
             """.stripIndent()
@@ -241,7 +241,7 @@ class ConfigurePublishingIntegrationSpec extends IntegrationSpec {
         build << """
             jenkinsPlugin {
                 $declaration
-                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
 

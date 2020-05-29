@@ -127,7 +127,7 @@ class ProjectFileSpec extends Specification {
                 .setStatement('version = $S', '3.3.1')
                 .setStatement('group = $S', 'org.example.something')
                 .withBlock(CodeBlock.newBuilder('jenkinsPlugin')
-                        .addStatement('coreVersion = $S', '2.222.3')
+                        .addStatement('jenkinsVersion = $S', '2.222.3')
                         .build())
                 .withDependencies(DependenciesBlock.newBuilder()
                         .addImplementation('com.google.guava:guava:19.0')
@@ -142,7 +142,7 @@ class ProjectFileSpec extends Specification {
                     group = 'org.example.something'
 
                     jenkinsPlugin {
-                        coreVersion = '2.222.3'
+                        jenkinsVersion = '2.222.3'
                     }
 
                     dependencies {

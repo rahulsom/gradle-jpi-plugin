@@ -9,7 +9,7 @@ import static org.jenkinsci.gradle.plugins.jpi.ClasspathExpectations.EVERYWHERE_
 import static org.jenkinsci.gradle.plugins.jpi.ClasspathExpectations.NOWHERE
 import static org.jenkinsci.gradle.plugins.jpi.ClasspathExpectations.TEST_IMPLEMENTATION_ONLY
 
-class CoreVersionIntegrationSpec extends IntegrationSpec {
+class JenkinsVersionIntegrationSpec extends IntegrationSpec {
     private final String projectName = TestDataGenerator.generateName()
     private File settings
     private File build
@@ -46,7 +46,7 @@ class CoreVersionIntegrationSpec extends IntegrationSpec {
         given:
         build << """
             jenkinsPlugin {
-                coreVersion = '${version}'
+                jenkinsVersion = '${version}'
             }
             """.stripIndent()
         TestSupport.PASSING_TEST.writeTo(new File(projectDir.root, 'src/test/java'))
@@ -72,7 +72,7 @@ class CoreVersionIntegrationSpec extends IntegrationSpec {
         given:
         build << """
             jenkinsPlugin {
-                coreVersion = '${version}'
+                jenkinsVersion = '${version}'
             }
             """.stripIndent()
         def target = new File(projectDir.root, 'target')
@@ -97,7 +97,7 @@ class CoreVersionIntegrationSpec extends IntegrationSpec {
         given:
         build << """
             jenkinsPlugin {
-                coreVersion = '${version}'
+                jenkinsVersion = '${version}'
             }
             """.stripIndent()
 

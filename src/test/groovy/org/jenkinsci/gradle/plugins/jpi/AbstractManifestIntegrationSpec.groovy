@@ -32,7 +32,7 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
         given:
         build << """\
             jenkinsPlugin {
-                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
         def expected = [
@@ -56,7 +56,7 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
         given:
         build << """\
             jenkinsPlugin {
-                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
                 shortName = 'hello'
             }
             """.stripIndent()
@@ -72,7 +72,7 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
         given:
         build << """\
             jenkinsPlugin {
-                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
                 shortName = 'hello'
                 displayName = 'The Hello Plugin'
             }
@@ -89,7 +89,7 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
         given:
         build << """\
             jenkinsPlugin {
-                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
         when:
@@ -103,7 +103,7 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
         given:
         build << """\
             jenkinsPlugin {
-                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
         def snapshotVersion = "${projectVersion}-SNAPSHOT"
@@ -121,7 +121,7 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
         build << """\
             group = "$expected"
             jenkinsPlugin {
-                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
 
@@ -137,7 +137,7 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
         String expected = '2.150.2'
         build << """\
             jenkinsPlugin {
-                coreVersion = '$expected'
+                jenkinsVersion = '$expected'
             }
             """.stripIndent()
 
@@ -154,7 +154,7 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
         String name = 'TestPlugin'
         build << """\
             jenkinsPlugin {
-                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
         projectDir.newFolder('src', 'main', 'java', 'my', 'example')
@@ -178,7 +178,7 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
         build << """\
             jenkinsPlugin {
                 compatibleSinceVersion = '$expected'
-                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
 
@@ -194,7 +194,7 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
         build << """\
             targetCompatibility = $input
             jenkinsPlugin {
-                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
 
@@ -216,7 +216,7 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
         build << """\
             jenkinsPlugin {
                 maskClasses = '$expected'
-                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
 
@@ -233,7 +233,7 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
         build << """\
             jenkinsPlugin {
                 pluginFirstClassLoader = $value
-                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
 
@@ -253,7 +253,7 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
         build << """\
             jenkinsPlugin {
                 sandboxStatus = $value
-                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
 
@@ -271,7 +271,7 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
         given:
         build << """\
             jenkinsPlugin {
-                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             dependencies {
                 api 'org.jenkins-ci.plugins:ant:1.2'
@@ -289,7 +289,7 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
         given:
         build << """\
             jenkinsPlugin {
-                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             dependencies {
                 api 'org.jenkinsci.plugins:git:1.1.15'
@@ -308,7 +308,7 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
         given:
         build << """\
             jenkinsPlugin {
-                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             java {
                 registerFeature('ant') {
@@ -331,7 +331,7 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
         given:
         build << """\
             jenkinsPlugin {
-                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             java {
                 registerFeature('git') {
@@ -358,7 +358,7 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
         given:
         build << """\
             jenkinsPlugin {
-                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             java {
                 registerFeature('folder') {
@@ -391,7 +391,7 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
         given:
         build << """\
             jenkinsPlugin {
-                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
 
             dependencies {
@@ -411,7 +411,7 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
         given:
         build << """\
             jenkinsPlugin {
-                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
                 developers {
                     developer {
                         id 'abayer'
@@ -433,7 +433,7 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
         given:
         build << """\
             jenkinsPlugin {
-                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
                 developers {
                     developer {
                         id 'abayer'
@@ -459,7 +459,7 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
         given:
         build << """\
             jenkinsPlugin {
-                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
         projectDir.newFolder('src', 'main', 'java', 'my', 'example')
@@ -488,7 +488,7 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
         build << """\
             jenkinsPlugin {
                 shortName = 'unchanged'
-                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
         def firstRun = runTask()
@@ -507,7 +507,7 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
         build << """\
             jenkinsPlugin {
                 shortName = 'before'
-                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
         def firstRun = runTask()

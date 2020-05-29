@@ -71,7 +71,7 @@ class JpiPublishingAndConsumptionTest extends IntegrationSpec {
         given:
         producerBuild << """\
             jenkinsPlugin {
-                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             dependencies {
                 api 'org.jenkins-ci.plugins:credentials:1.9.4'
@@ -85,7 +85,7 @@ class JpiPublishingAndConsumptionTest extends IntegrationSpec {
         when:
         consumerBuild << """
             jenkinsPlugin {
-                coreVersion = '1.580.1'
+                jenkinsVersion = '1.580.1'
             }
             dependencies {
                 implementation 'org:producer:1.0'
@@ -186,7 +186,7 @@ class JpiPublishingAndConsumptionTest extends IntegrationSpec {
         given:
         producerBuild << """\
             jenkinsPlugin {
-                coreVersion = '1.580.1'
+                jenkinsVersion = '1.580.1'
             }
             java {
                 registerFeature('credentials') {
@@ -205,7 +205,7 @@ class JpiPublishingAndConsumptionTest extends IntegrationSpec {
         when:
         consumerBuild << """
             jenkinsPlugin {
-                coreVersion = '1.580.1'
+                jenkinsVersion = '1.580.1'
             }
             dependencies {
                 implementation 'org:producer:1.0'
@@ -268,7 +268,7 @@ class JpiPublishingAndConsumptionTest extends IntegrationSpec {
         given:
         producerBuild << """
             jenkinsPlugin {
-                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
         publishProducer()
@@ -276,7 +276,7 @@ class JpiPublishingAndConsumptionTest extends IntegrationSpec {
         when:
         consumerBuild << """
             jenkinsPlugin {
-                coreVersion = '1.580.1'
+                jenkinsVersion = '1.580.1'
             }
             dependencies {
                 implementation 'org:producer:1.0'

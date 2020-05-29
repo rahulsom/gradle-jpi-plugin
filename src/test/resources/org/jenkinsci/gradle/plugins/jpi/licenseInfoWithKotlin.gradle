@@ -8,7 +8,7 @@ description = 'lorem ipsum'
 version = '1.2.3'
 
 jenkinsPlugin {
-    coreVersion = '2.72'
+    jenkinsVersion = '2.72'
     displayName = 'A Test'
     url = 'https:/acme.org'
     licenses {

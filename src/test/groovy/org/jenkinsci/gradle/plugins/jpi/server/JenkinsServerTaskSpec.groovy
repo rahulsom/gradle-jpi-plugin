@@ -21,7 +21,7 @@ class JenkinsServerTaskSpec extends IntegrationSpec {
                 id 'org.jenkins-ci.jpi'
             }
             jenkinsPlugin {
-                coreVersion = '$jenkinsVersion'
+                jenkinsVersion = '$jenkinsVersion'
             }
             dependencies {
                 jenkinsServer 'org.jenkins-ci.plugins:git:3.12.1'

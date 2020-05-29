@@ -23,7 +23,7 @@ class AddedDependenciesIntegrationSpec extends IntegrationSpec {
         given:
         build << """\
            jenkinsPlugin {
-                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
            }
            java {
                 registerFeature('configFile') {
@@ -63,7 +63,7 @@ class AddedDependenciesIntegrationSpec extends IntegrationSpec {
         projectDir.newFolder('build')
         build << '''\
             jenkinsPlugin {
-                coreVersion = '1.554.2'
+                jenkinsVersion = '1.554.2'
             }
             tasks.register('writeAllResolvedDependencies') {
                 def output = new File(project.buildDir, 'resolved-dependencies.json')

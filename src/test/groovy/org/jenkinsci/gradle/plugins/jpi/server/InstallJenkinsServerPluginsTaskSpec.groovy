@@ -43,7 +43,7 @@ class InstallJenkinsServerPluginsTaskSpec extends IntegrationSpec {
                         .withPlugin('org.jenkins-ci.jpi')
                         .build())
                 .withBlock(CodeBlock.newBuilder('jenkinsPlugin')
-                        .addStatement('coreVersion = $S', '2.222.3')
+                        .addStatement('jenkinsVersion = $S', '2.222.3')
                         .build())
     }
 

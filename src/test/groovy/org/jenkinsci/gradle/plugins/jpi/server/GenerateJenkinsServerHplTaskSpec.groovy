@@ -44,7 +44,7 @@ class GenerateJenkinsServerHplTaskSpec extends IntegrationSpec {
         build << """
             jenkinsPlugin {
                 shortName = 'strawberry'
-                coreVersion = '2.222.3'
+                jenkinsVersion = '2.222.3'
                 $inner
             }
             $outer
@@ -111,7 +111,7 @@ class GenerateJenkinsServerHplTaskSpec extends IntegrationSpec {
         build << """
             jenkinsPlugin {
                 shortName = 'strawberry'
-                coreVersion = '2.222.3'
+                jenkinsVersion = '2.222.3'
                 workDir = file('embedded-jenkins')
             }
             version = '6.0.13'

@@ -14,7 +14,7 @@ class JpiLocalizerTaskIntegrationSpec extends IntegrationSpec {
             }
             jenkinsPlugin {
                 localizerOutputDir = $dir
-                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
         projectDir.newFolder('src', 'main', 'resources')
@@ -47,7 +47,7 @@ class JpiLocalizerTaskIntegrationSpec extends IntegrationSpec {
         projectDir.newFile('plugin/build.gradle') << """\
             plugins { id 'org.jenkins-ci.jpi' }
             jenkinsPlugin {
-                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
         projectDir.newFile('plugin/src/main/resources/Messages.properties') << 'key3=value3\nkey4=value4'
