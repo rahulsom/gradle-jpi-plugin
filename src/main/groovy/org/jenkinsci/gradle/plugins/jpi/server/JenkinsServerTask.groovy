@@ -91,13 +91,13 @@ class JenkinsServerTask extends DefaultTask {
             def defined = System.getProperty(prop)
             if (defined) {
                 anyDefined = true
-                logger.warn('Passing through system property {} to server is deprecated', prop)
+                logger.warn('Passing through system property {} to server task is deprecated', prop)
                 spec.systemProperty(prop, defined)
             }
         }
         if (anyDefined) {
             logger.warn('Please configure server task with system properties directly')
-            logger.warn('Passing through will be removed in 1.0.0')
+            logger.warn('Passing through will be removed in v1.0.0 of gradle-jpi-plugin')
         }
     }
 }
