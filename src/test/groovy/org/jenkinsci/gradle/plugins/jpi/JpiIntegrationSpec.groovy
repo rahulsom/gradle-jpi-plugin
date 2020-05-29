@@ -241,7 +241,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
         given:
         build << """
             jenkinsPlugin {
-                jenkinsVersion = '2.190.2'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
                 disabledTestInjection = $value
             }
             """.stripIndent()
@@ -389,12 +389,47 @@ class JpiIntegrationSpec extends IntegrationSpec {
         version << ['1.419.99', '1.390']
     }
 
+    def 'should use jenkinsVersion over coreVersion'() {
+        given:
+        build << """\
+            jenkinsPlugin {
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                coreVersion = '1.419' // would fail because < 1.420
+            }
+            """.stripIndent()
+
+        when:
+        def result = gradleRunner()
+                .withArguments('dependencies', '--configuration', 'jenkinsServerRuntimeOnly', '--quiet')
+                .build()
+
+        then:
+        result.output.contains("org.jenkins-ci.main:jenkins-war:${TestSupport.RECENT_JENKINS_VERSION}")
+    }
+
+    def 'should fallback to coreVersion when jenkinsVersion missing'() {
+        given:
+        build << """\
+            jenkinsPlugin {
+                coreVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+            }
+            """.stripIndent()
+
+        when:
+        def result = gradleRunner()
+                .withArguments('dependencies', '--configuration', 'jenkinsServerRuntimeOnly', '--quiet')
+                .build()
+
+        then:
+        result.output.contains("org.jenkins-ci.main:jenkins-war:${TestSupport.RECENT_JENKINS_VERSION}")
+    }
+
     @Unroll
     def 'setup publishing repo by extension (#url)'(String url, String expected) {
         given:
         build << """\
             jenkinsPlugin {
-                jenkinsVersion = '2.222.3'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
                 repoUrl = $url
             }
 
@@ -426,7 +461,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
         given:
         build << """\
             jenkinsPlugin {
-                jenkinsVersion = '2.222.3'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
                 repoUrl = 'https://maven.example.org/'
             }
 
@@ -454,7 +489,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
         given:
         build << """\
             jenkinsPlugin {
-                jenkinsVersion = '2.222.3'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
                 snapshotRepoUrl = $url
             }
             version = '0.40.0-SNAPSHOT'
@@ -487,7 +522,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
         given:
         build << """\
             jenkinsPlugin {
-                jenkinsVersion = '2.222.3'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
                 repoUrl = 'https://maven.example.org/'
             }
             version = '0.40.0-SNAPSHOT'
