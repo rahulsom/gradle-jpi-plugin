@@ -55,6 +55,6 @@ class InstallJenkinsServerPluginsTask extends DefaultTask {
     }
 
     private static String withoutVersion(ResolvedArtifact artifact) {
-        artifact.name + '.' + artifact.extension
+        artifact.name + '.jpi'
     }
 }
