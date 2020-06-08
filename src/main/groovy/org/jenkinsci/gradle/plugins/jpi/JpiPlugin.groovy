@@ -55,6 +55,7 @@ import org.jenkinsci.gradle.plugins.jpi.legacy.LegacyWorkaroundsPlugin
 import org.jenkinsci.gradle.plugins.jpi.server.GenerateJenkinsServerHplTask
 import org.jenkinsci.gradle.plugins.jpi.server.InstallJenkinsServerPluginsTask
 import org.jenkinsci.gradle.plugins.jpi.server.JenkinsServerTask
+import org.jenkinsci.gradle.plugins.jpi.verification.CheckOverlappingSourcesTask
 
 import static org.gradle.api.logging.LogLevel.INFO
 import static org.gradle.api.tasks.SourceSet.MAIN_SOURCE_SET_NAME
@@ -101,6 +102,21 @@ class JpiPlugin implements Plugin<Project> {
 
         def ext = gradleProject.extensions.create('jenkinsPlugin', JpiExtension, gradleProject)
         gradleProject.plugins.apply(LegacyWorkaroundsPlugin)
+
+        def overlap = gradleProject.tasks.register(CheckOverlappingSourcesTask.TASK_NAME,
+                CheckOverlappingSourcesTask) { CheckOverlappingSourcesTask t ->
+            t.group = LifecycleBasePlugin.VERIFICATION_GROUP
+            t.description = 'Validate '
+
+            def javaPluginConvention = project.convention.getPlugin(JavaPluginConvention)
+            def classDirs = javaPluginConvention.sourceSets.getByName(MAIN_SOURCE_SET_NAME).output.classesDirs
+            t.classesDirs.set(classDirs)
+            t.dependsOn(gradleProject.tasks.getByName('classes'))
+        }
+
+        gradleProject.tasks.getByName('check').configure {
+            it.dependsOn(overlap)
+        }
 
         def generateHpl = gradleProject.tasks.register(GenerateJenkinsServerHplTask.TASK_NAME,
                 GenerateJenkinsServerHplTask) { GenerateJenkinsServerHplTask t ->

@@ -18,7 +18,6 @@ package org.jenkinsci.gradle.plugins.jpi
 import hudson.Extension
 import jenkins.YesNoMaybe
 import net.java.sezpoz.Index
-import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
 import org.gradle.api.plugins.JavaPluginConvention
@@ -43,20 +42,10 @@ class JpiManifest extends Manifest {
 
         mainAttributes[MANIFEST_VERSION] = '1.0'
 
-        checkForDuplicateSezpozDetections(classDirs)
-
         def pluginImpls = classDirs.collect {
             new File(it, 'META-INF/services/hudson.Plugin')
         }.findAll {
             it.exists()
-        }
-
-        if (pluginImpls.size() > 1) {
-            throw new GradleException(
-                    'Found multiple directories containing Jenkins plugin implementations ' +
-                            "('${pluginImpls*.path.join("', '")}'). " +
-                            'Use joint compilation to work around this problem.'
-            )
         }
 
         def pluginImpl = pluginImpls.find()
@@ -106,25 +95,6 @@ class JpiManifest extends Manifest {
 
         // remove empty values
         mainAttributes.entrySet().removeAll { it.value == null || it.value.toString().empty }
-    }
-
-    static void checkForDuplicateSezpozDetections(FileCollection classesDirs) {
-        Set<String> existingSezpozFiles
-        classesDirs.each { classDir ->
-            def files = new File(classDir, 'META-INF/annotations').list()
-            if (files == null) {
-                return
-            }
-            files.each {
-                if (!new File(classDir, it).isFile()) {
-                    return
-                }
-                if (existingSezpozFiles.contains(it)) {
-                    throw new GradleException("Overlapping Sezpoz file: ${it}. Use joint compilation!")
-                }
-                existingSezpozFiles.add(it)
-            }
-        }
     }
 
     private static YesNoMaybe isSupportDynamicLoading(FileCollection classDirs) throws IOException {
