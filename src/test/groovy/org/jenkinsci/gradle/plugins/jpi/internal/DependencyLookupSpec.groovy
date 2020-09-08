@@ -17,6 +17,19 @@ class DependencyLookupSpec extends Specification {
         ] as Set
     }
 
+    def 'should get testAnnotationProcessor dependencies by version'() {
+        given:
+        DependencyLookup lookup = new DependencyLookup()
+
+        when:
+        def actual = lookup.find('testAnnotationProcessor', '2.0')
+
+        then:
+        actual == [
+                'net.java.sezpoz:sezpoz:1.13',
+        ] as Set
+    }
+
     @Unroll
     def 'should get compileOnly dependencies for #version'(String version, Set<String> expected) {
         given:

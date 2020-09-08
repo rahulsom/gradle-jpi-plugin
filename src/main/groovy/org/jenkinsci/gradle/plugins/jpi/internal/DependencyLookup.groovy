@@ -33,6 +33,8 @@ class DependencyLookup {
                 return [core] as Set
             case 'compileOnly':
                 return [core, findbugs, servlet] as Set
+            case 'testAnnotationProcessor':
+                return ['net.java.sezpoz:sezpoz:1.13'] as Set
             case 'testImplementation':
                 Set<String> deps = [core, testHarness, uiSamples] as Set
                 if (version < GradleVersion.version('1.505')) {
