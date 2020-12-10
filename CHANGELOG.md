@@ -1,5 +1,17 @@
 ## 0.40.0 (unreleased)
 
+  * use `jenkinsPlugin.shortName` as base name of jar [#163](https://github.com/jenkinsci/gradle-jpi-plugin/issues/163)
+  * remove plugins from server work dir when removed from dependencies [#165](https://github.com/jenkinsci/gradle-jpi-plugin/issues/165)
+  * introduce `checkOverlappingSources` cacheable task (was part of JpiManifest creation)
+  * introduce `generateJenkinsServerHpl` cacheable task (was part of `server`)
+  * introduce `installJenkinsServerPlugins` cacheable task (was part of `server`)
+  * rewrite `server` task to be `JavaExec`, fixing bug where server continues to run in background [#151](https://github.com/jenkinsci/gradle-jpi-plugin/issues/151)
+  * improve error message when `jenkinsPlugin.coreVersion` is not set [#148](https://github.com/jenkinsci/gradle-jpi-plugin/issues/148)
+  * remove `mavenLocal()` declaration from project applying plugin [#161](https://github.com/jenkinsci/gradle-jpi-plugin/issues/161)
+  * remove dependency on `org.jenkins-ci:version-number`
+  * add reason to dependencies added by org.jenkins-ci.jpi plugin
+  * add sezpoz to `testAnnotationProcessor` in project applying plugin [#167](https://github.com/jenkinsci/gradle-jpi-plugin/pull/167)
+  * updated to Gradle 6.7.1
 
 ## 0.39.0 (2020-04-15)
 
