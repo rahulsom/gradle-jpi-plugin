@@ -2,6 +2,8 @@
 
   * use `jenkinsPlugin.shortName` as base name of jar [#163](https://github.com/jenkinsci/gradle-jpi-plugin/issues/163)
   * remove plugins from server work dir when removed from dependencies [#165](https://github.com/jenkinsci/gradle-jpi-plugin/issues/165)
+  * introduce `generateTestHpl` (delegates to `generate-test-hpl`)
+  * use same task class for `generateTestHpl` and `generateJenkinsServerHpl`
   * introduce `checkOverlappingSources` cacheable task (was part of JpiManifest creation)
   * introduce `generateJenkinsServerHpl` cacheable task (was part of `server`)
   * introduce `installJenkinsServerPlugins` cacheable task (was part of `server`)
