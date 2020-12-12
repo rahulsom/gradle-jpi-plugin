@@ -1,13 +1,13 @@
 package org.jenkinsci.gradle.plugins.jpi.server
 
-class GenerateJenkinsServerHplTaskSpec extends GenerateHplTaskSpec {
+class GenerateTestHplTaskSpec extends GenerateHplTaskSpec {
     @Override
     String taskName() {
-        GenerateHplTask.TASK_NAME
+        'generate-test-hpl'
     }
 
     @Override
     String expectedRelativeHplLocation() {
-        'build/hpl/strawberry.hpl'
+        'build/generated-resources/test/the.hpl'
     }
 }

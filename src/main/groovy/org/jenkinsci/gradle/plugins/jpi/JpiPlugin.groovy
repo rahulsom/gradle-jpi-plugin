@@ -52,7 +52,7 @@ import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.util.GradleVersion
 import org.jenkinsci.gradle.plugins.jpi.internal.DependencyLookup
 import org.jenkinsci.gradle.plugins.jpi.legacy.LegacyWorkaroundsPlugin
-import org.jenkinsci.gradle.plugins.jpi.server.GenerateJenkinsServerHplTask
+import org.jenkinsci.gradle.plugins.jpi.server.GenerateHplTask
 import org.jenkinsci.gradle.plugins.jpi.server.InstallJenkinsServerPluginsTask
 import org.jenkinsci.gradle.plugins.jpi.server.JenkinsServerTask
 import org.jenkinsci.gradle.plugins.jpi.verification.CheckOverlappingSourcesTask
@@ -118,9 +118,10 @@ class JpiPlugin implements Plugin<Project> {
             it.dependsOn(overlap)
         }
 
-        def generateHpl = gradleProject.tasks.register(GenerateJenkinsServerHplTask.TASK_NAME,
-                GenerateJenkinsServerHplTask) { GenerateJenkinsServerHplTask t ->
-            t.fileName.set(ext.shortName)
+        def generateHpl = gradleProject.tasks.register(GenerateHplTask.TASK_NAME,
+                GenerateHplTask) { GenerateHplTask t ->
+            t.fileName.set(ext.shortName + '.hpl')
+            t.hplDir.set(project.layout.buildDirectory.dir('hpl'))
             t.description = 'Generate hpl (Hudson plugin link) for running locally'
             t.group = 'Jenkins Server'
         }
@@ -518,7 +519,8 @@ class JpiPlugin implements Plugin<Project> {
         def outputDir = project.layout.buildDirectory.dir('generated-resources/test')
         testSourceSet.output.dir(outputDir)
 
-        def generateTestHplTask = project.tasks.register(GenerateTestHpl.TASK_NAME, GenerateTestHpl) {
+        def generateTestHplTask = project.tasks.register('generate-test-hpl', GenerateHplTask) {
+            it.fileName.set('the.hpl')
             it.hplDir.set(outputDir)
         }
 

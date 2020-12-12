@@ -29,7 +29,7 @@ import static JpiPlugin.SERVER_JENKINS_RUNTIME_CLASSPATH_CONFIGURATION_NAME
  * This task is no longer wired to the 'server' task. It has been replaced
  * by three tasks for better caching.
  *
- * @see org.jenkinsci.gradle.plugins.jpi.server.GenerateJenkinsServerHplTask
+ * @see org.jenkinsci.gradle.plugins.jpi.server.GenerateHplTask
  * @see org.jenkinsci.gradle.plugins.jpi.server.InstallJenkinsServerPluginsTask
  * @see org.jenkinsci.gradle.plugins.jpi.server.JenkinsServerTask
  * @author Kohsuke Kawaguchi
