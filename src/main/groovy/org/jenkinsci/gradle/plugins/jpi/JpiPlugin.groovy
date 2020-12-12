@@ -519,9 +519,13 @@ class JpiPlugin implements Plugin<Project> {
         def outputDir = project.layout.buildDirectory.dir('generated-resources/test')
         testSourceSet.output.dir(outputDir)
 
-        def generateTestHplTask = project.tasks.register('generate-test-hpl', GenerateHplTask) {
+        def generateTestHplTask = project.tasks.register('generateTestHpl', GenerateHplTask) {
             it.fileName.set('the.hpl')
             it.hplDir.set(outputDir)
+        }
+
+        project.tasks.register('generate-test-hpl') {
+            it.dependsOn(generateTestHplTask)
         }
 
         project.tasks.named(JavaPlugin.TEST_CLASSES_TASK_NAME).configure { it.dependsOn(generateTestHplTask) }

@@ -200,7 +200,8 @@ class JpiIntegrationSpec extends IntegrationSpec {
         'jpi'                                        | ':configureManifest'                          | TaskOutcome.SUCCESS
         'processTestResources'                       | ':resolveTestDependencies'                    | TaskOutcome.SUCCESS
         'compileTestJava'                            | ':insertTest'                                 | TaskOutcome.SKIPPED
-        'testClasses'                                | ':generate-test-hpl'                          | TaskOutcome.SUCCESS
+        'testClasses'                                | ':generateTestHpl'                          | TaskOutcome.SUCCESS
+        'generate-test-hpl'                          | ':generateTestHpl'                          | TaskOutcome.SUCCESS
         'compileJava'                                | ':localizer'                                  | TaskOutcome.SUCCESS
         'generateMetadataFileForMavenJpiPublication' | ':generateMetadataFileForMavenJpiPublication' | TaskOutcome.SUCCESS
     }
