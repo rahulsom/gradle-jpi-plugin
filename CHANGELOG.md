@@ -4,14 +4,14 @@
 
   * use `jenkinsPlugin.shortName` as base name of jar [#163](https://github.com/jenkinsci/gradle-jpi-plugin/issues/163)
   * remove plugins from server work dir when removed from dependencies [#165](https://github.com/jenkinsci/gradle-jpi-plugin/issues/165)
-  * introduce `generateTestHpl` (delegates to `generate-test-hpl`)
+  * introduce `generateTestHpl` for task name consistency (`generate-test-hpl` depends on `generateTestHpl`)
   * use same task class for `generateTestHpl` and `generateJenkinsServerHpl`
   * introduce `checkOverlappingSources` cacheable task (was part of JpiManifest creation)
   * introduce `generateJenkinsServerHpl` cacheable task (was part of `server`)
   * introduce `installJenkinsServerPlugins` cacheable task (was part of `server`)
   * rewrite `server` task to be `JavaExec`, fixing bug where server continues to run in background [#151](https://github.com/jenkinsci/gradle-jpi-plugin/issues/151)
   * introduce `jenkinsServerRuntimeOnly` configuration, allowing dependencies to be added to the `server` task's classpath
-  * improve error message when `jenkinsPlugin.coreVersion` is not set [#148](https://github.com/jenkinsci/gradle-jpi-plugin/issues/148)
+  * improve error message when `jenkinsPlugin.jenkinsVersion` is not set [#148](https://github.com/jenkinsci/gradle-jpi-plugin/issues/148)
   * remove `mavenLocal()` declaration from project applying plugin [#161](https://github.com/jenkinsci/gradle-jpi-plugin/issues/161)
   * remove dependency on `org.jenkins-ci:version-number`
   * add reason to dependencies added by org.jenkins-ci.jpi plugin
