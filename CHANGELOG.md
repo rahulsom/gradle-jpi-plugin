@@ -8,6 +8,7 @@
   * introduce `generateJenkinsServerHpl` cacheable task (was part of `server`)
   * introduce `installJenkinsServerPlugins` cacheable task (was part of `server`)
   * rewrite `server` task to be `JavaExec`, fixing bug where server continues to run in background [#151](https://github.com/jenkinsci/gradle-jpi-plugin/issues/151)
+  * introduce `jenkinsServerRuntimeOnly` configuration, allowing dependencies to be added to the `server` task's classpath
   * improve error message when `jenkinsPlugin.coreVersion` is not set [#148](https://github.com/jenkinsci/gradle-jpi-plugin/issues/148)
   * remove `mavenLocal()` declaration from project applying plugin [#161](https://github.com/jenkinsci/gradle-jpi-plugin/issues/161)
   * remove dependency on `org.jenkins-ci:version-number`
