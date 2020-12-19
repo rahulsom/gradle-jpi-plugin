@@ -1,10 +1,15 @@
 package org.jenkinsci.gradle.plugins.jpi.restricted
 
+import groovy.transform.CompileStatic
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Classpath
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
-import org.gradle.api.tasks.compile.AbstractCompile
 import org.kohsuke.accmod.impl.Checker
 
 /**
@@ -13,18 +18,27 @@ import org.kohsuke.accmod.impl.Checker
  * @see org.kohsuke.accmod.impl.EnforcerMojo
  * @link https://github.com/jenkinsci/gradle-jpi-plugin/issues/160
  */
+@CompileStatic
 class CheckAccessModifierTask extends DefaultTask {
-    public static final TASK_NAME = 'checkAccessModifier'
-    public static final PROPERTY_PREFIX = TASK_NAME + '.'
+    public static final String TASK_NAME = 'checkAccessModifier'
+    public static final String PROPERTY_PREFIX = TASK_NAME + '.'
 
     @Classpath
-    Configuration configuration
+    final Property<Configuration> configuration = project.objects.property(Configuration)
+
+    @InputFiles
+    final ListProperty<File> compiledOutput = project.objects.listProperty(File)
+
+    @Internal
+    final Provider<List<URL>> scannable = configuration.map { Configuration config ->
+        List<File> dependencies = config.resolvedConfiguration.resolvedArtifacts*.file
+        List<File> compiled = compiledOutput.get()
+        (compiled + dependencies).collect { it.toURI().toURL() }
+    }
 
     @TaskAction
-    void act() {
-        Iterable<File> compiledOutput = project.tasks.withType(AbstractCompile)*.destinationDir
-        Iterable<File> deps = configuration.resolvedConfiguration.resolvedArtifacts*.file
-        List<URL> toScan = (compiledOutput + deps).collect { it.toURI().toURL() }
+    void check() {
+        List<URL> toScan = scannable.get()
         URL[] array = toScan.toArray(new URL[toScan.size()])
         def listener = new InternalErrorListener()
         def loader = new URLClassLoader(array, getClass().classLoader)
@@ -35,8 +49,8 @@ class CheckAccessModifierTask extends DefaultTask {
         }
         def checker = new Checker(loader, listener, props, new InternalMavenLoggingBridge())
 
-        compiledOutput.each {
-            checker.check(it)
+        for (File f : compiledOutput.get()) {
+            checker.check(f)
         }
         if (listener.hasErrors()) {
             logger.error(listener.errorMessage())

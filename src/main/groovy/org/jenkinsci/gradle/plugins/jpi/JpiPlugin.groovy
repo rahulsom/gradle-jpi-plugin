@@ -58,6 +58,8 @@ import org.jenkinsci.gradle.plugins.jpi.server.InstallJenkinsServerPluginsTask
 import org.jenkinsci.gradle.plugins.jpi.server.JenkinsServerTask
 import org.jenkinsci.gradle.plugins.jpi.verification.CheckOverlappingSourcesTask
 
+import org.gradle.api.tasks.compile.AbstractCompile
+
 import static org.gradle.api.logging.LogLevel.INFO
 import static org.gradle.api.tasks.SourceSet.MAIN_SOURCE_SET_NAME
 import static org.gradle.api.tasks.SourceSet.TEST_SOURCE_SET_NAME
@@ -210,6 +212,7 @@ class JpiPlugin implements Plugin<Project> {
         def camName = CheckAccessModifierTask.TASK_NAME
         def cam = gradleProject.tasks.register(camName, CheckAccessModifierTask) { CheckAccessModifierTask t ->
             t.configuration = gradleProject.configurations.compileClasspath
+            t.compiledOutput.set(project.tasks.withType(AbstractCompile)*.destinationDir)
             t.dependsOn('classes')
         }
         gradleProject.tasks.findByName('check')?.dependsOn(cam)
