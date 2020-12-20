@@ -26,17 +26,13 @@ java {
 
 val sezpoz = "net.java.sezpoz:sezpoz:1.13"
 
-configurations.all {
-    exclude("org.jenkins-ci", "annotation-indexer")
-}
-
 dependencies {
+    compileOnly("org.kohsuke:access-modifier-checker:1.21")
     annotationProcessor(sezpoz)
     implementation(gradleApi())
     implementation("org.jvnet.localizer:maven-localizer-plugin:1.24")
     implementation(sezpoz)
     implementation(localGroovy())
-    implementation("org.kohsuke:access-modifier-checker:1.21")
     testAnnotationProcessor(sezpoz)
     testImplementation("org.spockframework:spock-core:1.3-groovy-2.5") {
         exclude(module = "groovy-all") // use the version that is distributed with Gradle
@@ -44,6 +40,7 @@ dependencies {
     testImplementation("org.xmlunit:xmlunit-core:2.6.3")
     testImplementation("org.apache.commons:commons-text:1.8")
     testImplementation("com.squareup:javapoet:1.12.1")
+    testImplementation("org.kohsuke:access-modifier-checker:1.21")
 }
 
 publishing {
