@@ -12,16 +12,16 @@ abstract class CheckAccess : WorkAction<CheckAccessParameters> {
     }
 
     override fun execute() {
-        val toScan = parameters.getScannableClasspath().files.map { it.toURI().toURL() }
+        val toScan = parameters.classpathToScan.files.map { it.toURI().toURL() }
         val array = toScan.toTypedArray()
         val loader = URLClassLoader(array, javaClass.classLoader)
         val listener = InternalErrorListener()
         val props = Properties()
-        for ((key, value) in parameters.getAccessModifierProperties().get()) {
+        for ((key, value) in parameters.propertiesForAccessModifier.get()) {
             props[key] = value
         }
         val checker = Checker(loader, listener, props, MavenLoggingBridge)
-        checker.check(parameters.getCompilationDir().asFile.get())
+        checker.check(parameters.dirToCheck.asFile.get())
         if (listener.hasErrors()) {
             LOGGER.error(listener.errorMessage())
             throw RestrictedApiException()

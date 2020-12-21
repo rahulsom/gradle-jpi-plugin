@@ -1,19 +1,12 @@
 package org.jenkinsci.gradle.plugins.accmod
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.artifacts.Configuration
-import org.gradle.api.file.FileCollection
-import org.gradle.api.provider.ListProperty
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.provider.MapProperty
-import org.gradle.api.provider.Property
-import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.*
-import org.gradle.kotlin.dsl.listProperty
 import org.gradle.kotlin.dsl.mapProperty
-import org.gradle.kotlin.dsl.property
 import org.gradle.kotlin.dsl.submit
 import org.gradle.workers.WorkerExecutor
-import java.io.File
 import javax.inject.Inject
 
 /**
@@ -28,37 +21,27 @@ open class CheckAccessModifierTask @Inject constructor(private val workerExecuto
     }
 
     @Classpath
-    val accessModifierClasspath: Property<Configuration> = project.objects.property()
+    val accessModifierClasspath: ConfigurableFileCollection = project.objects.fileCollection()
 
     @Input
     val accessModifierProperties: MapProperty<String, Any> = project.objects.mapProperty()
 
     @CompileClasspath
-    val compileClasspath: Property<Configuration> = project.objects.property()
+    val compileClasspath: ConfigurableFileCollection = project.objects.fileCollection()
 
     @InputFiles
-    val compilationDirs: ListProperty<File> = project.objects.listProperty()
-
-    @Internal
-    val presentCompilationDirs: Provider<List<File>> = compilationDirs.map { it.filter { f -> f.exists() } }
-
-    @Internal
-    val classpathToScan: Provider<FileCollection> = compileClasspath.map {
-        val dependencies = it.resolvedConfiguration.resolvedArtifacts.map { a -> a.file }
-        val compiled = presentCompilationDirs.get()
-        project.layout.files(compiled, dependencies)
-    }
+    val compilationDirs: ConfigurableFileCollection = project.objects.fileCollection()
 
     @TaskAction
     fun check() {
         val q = workerExecutor.classLoaderIsolation {
             classpath.from(accessModifierClasspath)
         }
-        for (compilationDir in presentCompilationDirs.get()) {
+        for (compilationDir in compilationDirs) {
             q.submit(CheckAccess::class) {
-                getAccessModifierProperties().set(accessModifierProperties)
-                getCompilationDir().set(compilationDir)
-                getScannableClasspath().from(classpathToScan)
+                classpathToScan.from(compilationDirs, compileClasspath)
+                dirToCheck.set(compilationDir)
+                propertiesForAccessModifier.set(accessModifierProperties)
             }
         }
     }

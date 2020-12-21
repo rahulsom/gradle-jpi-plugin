@@ -4,11 +4,12 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.attributes.Usage
 import org.gradle.api.plugins.JavaLibraryPlugin
-import org.gradle.api.tasks.compile.AbstractCompile
+import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.kotlin.dsl.apply
+import org.gradle.kotlin.dsl.get
+import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.named
 import org.gradle.kotlin.dsl.register
-import org.gradle.kotlin.dsl.withType
 
 open class AccessModifierPlugin : Plugin<Project> {
     override fun apply(target: Project) {
@@ -29,12 +30,11 @@ open class AccessModifierPlugin : Plugin<Project> {
 
             val propertyProvider = provider(PrefixedPropertiesProvider(this, CheckAccessModifierTask.PREFIX))
             val checkAccessModifier = tasks.register<CheckAccessModifierTask>(CheckAccessModifierTask.NAME) {
-                dependsOn("classes")
-                val dirs = tasks.withType<AbstractCompile>().map { it.destinationDir }
-                accessModifierClasspath.set(jenkinsAccessModifier)
+                val dirs = project.extensions.getByType<SourceSetContainer>()["main"].output.classesDirs
+                accessModifierClasspath.from(jenkinsAccessModifier)
                 accessModifierProperties.set(propertyProvider)
-                compileClasspath.set(target.configurations.getByName("compileClasspath"))
-                compilationDirs.set(dirs)
+                compileClasspath.from(target.configurations.getByName("compileClasspath"))
+                compilationDirs.from(dirs)
             }
             tasks.named("check").configure {
                 dependsOn(checkAccessModifier)

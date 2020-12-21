@@ -6,7 +6,7 @@ import org.gradle.api.provider.MapProperty
 import org.gradle.workers.WorkParameters
 
 interface CheckAccessParameters : WorkParameters {
-    fun getCompilationDir(): DirectoryProperty
-    fun getScannableClasspath(): ConfigurableFileCollection
-    fun getAccessModifierProperties(): MapProperty<String, Any>
+    val propertiesForAccessModifier: MapProperty<String, Any>
+    val classpathToScan: ConfigurableFileCollection
+    val dirToCheck: DirectoryProperty
 }
