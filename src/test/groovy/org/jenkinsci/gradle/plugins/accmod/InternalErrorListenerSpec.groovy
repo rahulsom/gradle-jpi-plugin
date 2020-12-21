@@ -1,4 +1,4 @@
-package org.jenkinsci.gradle.plugins.jpi.restricted
+package org.jenkinsci.gradle.plugins.accmod
 
 import groovy.transform.Immutable
 import org.kohsuke.accmod.impl.Location

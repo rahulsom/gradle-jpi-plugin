@@ -4,6 +4,7 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
 plugins {
     groovy
     `maven-publish`
+    `kotlin-dsl`
     signing
     codenarc
     id("com.gradle.plugin-publish") version "0.12.0"

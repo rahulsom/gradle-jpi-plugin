@@ -1,4 +1,4 @@
-package org.jenkinsci.gradle.plugins.jpi
+package org.jenkinsci.gradle.plugins.accmod
 
 import com.squareup.javapoet.AnnotationSpec
 import com.squareup.javapoet.ClassName
@@ -7,6 +7,8 @@ import com.squareup.javapoet.MethodSpec
 import com.squareup.javapoet.TypeSpec
 import groovy.transform.CompileStatic
 import org.gradle.testkit.runner.TaskOutcome
+import org.jenkinsci.gradle.plugins.jpi.IntegrationSpec
+import org.jenkinsci.gradle.plugins.jpi.TestDataGenerator
 import org.kohsuke.accmod.Restricted
 import org.kohsuke.accmod.restrictions.Beta
 import org.kohsuke.accmod.restrictions.DoNotUse
@@ -20,8 +22,6 @@ import javax.lang.model.element.Modifier
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-
-import static org.jenkinsci.gradle.plugins.jpi.restricted.CheckAccessModifierTask.TASK_NAME
 
 class CheckAccessModifierIntegrationSpec extends IntegrationSpec {
     private final String projectName = TestDataGenerator.generateName()
@@ -116,7 +116,7 @@ class CheckAccessModifierIntegrationSpec extends IntegrationSpec {
 
         when:
         def result = gradleRunner()
-                .withArguments(TASK_NAME, '-s')
+                .withArguments(CheckAccessModifierTask.NAME, '-s')
                 .buildAndFail()
 
         then:
@@ -155,11 +155,11 @@ class CheckAccessModifierIntegrationSpec extends IntegrationSpec {
 
         when:
         def result = gradleRunner()
-                .withArguments(TASK_NAME, '-s')
+                .withArguments(CheckAccessModifierTask.NAME, '-s')
                 .build()
 
         then:
-        result.task(':' + TASK_NAME).outcome == TaskOutcome.SUCCESS
+        result.task(':' + CheckAccessModifierTask.NAME).outcome == TaskOutcome.SUCCESS
 
         where:
         upstreamExt     | downstreamExt   | type                | useGroovyDir
@@ -200,7 +200,7 @@ class CheckAccessModifierIntegrationSpec extends IntegrationSpec {
 
         when:
         def result = gradleRunner()
-                .withArguments(TASK_NAME, '-s')
+                .withArguments(CheckAccessModifierTask.NAME, '-s')
                 .buildAndFail()
 
         then:
@@ -251,11 +251,11 @@ class CheckAccessModifierIntegrationSpec extends IntegrationSpec {
 
         when:
         def result = gradleRunner()
-                .withArguments(TASK_NAME, '-PcheckAccessModifier.useBeta=true', '-s')
+                .withArguments(CheckAccessModifierTask.NAME, '-PcheckAccessModifier.useBeta=true', '-s')
                 .build()
 
         then:
-        result.task(':' + TASK_NAME).outcome == TaskOutcome.SUCCESS
+        result.task(':' + CheckAccessModifierTask.NAME).outcome == TaskOutcome.SUCCESS
 
         where:
         upstreamExt     | downstreamExt   | useGroovyDir
@@ -281,7 +281,7 @@ class CheckAccessModifierIntegrationSpec extends IntegrationSpec {
 
         when:
         def result = gradleRunner()
-                .withArguments(TASK_NAME, '-s')
+                .withArguments(CheckAccessModifierTask.NAME, '-s')
                 .buildAndFail()
 
         then:
@@ -310,7 +310,7 @@ class CheckAccessModifierIntegrationSpec extends IntegrationSpec {
 
         when:
         def result = gradleRunner()
-                .withArguments(TASK_NAME, '-s')
+                .withArguments(CheckAccessModifierTask.NAME, '-s')
                 .buildAndFail()
 
         then:

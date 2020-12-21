@@ -45,16 +45,13 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.War
-import org.gradle.api.tasks.compile.AbstractCompile
 import org.gradle.api.tasks.compile.GroovyCompile
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.testing.Test
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.util.GradleVersion
 import org.jenkinsci.gradle.plugins.jpi.internal.DependencyLookup
-import org.jenkinsci.gradle.plugins.jpi.internal.PrefixedPropertiesProvider
 import org.jenkinsci.gradle.plugins.jpi.legacy.LegacyWorkaroundsPlugin
-import org.jenkinsci.gradle.plugins.jpi.restricted.CheckAccessModifierTask
 import org.jenkinsci.gradle.plugins.jpi.server.GenerateHplTask
 import org.jenkinsci.gradle.plugins.jpi.server.InstallJenkinsServerPluginsTask
 import org.jenkinsci.gradle.plugins.jpi.server.JenkinsServerTask
@@ -102,6 +99,7 @@ class JpiPlugin implements Plugin<Project> {
 
         gradleProject.plugins.apply(JavaLibraryPlugin)
         gradleProject.plugins.apply(GroovyPlugin)
+        gradleProject.plugins.apply(kotlinPlugin('org.jenkinsci.gradle.plugins.accmod.AccessModifierPlugin'))
 
         def ext = gradleProject.extensions.create('jenkinsPlugin', JpiExtension, gradleProject)
         gradleProject.plugins.apply(LegacyWorkaroundsPlugin)
@@ -208,28 +206,11 @@ class JpiPlugin implements Plugin<Project> {
         gradleProject.afterEvaluate {
             gradleProject.setProperty('archivesBaseName', ext.shortName)
         }
+    }
 
-        def jenkinsAccessModifier = gradleProject.configurations.create('jenkinsAccessModifier') { Configuration c ->
-            c.attributes {
-                attribute(Usage.USAGE_ATTRIBUTE, gradleProject.objects.named(Usage, Usage.JAVA_RUNTIME))
-            }
-            c.visible = false
-            c.canBeConsumed = false
-            c.canBeResolved = true
-        }.withDependencies {
-            it.add(gradleProject.dependencies.create('org.kohsuke:access-modifier-checker:1.21'))
-        }
-
-        def camName = CheckAccessModifierTask.TASK_NAME
-        def cam = gradleProject.tasks.register(camName, CheckAccessModifierTask) { CheckAccessModifierTask t ->
-            def camProps = gradleProject.provider(new PrefixedPropertiesProvider(gradleProject, PROPERTY_PREFIX))
-            t.accessModifierClasspath.set(jenkinsAccessModifier)
-            t.compileClasspath.set(gradleProject.configurations.compileClasspath)
-            t.compilationDirs.set(project.tasks.withType(AbstractCompile)*.destinationDir)
-            t.accessModifierProperties.set(camProps)
-            t.dependsOn('classes')
-        }
-        gradleProject.tasks.findByName('check')?.dependsOn(cam)
+    @SuppressWarnings('ClassForName')
+    private static <T extends Plugin<Project>> Class<T> kotlinPlugin(String className) {
+        Class.forName(className) as Class<T>
     }
 
     private static Properties loadDotJenkinsOrg() {

@@ -1,4 +1,4 @@
-package org.jenkinsci.gradle.plugins.jpi.internal
+package org.jenkinsci.gradle.plugins.accmod
 
 import org.gradle.api.Project
 import spock.lang.Specification
