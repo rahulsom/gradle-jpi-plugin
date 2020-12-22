@@ -25,6 +25,10 @@ java {
     targetCompatibility = VERSION_1_8
 }
 
+kotlinDslPluginOptions {
+    experimentalWarning.set(false)
+}
+
 val sezpoz = "net.java.sezpoz:sezpoz:1.13"
 
 dependencies {
