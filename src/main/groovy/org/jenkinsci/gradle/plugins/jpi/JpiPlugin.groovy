@@ -99,6 +99,7 @@ class JpiPlugin implements Plugin<Project> {
 
         gradleProject.plugins.apply(JavaLibraryPlugin)
         gradleProject.plugins.apply(GroovyPlugin)
+        gradleProject.plugins.apply(kotlinPlugin('org.jenkinsci.gradle.plugins.accmod.AccessModifierPlugin'))
 
         def ext = gradleProject.extensions.create('jenkinsPlugin', JpiExtension, gradleProject)
         gradleProject.plugins.apply(LegacyWorkaroundsPlugin)
@@ -205,6 +206,11 @@ class JpiPlugin implements Plugin<Project> {
         gradleProject.afterEvaluate {
             gradleProject.setProperty('archivesBaseName', ext.shortName)
         }
+    }
+
+    @SuppressWarnings('ClassForName')
+    private static <T extends Plugin<Project>> Class<T> kotlinPlugin(String className) {
+        Class.forName(className) as Class<T>
     }
 
     private static Properties loadDotJenkinsOrg() {

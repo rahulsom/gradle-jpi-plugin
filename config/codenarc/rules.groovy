@@ -21,6 +21,8 @@ ruleset {
     ruleset('rulesets/design.xml') {
         // does not necessarily lead to better code
         exclude 'Instanceof'
+        // needed for Worker Api
+        exclude 'AbstractClassWithoutAbstractMethod'
     }
 
     ruleset('rulesets/dry.xml') {

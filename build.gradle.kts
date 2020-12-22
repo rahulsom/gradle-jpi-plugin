@@ -4,6 +4,7 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
 plugins {
     groovy
     `maven-publish`
+    `kotlin-dsl`
     signing
     codenarc
     id("com.gradle.plugin-publish") version "0.12.0"
@@ -14,6 +15,9 @@ plugins {
 repositories {
     // using JCenter for dependency resolution is recommended, see https://plugins.gradle.org/docs/publish-plugin
     jcenter()
+    maven {
+        url = uri("https://repo.jenkins-ci.org/releases")
+    }
 }
 
 java {
@@ -21,9 +25,14 @@ java {
     targetCompatibility = VERSION_1_8
 }
 
+kotlinDslPluginOptions {
+    experimentalWarning.set(false)
+}
+
 val sezpoz = "net.java.sezpoz:sezpoz:1.13"
 
 dependencies {
+    compileOnly("org.kohsuke:access-modifier-checker:1.21")
     annotationProcessor(sezpoz)
     implementation(gradleApi())
     implementation("org.jvnet.localizer:maven-localizer-plugin:1.24")
@@ -36,6 +45,7 @@ dependencies {
     testImplementation("org.xmlunit:xmlunit-core:2.6.3")
     testImplementation("org.apache.commons:commons-text:1.8")
     testImplementation("com.squareup:javapoet:1.12.1")
+    testImplementation("org.kohsuke:access-modifier-checker:1.21")
 }
 
 publishing {
