@@ -1,5 +1,7 @@
 import org.gradle.api.JavaVersion.VERSION_1_8
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+import org.gradle.util.GradleVersion.current
+import org.gradle.util.GradleVersion.version
 
 plugins {
     groovy
@@ -26,7 +28,10 @@ java {
 }
 
 kotlinDslPluginOptions {
-    experimentalWarning.set(false)
+    // this warns on Gradle 7.0 snapshots, but only from JenkinsServerTaskSpec
+    if (current().baseVersion < version("7.0")) {
+        experimentalWarning.set(false)
+    }
 }
 
 val sezpoz = "net.java.sezpoz:sezpoz:1.13"

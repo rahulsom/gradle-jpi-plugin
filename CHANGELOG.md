@@ -2,6 +2,7 @@
 
   * introduce `checkAccessModifier` task as a dependency of `check`
   * support `-PcheckAccessModifier.useBeta=true` to opt into beta APIs
+  * add `:sourceJar` dependency on `:localizer` to fix Gradle 7.0 warning
 
 ## 0.40.0 (2020-12-14)
 

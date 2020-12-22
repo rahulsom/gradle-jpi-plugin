@@ -501,6 +501,11 @@ class JpiPlugin implements Plugin<Project> {
                 JavaPluginExtension javaPluginExtension = project.extensions.getByType(JavaPluginExtension)
                 javaPluginExtension.withSourcesJar()
                 javaPluginExtension.withJavadocJar()
+
+                def localizer = project.tasks.named('localizer')
+                project.tasks.named('sourcesJar').configure {
+                    dependsOn(localizer)
+                }
             }
         }
 
