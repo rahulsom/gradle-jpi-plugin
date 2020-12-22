@@ -70,7 +70,17 @@ class AddedDependenciesIntegrationSpec extends IntegrationSpec {
                 outputs.file(output)
                 doLast {
                     output.createNewFile()
-                    def artifactsByConfiguration = configurations.findAll { it.canBeResolved }.collectEntries { c ->
+                    def deprecatedConfigs = [
+                        'archives',
+                        'compile',
+                        'compileOnly',
+                        'default',
+                        'runtime',
+                        'testCompile',
+                        'testCompileOnly',
+                        'testRuntime',
+                    ]
+                    def artifactsByConfiguration = configurations.findAll { it.canBeResolved && !deprecatedConfigs.contains(it.name) }.collectEntries { c ->
                         def artifacts = c.incoming.artifactView { it.lenient(true) }.artifacts.collect {
                             it.id.componentIdentifier.toString() + '@' + it.file.name.substring(it.file.name.lastIndexOf('.') + 1)
                         }

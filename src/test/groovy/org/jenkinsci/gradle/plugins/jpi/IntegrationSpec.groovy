@@ -15,6 +15,14 @@ class IntegrationSpec extends Specification {
     protected final TemporaryFolder projectDir = new TemporaryFolder()
 
     protected GradleRunner gradleRunner() {
+        def gradleProperties = new File(projectDir.root, 'gradle.properties')
+        if (!gradleProperties.exists()) {
+            def props = new Properties()
+            props.setProperty('org.gradle.warning.mode', 'fail')
+            gradleProperties.withOutputStream {
+                props.store(it, 'IntegrationSpec default generated values')
+            }
+        }
         def runner = GradleRunner.create()
                 .withPluginClasspath()
                 .withProjectDir(projectDir.root)
