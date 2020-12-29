@@ -448,6 +448,9 @@ class JpiPlugin implements Plugin<Project> {
     }
 
     private static boolean isRuntimeVariant(Configuration variant) {
+        if (variant.name.startsWith('testFixtures')) {
+            return false
+        }
         (variant.canBeConsumed
                 && variant.attributes.getAttribute(Usage.USAGE_ATTRIBUTE)?.
                 name == Usage.JAVA_RUNTIME

@@ -521,6 +521,28 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
         secondRun.task(taskPath).outcome == TaskOutcome.UP_TO_DATE
     }
 
+    def 'should not cause cyclical dependency with java-test-fixtures plugin'() {
+        given:
+        build.text = """\
+            plugins {
+                id 'java-test-fixtures'
+                id 'org.jenkins-ci.jpi'
+            }
+            jenkinsPlugin {
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+            }
+            dependencies {
+                implementation 'org.jenkins-ci.plugins:git:4.0.1'
+            }
+            """.stripIndent()
+
+        when:
+        def actual = generateManifestThroughGradle()
+
+        then:
+        actual['Plugin-Dependencies'] == 'git:4.0.1'
+    }
+
     @CompileStatic
     BuildResult runTask(String overrideVersion = projectVersion) {
         List<String> args = ['-s', taskToRun()]
