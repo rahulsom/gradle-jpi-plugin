@@ -3,6 +3,7 @@
   * introduce `checkAccessModifier` task as a dependency of `check`
   * support `-PcheckAccessModifier.useBeta=true` to opt into beta APIs
   * add `:sourceJar` dependency on `:localizer` to fix Gradle 7.0 warning
+  * fix cyclic dependency when using `java-test-fixtures` plugin [#175](https://github.com/jenkinsci/gradle-jpi-plugin/issues/175)
 
 ## 0.40.0 (2020-12-14)
 
