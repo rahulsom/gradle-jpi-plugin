@@ -1,5 +1,6 @@
 package org.jenkinsci.gradle.plugins.accmod
 
+import com.squareup.javapoet.ClassName
 import com.squareup.javapoet.JavaFile
 import com.squareup.javapoet.MethodSpec
 import com.squareup.javapoet.TypeSpec
@@ -117,6 +118,41 @@ class CheckAccessModifierCachingIntegrationSpec extends IntegrationSpec {
         'runtimeOnly'    | [LOG4J_API_2_13_0] | [LOG4J_API_2_14_0] | 'changed'   | TaskOutcome.UP_TO_DATE
         'runtimeOnly'    | [LOG4J_API_2_13_0] | []                 | 'removed'   | TaskOutcome.UP_TO_DATE
         'runtimeOnly'    | [LOG4J_API_2_13_0] | [LOG4J_API_2_13_0] | 'unchanged' | TaskOutcome.UP_TO_DATE
+    }
+
+    def 'should not cache failure even without changes'() {
+        given:
+        JavaFile.builder('org.example.restricted', ok.toBuilder()
+                .addMethod(MethodSpec.methodBuilder('callDoNotUse')
+                        .addStatement('$1T o = new $1T()', ClassName.get('hudson.plugins.mercurial', 'MercurialChangeSet'))
+                        .addStatement('o.setMsg($S)', 'some message')
+                        .build())
+                .build())
+                .build()
+                .writeTo(srcMainJava)
+        def made = template.make([
+                'jenkinsVersion': TestSupport.RECENT_JENKINS_VERSION,
+                'dependencies'  : [
+                        ['configuration': 'implementation', 'coordinate': 'org.jenkins-ci.plugins:mercurial:2.10'],
+                ],
+        ])
+        build.withWriter { made.writeTo(it) }
+
+        when:
+        def result = gradleRunner()
+                .withArguments(CheckAccessModifierTask.NAME)
+                .buildAndFail()
+
+        then:
+        result.task(taskPath).outcome == TaskOutcome.FAILED
+
+        when:
+        def rerunResult = gradleRunner()
+                .withArguments(CheckAccessModifierTask.NAME)
+                .buildAndFail()
+
+        then:
+        rerunResult.task(taskPath).outcome == TaskOutcome.FAILED
     }
 
     def 'should rerun when source added'() {
