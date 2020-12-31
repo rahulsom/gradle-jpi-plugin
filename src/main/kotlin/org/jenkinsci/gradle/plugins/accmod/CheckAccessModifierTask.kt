@@ -2,8 +2,14 @@ package org.jenkinsci.gradle.plugins.accmod
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.MapProperty
-import org.gradle.api.tasks.*
+import org.gradle.api.tasks.Classpath
+import org.gradle.api.tasks.CompileClasspath
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.mapProperty
 import org.gradle.kotlin.dsl.submit
 import org.gradle.workers.WorkerExecutor
@@ -32,6 +38,9 @@ open class CheckAccessModifierTask @Inject constructor(private val workerExecuto
     @InputFiles
     val compilationDirs: ConfigurableFileCollection = project.objects.fileCollection()
 
+    @OutputDirectory
+    val outputDirectory: DirectoryProperty = project.objects.directoryProperty()
+
     @TaskAction
     fun check() {
         val q = workerExecutor.classLoaderIsolation {
@@ -42,6 +51,7 @@ open class CheckAccessModifierTask @Inject constructor(private val workerExecuto
                 classpathToScan.from(compilationDirs, compileClasspath)
                 dirToCheck.set(compilationDir)
                 propertiesForAccessModifier.set(accessModifierProperties)
+                outputFile.set(outputDirectory.file("${compilationDir.name}-${compilationDir.parentFile.name}.txt"))
             }
         }
     }

@@ -35,6 +35,7 @@ open class AccessModifierPlugin : Plugin<Project> {
                 accessModifierProperties.set(propertyProvider)
                 compileClasspath.from(target.configurations.getByName("compileClasspath"))
                 compilationDirs.from(dirs)
+                outputDirectory.set(project.layout.buildDirectory.dir("access-modifier"))
             }
             tasks.named("check").configure {
                 dependsOn(checkAccessModifier)

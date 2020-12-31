@@ -4,7 +4,7 @@ import org.gradle.workers.WorkAction
 import org.kohsuke.accmod.impl.Checker
 import org.slf4j.LoggerFactory
 import java.net.URLClassLoader
-import java.util.Properties
+import java.util.*
 
 abstract class CheckAccess : WorkAction<CheckAccessParameters> {
     private companion object {
@@ -22,6 +22,7 @@ abstract class CheckAccess : WorkAction<CheckAccessParameters> {
         }
         val checker = Checker(loader, listener, props, MavenLoggingBridge)
         checker.check(parameters.dirToCheck.asFile.get())
+        parameters.outputFile.asFile.get().writeText(listener.errorMessage())
         if (listener.hasErrors()) {
             LOGGER.error(listener.errorMessage())
             throw RestrictedApiException()
