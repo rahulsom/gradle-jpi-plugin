@@ -30,6 +30,8 @@ open class AccessModifierPlugin : Plugin<Project> {
 
             val propertyProvider = provider(PrefixedPropertiesProvider(this, CheckAccessModifierTask.PREFIX))
             val checkAccessModifier = tasks.register<CheckAccessModifierTask>(CheckAccessModifierTask.NAME) {
+                group = "Verification"
+                description = "Checks if Jenkins restricted apis are used (https://tiny.cc/jenkins-restricted)."
                 val dirs = project.extensions.getByType<SourceSetContainer>()["main"].output.classesDirs
                 accessModifierClasspath.from(jenkinsAccessModifier)
                 accessModifierProperties.set(propertyProvider)
