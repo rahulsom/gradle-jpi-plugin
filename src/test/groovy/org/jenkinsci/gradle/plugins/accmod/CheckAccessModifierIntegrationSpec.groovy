@@ -9,6 +9,7 @@ import groovy.transform.CompileStatic
 import org.gradle.testkit.runner.TaskOutcome
 import org.jenkinsci.gradle.plugins.jpi.IntegrationSpec
 import org.jenkinsci.gradle.plugins.jpi.TestDataGenerator
+import org.jenkinsci.gradle.plugins.jpi.TestSupport
 import org.kohsuke.accmod.Restricted
 import org.kohsuke.accmod.restrictions.Beta
 import org.kohsuke.accmod.restrictions.DoNotUse
@@ -42,14 +43,17 @@ class CheckAccessModifierIntegrationSpec extends IntegrationSpec {
         File settings = projectDir.newFile('settings.gradle')
         settings << """rootProject.name = \"$projectName\""""
         build = projectDir.newFile('build.gradle')
-        build << '''\
+        build << """\
             plugins {
                 id 'org.jenkins-ci.jpi'
             }
             jenkinsPlugin {
-                coreVersion = '2.204.6'
+                jenkinsVersion.set('${TestSupport.RECENT_JENKINS_VERSION}')
             }
-            '''.stripIndent()
+            tasks.named('checkAccessModifier').configure {
+                ignoreFailures.set(false)
+            }
+            """.stripIndent()
         srcMainJava = new File(projectDir.root, 'src/main/java').toPath()
         srcMainGroovy = new File(projectDir.root, 'src/main/groovy').toPath()
         ohNo = TypeSpec.classBuilder('OhNo')

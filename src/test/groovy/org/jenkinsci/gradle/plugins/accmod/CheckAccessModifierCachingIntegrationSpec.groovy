@@ -36,6 +36,10 @@ class CheckAccessModifierCachingIntegrationSpec extends IntegrationSpec {
             jenkinsVersion = '$jenkinsVersion'
         }
 
+        tasks.named('checkAccessModifier').configure {
+            ignoreFailures.set($ignoreFailures)
+        }
+
         dependencies {
         <% for (dep in dependencies) { %>
             ${dep.configuration} '${dep.coordinate}'
@@ -51,6 +55,7 @@ class CheckAccessModifierCachingIntegrationSpec extends IntegrationSpec {
         def made = template.make([
                 'jenkinsVersion': TestSupport.RECENT_JENKINS_VERSION,
                 'dependencies'  : [],
+                'ignoreFailures': false,
         ])
         build.withWriter { made.writeTo(it) }
         srcMainJava = new File(projectDir.root, 'src/main/java').toPath()
@@ -76,6 +81,7 @@ class CheckAccessModifierCachingIntegrationSpec extends IntegrationSpec {
         def made = template.make([
                 'jenkinsVersion': TestSupport.RECENT_JENKINS_VERSION,
                 'dependencies'  : before.collect { ['configuration': configuration, 'coordinate': it] },
+                'ignoreFailures': false,
         ])
         build.withWriter { made.writeTo(it) }
 
@@ -93,6 +99,7 @@ class CheckAccessModifierCachingIntegrationSpec extends IntegrationSpec {
         def remade = this.template.make([
                 'jenkinsVersion': TestSupport.RECENT_JENKINS_VERSION,
                 'dependencies'  : after.collect { ['configuration': configuration, 'coordinate': it] },
+                'ignoreFailures': false,
         ])
         build.withWriter { remade.writeTo(it) }
         def rerunResult = gradleRunner()
@@ -135,6 +142,7 @@ class CheckAccessModifierCachingIntegrationSpec extends IntegrationSpec {
                 'dependencies'  : [
                         ['configuration': 'implementation', 'coordinate': 'org.jenkins-ci.plugins:mercurial:2.10'],
                 ],
+                'ignoreFailures': false,
         ])
         build.withWriter { made.writeTo(it) }
 
@@ -153,6 +161,44 @@ class CheckAccessModifierCachingIntegrationSpec extends IntegrationSpec {
 
         then:
         rerunResult.task(taskPath).outcome == TaskOutcome.FAILED
+    }
+
+    def 'should not cache success if ignoreFailures'() {
+        given:
+        JavaFile.builder('org.example.restricted', ok.toBuilder()
+                .addMethod(MethodSpec.methodBuilder('callDoNotUse')
+                        .addStatement('$1T o = new $1T()', ClassName.get('hudson.plugins.mercurial', 'MercurialChangeSet'))
+                        .addStatement('o.setMsg($S)', 'some message')
+                        .build())
+                .build())
+                .build()
+                .writeTo(srcMainJava)
+        def made = template.make([
+                'jenkinsVersion': TestSupport.RECENT_JENKINS_VERSION,
+                'dependencies'  : [
+                        ['configuration': 'implementation', 'coordinate': 'org.jenkins-ci.plugins:mercurial:2.10'],
+                ],
+                'ignoreFailures': true,
+        ])
+        build.withWriter { made.writeTo(it) }
+
+        when:
+        def result = gradleRunner()
+                .withArguments(CheckAccessModifierTask.NAME)
+                .build()
+
+        then:
+        result.task(taskPath).outcome == TaskOutcome.SUCCESS
+        result.output.contains('hudson/plugins/mercurial/MercurialChangeSet.setMsg(Ljava/lang/String;)V must not be used')
+
+        when:
+        def rerunResult = gradleRunner()
+                .withArguments(CheckAccessModifierTask.NAME)
+                .build()
+
+        then:
+        rerunResult.task(taskPath).outcome == TaskOutcome.SUCCESS
+        rerunResult.output.contains('hudson/plugins/mercurial/MercurialChangeSet.setMsg(Ljava/lang/String;)V must not be used')
     }
 
     def 'should rerun when source added'() {

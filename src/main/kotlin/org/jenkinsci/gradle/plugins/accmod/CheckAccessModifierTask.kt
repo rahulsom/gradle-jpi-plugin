@@ -4,6 +4,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.MapProperty
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.CompileClasspath
 import org.gradle.api.tasks.Input
@@ -11,6 +12,7 @@ import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.mapProperty
+import org.gradle.kotlin.dsl.property
 import org.gradle.kotlin.dsl.submit
 import org.gradle.workers.WorkerExecutor
 import javax.inject.Inject
@@ -38,6 +40,9 @@ open class CheckAccessModifierTask @Inject constructor(private val workerExecuto
     @InputFiles
     val compilationDirs: ConfigurableFileCollection = project.objects.fileCollection()
 
+    @Input
+    val ignoreFailures: Property<Boolean> = project.objects.property()
+
     @OutputDirectory
     val outputDirectory: DirectoryProperty = project.objects.directoryProperty()
 
@@ -50,6 +55,7 @@ open class CheckAccessModifierTask @Inject constructor(private val workerExecuto
             q.submit(CheckAccess::class) {
                 classpathToScan.from(compilationDirs, compileClasspath)
                 dirToCheck.set(compilationDir)
+                ignoreFailures.set(this@CheckAccessModifierTask.ignoreFailures)
                 propertiesForAccessModifier.set(accessModifierProperties)
                 outputFile.set(outputDirectory.file("${compilationDir.name}-${compilationDir.parentFile.name}.txt"))
             }

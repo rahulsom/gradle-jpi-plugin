@@ -245,6 +245,22 @@ Listening for transport dt_socket at address: 6000
 Any additional dependencies for the `server` task's classpath can be added to the `jenkinsServerRuntimeOnly`
 configuration. This can be useful for alternative logging implementations.
 
+
+### Checking for Restricted APIs
+
+Starting with v0.41.0, we now [check for using `@Restricted`][restricted] types, methods, and fields.
+
+Initially this functionality will warn by default (see [#176][176]), but will eventually fail the build. To opt-into failing
+the build now, add this configuration to build.gradle:
+
+```gradle
+tasks.named('checkAccessModifier').configure {
+    ignoreFailures.set(false)
+}
+```
+
+`checkAccessModifier` will only be cached on success if `ignoreFailures` is `false`.
+
 ## Disabling SHA256 and SHA512 checksums when releasing a plugin
 
 This section applies to the warning:
@@ -278,3 +294,5 @@ Here are some real world examples of Jenkins plugins using the Gradle JPI plugin
 * [Doktor Plugin](https://github.com/jenkinsci/doktor-plugin)
 
 [javaexecspec]: https://docs.gradle.org/current/javadoc/org/gradle/process/JavaExecSpec.html
+[restricted]: https://tiny.cc/jenkins-restricted
+[176]: https://github.com/jenkinsci/gradle-jpi-plugin/issues/176

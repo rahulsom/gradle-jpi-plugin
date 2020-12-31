@@ -24,8 +24,12 @@ abstract class CheckAccess : WorkAction<CheckAccessParameters> {
         checker.check(parameters.dirToCheck.asFile.get())
         parameters.outputFile.asFile.get().writeText(listener.errorMessage())
         if (listener.hasErrors()) {
-            LOGGER.error(listener.errorMessage())
-            throw RestrictedApiException()
+            if (parameters.ignoreFailures.get()) {
+                LOGGER.warn(listener.errorMessage())
+            } else {
+                LOGGER.error(listener.errorMessage())
+                throw RestrictedApiException()
+            }
         }
     }
 }
