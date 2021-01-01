@@ -2,12 +2,14 @@ package org.jenkinsci.gradle.plugins.jpi.server
 
 import groovy.transform.CompileStatic
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFile
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
@@ -29,6 +31,9 @@ class GenerateHplTask extends DefaultTask {
         hplDir.asFile.get().absolutePath
     }
 
+    @InputFiles
+    final ConfigurableFileCollection upstreamManifests = project.objects.fileCollection()
+
     @OutputFile
     final Provider<RegularFile> hpl = fileName.flatMap { String name ->
         hplDir.map { Directory d -> d.file(name) }
@@ -38,8 +43,14 @@ class GenerateHplTask extends DefaultTask {
     void generate() {
         def destination = hpl.get().asFile
         destination.parentFile.mkdirs()
+        def manifest = new JpiHplManifest(project)
+        upstreamManifests.each {
+            it.withInputStream {
+                manifest.read(it)
+            }
+        }
         destination.withOutputStream {
-            new JpiHplManifest(project).write(it)
+            manifest.write(it)
         }
     }
 }

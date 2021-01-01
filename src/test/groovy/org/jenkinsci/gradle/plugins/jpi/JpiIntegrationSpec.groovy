@@ -210,6 +210,12 @@ class JpiIntegrationSpec extends IntegrationSpec {
         'checkAccessModifier'                        | ':compileGroovy'                              | TaskOutcome.NO_SOURCE
         'generateJenkinsPluginClassManifest'         | ':compileJava'                                | TaskOutcome.NO_SOURCE
         'generateJenkinsPluginClassManifest'         | ':compileGroovy'                              | TaskOutcome.NO_SOURCE
+        'generateJenkinsSupportDynamicLoadingManifest' | ':compileJava'                                  | TaskOutcome.NO_SOURCE
+        'generateJenkinsSupportDynamicLoadingManifest' | ':compileGroovy'                                | TaskOutcome.NO_SOURCE
+        'generateJenkinsServerHpl'                     | ':generateJenkinsPluginClassManifest'           | TaskOutcome.SUCCESS
+        'generateJenkinsServerHpl'                     | ':generateJenkinsSupportDynamicLoadingManifest' | TaskOutcome.SUCCESS
+        'generateTestHpl'                              | ':generateJenkinsPluginClassManifest'           | TaskOutcome.SUCCESS
+        'generateTestHpl'                              | ':generateJenkinsSupportDynamicLoadingManifest' | TaskOutcome.SUCCESS
     }
 
     @Unroll

@@ -16,5 +16,13 @@ open class JenkinsManifestPlugin : Plugin<Project> {
             classesDirs.from(dirs)
             outputFile.set(project.layout.buildDirectory.file("jenkins-manifests/plugin-class.mf"))
         }
+
+        target.tasks.register<GenerateSupportDynamicLoadingManifestTask>(GenerateSupportDynamicLoadingManifestTask.NAME) {
+            group = "Build"
+            description = "Aggregates dynamic loading values of @Extensions"
+            val dirs = project.extensions.getByType<SourceSetContainer>()["main"].output.classesDirs
+            classesDirs.from(dirs)
+            outputFile.set(project.layout.buildDirectory.file("jenkins-manifests/support-dynamic-loading.mf"))
+        }
     }
 }
