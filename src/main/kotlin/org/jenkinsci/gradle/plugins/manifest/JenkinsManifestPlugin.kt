@@ -1,4 +1,4 @@
-package org.jenkinsci.gradle.plugins.legacy
+package org.jenkinsci.gradle.plugins.manifest
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -7,14 +7,14 @@ import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.register
 
-open class HudsonPluginDiscoveryPlugin : Plugin<Project> {
+open class JenkinsManifestPlugin : Plugin<Project> {
     override fun apply(target: Project) {
-        target.tasks.register<DiscoverHudsonPluginsTask>(DiscoverHudsonPluginsTask.NAME) {
+        target.tasks.register<GeneratePluginClassManifestTask>(GeneratePluginClassManifestTask.NAME) {
             group = "Build"
-            description = "Finds sole hudson.Plugin implementation for Manifest"
+            description = "Finds sole hudson.Plugin subclass for Manifest"
             val dirs = project.extensions.getByType<SourceSetContainer>()["main"].output.classesDirs
             classesDirs.from(dirs)
-            outputFile.set(project.layout.buildDirectory.file("hudson/plugin.mf"))
+            outputFile.set(project.layout.buildDirectory.file("jenkins-manifests/plugin-class.mf"))
         }
     }
 }

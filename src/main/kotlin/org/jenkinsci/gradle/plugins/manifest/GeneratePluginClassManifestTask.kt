@@ -1,4 +1,4 @@
-package org.jenkinsci.gradle.plugins.legacy
+package org.jenkinsci.gradle.plugins.manifest
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
@@ -7,18 +7,14 @@ import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import java.io.File
-import java.util.jar.Attributes
 import java.util.jar.Attributes.Name.MANIFEST_VERSION
 import java.util.jar.Manifest
 
-open class DiscoverHudsonPluginsTask : DefaultTask() {
+open class GeneratePluginClassManifestTask : DefaultTask() {
     companion object {
-        const val NAME: String = "discoverHudsonPlugins"
+        const val NAME: String = "generateJenkinsPluginClassManifest"
         private const val FILEPATH: String = "META-INF/services/hudson.Plugin"
-        private val logger: Logger = LoggerFactory.getLogger(DiscoverHudsonPluginsTask::class.java)
     }
 
     @InputFiles

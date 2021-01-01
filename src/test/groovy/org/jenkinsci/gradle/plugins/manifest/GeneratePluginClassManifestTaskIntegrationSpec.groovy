@@ -1,4 +1,4 @@
-package org.jenkinsci.gradle.plugins.legacy
+package org.jenkinsci.gradle.plugins.manifest
 
 import com.squareup.javapoet.ClassName
 import com.squareup.javapoet.JavaFile
@@ -13,9 +13,9 @@ import java.util.jar.Manifest
 
 import static java.util.jar.Attributes.Name.MANIFEST_VERSION
 
-class DiscoverHudsonPluginIntegrationSpec extends IntegrationSpec {
+class GeneratePluginClassManifestTaskIntegrationSpec extends IntegrationSpec {
     private final String projectName = TestDataGenerator.generateName()
-    private final String taskPath = ':' + DiscoverHudsonPluginsTask.NAME
+    private final String taskPath = ':' + GeneratePluginClassManifestTask.NAME
     private File build
     private Path srcMainJava
     private Path srcMainGroovy
@@ -49,7 +49,7 @@ class DiscoverHudsonPluginIntegrationSpec extends IntegrationSpec {
 
         when:
         def result = gradleRunner()
-                .withArguments(DiscoverHudsonPluginsTask.NAME)
+                .withArguments(GeneratePluginClassManifestTask.NAME)
                 .build()
 
         then:
@@ -58,7 +58,7 @@ class DiscoverHudsonPluginIntegrationSpec extends IntegrationSpec {
 
         when:
         def rerunResult = gradleRunner()
-                .withArguments(DiscoverHudsonPluginsTask.NAME)
+                .withArguments(GeneratePluginClassManifestTask.NAME)
                 .build()
 
         then:
@@ -75,7 +75,7 @@ class DiscoverHudsonPluginIntegrationSpec extends IntegrationSpec {
 
         when:
         def result = gradleRunner()
-                .withArguments(DiscoverHudsonPluginsTask.NAME)
+                .withArguments(GeneratePluginClassManifestTask.NAME)
                 .build()
 
         then:
@@ -84,7 +84,7 @@ class DiscoverHudsonPluginIntegrationSpec extends IntegrationSpec {
 
         when:
         def rerunResult = gradleRunner()
-                .withArguments(DiscoverHudsonPluginsTask.NAME)
+                .withArguments(GeneratePluginClassManifestTask.NAME)
                 .build()
 
         then:
@@ -106,7 +106,7 @@ class DiscoverHudsonPluginIntegrationSpec extends IntegrationSpec {
 
         when:
         def result = gradleRunner()
-                .withArguments(DiscoverHudsonPluginsTask.NAME)
+                .withArguments(GeneratePluginClassManifestTask.NAME)
                 .buildAndFail()
 
         then:
@@ -128,7 +128,7 @@ class DiscoverHudsonPluginIntegrationSpec extends IntegrationSpec {
 
         when:
         def result = gradleRunner()
-                .withArguments(DiscoverHudsonPluginsTask.NAME)
+                .withArguments(GeneratePluginClassManifestTask.NAME)
                 .buildAndFail()
 
         then:
@@ -137,6 +137,6 @@ class DiscoverHudsonPluginIntegrationSpec extends IntegrationSpec {
     }
 
     def actualManifest() {
-        new Manifest(new File(projectDir.root, 'build/hudson/plugin.mf').newInputStream())
+        new Manifest(new File(projectDir.root, 'build/jenkins-manifests/plugin-class.mf').newInputStream())
     }
 }

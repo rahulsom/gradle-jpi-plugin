@@ -100,7 +100,7 @@ class JpiPlugin implements Plugin<Project> {
         gradleProject.plugins.apply(JavaLibraryPlugin)
         gradleProject.plugins.apply(GroovyPlugin)
         gradleProject.plugins.apply(kotlinPlugin('org.jenkinsci.gradle.plugins.accmod.AccessModifierPlugin'))
-        gradleProject.plugins.apply(kotlinPlugin('org.jenkinsci.gradle.plugins.legacy.HudsonPluginDiscoveryPlugin'))
+        gradleProject.plugins.apply(kotlinPlugin('org.jenkinsci.gradle.plugins.manifest.JenkinsManifestPlugin'))
 
         def ext = gradleProject.extensions.create('jenkinsPlugin', JpiExtension, gradleProject)
         gradleProject.plugins.apply(LegacyWorkaroundsPlugin)
@@ -232,9 +232,9 @@ class JpiPlugin implements Plugin<Project> {
         TaskProvider<War> jpiProvider = project.tasks.named(JPI_TASK_NAME) as TaskProvider<War>
         TaskProvider<Jar> jarProvider = project.tasks.named(JavaPlugin.JAR_TASK_NAME) as TaskProvider<Jar>
 
-        def discoverHudson = project.tasks.named('discoverHudsonPlugins')
+        def generatePluginClassManifest = project.tasks.named('generateJenkinsPluginClassManifest')
         def configureManifest = project.tasks.register('configureManifest') {
-            def pluginManifest = discoverHudson.get().outputFile
+            def pluginManifest = generatePluginClassManifest.get().outputFile
             it.doLast {
                 Map<String, ?> attributes = attributesToMap(new JpiManifest(project).mainAttributes)
                 jpiProvider.configure {
@@ -250,7 +250,7 @@ class JpiPlugin implements Plugin<Project> {
             }
 
             it.dependsOn(javaPluginConvention.sourceSets.getByName(MAIN_SOURCE_SET_NAME).output)
-            it.dependsOn(discoverHudson)
+            it.dependsOn(generatePluginClassManifest)
         }
 
         jpiProvider.configure { it.dependsOn(configureManifest) }
