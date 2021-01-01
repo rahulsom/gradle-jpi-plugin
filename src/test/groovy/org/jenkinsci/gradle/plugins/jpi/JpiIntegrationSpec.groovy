@@ -208,6 +208,8 @@ class JpiIntegrationSpec extends IntegrationSpec {
         'check'                                      | ':checkAccessModifier'                        | TaskOutcome.SUCCESS
         'checkAccessModifier'                        | ':compileJava'                                | TaskOutcome.NO_SOURCE
         'checkAccessModifier'                        | ':compileGroovy'                              | TaskOutcome.NO_SOURCE
+        'discoverHudsonPlugins'                      | ':compileJava'                                | TaskOutcome.NO_SOURCE
+        'discoverHudsonPlugins'                      | ':compileGroovy'                              | TaskOutcome.NO_SOURCE
     }
 
     @Unroll

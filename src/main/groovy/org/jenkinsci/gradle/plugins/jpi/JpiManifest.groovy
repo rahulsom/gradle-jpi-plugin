@@ -42,18 +42,6 @@ class JpiManifest extends Manifest {
 
         mainAttributes[MANIFEST_VERSION] = '1.0'
 
-        def pluginImpls = classDirs.collect {
-            new File(it, 'META-INF/services/hudson.Plugin')
-        }.findAll {
-            it.exists()
-        }
-
-        def pluginImpl = pluginImpls.find()
-
-        if (pluginImpl?.exists()) {
-            mainAttributes.putValue('Plugin-Class', pluginImpl.readLines('UTF-8')[0])
-        }
-
         mainAttributes.putValue('Group-Id', project.group.toString())
         mainAttributes.putValue('Short-Name', conv.shortName)
         mainAttributes.putValue('Long-Name', conv.displayName)
