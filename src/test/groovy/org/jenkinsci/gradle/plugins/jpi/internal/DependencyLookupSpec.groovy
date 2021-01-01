@@ -4,23 +4,20 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class DependencyLookupSpec extends Specification {
-    def 'should get annotationProcessor dependencies by version'() {
-        given:
-        DependencyLookup lookup = new DependencyLookup()
+    private final DependencyLookup lookup = new DependencyLookup()
 
+    def 'should get annotationProcessor dependencies by version'() {
         when:
-        def actual = lookup.find('annotationProcessor', '2.0')
+        def actual = this.lookup.find('annotationProcessor', '2.0')
 
         then:
         actual == [
                 'org.jenkins-ci.main:jenkins-core:2.0',
+                'javax.servlet:javax.servlet-api:3.1.0',
         ] as Set
     }
 
     def 'should get testAnnotationProcessor dependencies by version'() {
-        given:
-        DependencyLookup lookup = new DependencyLookup()
-
         when:
         def actual = lookup.find('testAnnotationProcessor', '2.0')
 
@@ -32,9 +29,6 @@ class DependencyLookupSpec extends Specification {
 
     @Unroll
     def 'should get compileOnly dependencies for #version'(String version, Set<String> expected) {
-        given:
-        DependencyLookup lookup = new DependencyLookup()
-
         when:
         def actual = lookup.find('compileOnly', version)
 
@@ -50,9 +44,6 @@ class DependencyLookupSpec extends Specification {
 
     @Unroll
     def 'should get testImplementation dependencies for #version'(String version, Set<String> expected) {
-        given:
-        DependencyLookup lookup = new DependencyLookup()
-
         when:
         def actual = lookup.find('testImplementation', version)
 
@@ -69,9 +60,6 @@ class DependencyLookupSpec extends Specification {
     }
 
     def 'should get testRuntimeOnly dependencies for version'() {
-        given:
-        DependencyLookup lookup = new DependencyLookup()
-
         when:
         def actual = lookup.find('testRuntimeOnly', '2.222.3')
 

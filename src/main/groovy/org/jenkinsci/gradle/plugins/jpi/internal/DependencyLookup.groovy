@@ -30,7 +30,7 @@ class DependencyLookup {
         }
         switch (configuration) {
             case 'annotationProcessor':
-                return [core] as Set
+                return [core, servlet] as Set
             case 'compileOnly':
                 return [core, findbugs, servlet] as Set
             case 'testAnnotationProcessor':
