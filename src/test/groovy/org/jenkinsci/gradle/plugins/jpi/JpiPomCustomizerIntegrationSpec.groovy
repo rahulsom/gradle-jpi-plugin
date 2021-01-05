@@ -30,7 +30,7 @@ class JpiPomCustomizerIntegrationSpec extends IntegrationSpec {
         setup:
         build << """\
             jenkinsPlugin {
-                jenkinsVersion = '1.580.1'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
 
@@ -47,7 +47,7 @@ class JpiPomCustomizerIntegrationSpec extends IntegrationSpec {
         build << """\
             apply plugin: 'maven-publish'
             jenkinsPlugin {
-                jenkinsVersion = '1.580.1'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             publishing.publications.withType(org.gradle.api.publish.maven.MavenPublication) {
                 it.pom {
@@ -69,7 +69,7 @@ class JpiPomCustomizerIntegrationSpec extends IntegrationSpec {
         build << """\
             apply plugin: 'maven-publish'
             jenkinsPlugin {
-                jenkinsVersion = '1.580.1'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             description = 'this is my description'
             publishing.publications.withType(org.gradle.api.publish.maven.MavenPublication) {
@@ -91,7 +91,7 @@ class JpiPomCustomizerIntegrationSpec extends IntegrationSpec {
         build << """\
             description = 'lorem ipsum'
             jenkinsPlugin {
-                jenkinsVersion = '1.580.1'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
                 url = 'https://lorem-ipsum.org'
                 gitHubUrl = 'https://github.com/lorem/ipsum'
                 developers {
@@ -130,7 +130,7 @@ class JpiPomCustomizerIntegrationSpec extends IntegrationSpec {
         setup:
         build << """\
             jenkinsPlugin {
-                jenkinsVersion = '1.580.1'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
                 gitHubUrl = 'https://bitbucket.org/lorem/ipsum'
             }
             """.stripIndent()
@@ -147,7 +147,7 @@ class JpiPomCustomizerIntegrationSpec extends IntegrationSpec {
         setup:
         build << """\
             jenkinsPlugin {
-                jenkinsVersion = '1.580.1'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             repositories {
                 mavenLocal()
@@ -166,7 +166,7 @@ class JpiPomCustomizerIntegrationSpec extends IntegrationSpec {
         setup:
         build << """\
             jenkinsPlugin {
-                jenkinsVersion = '1.580.1'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             repositories {
                 mavenCentral()
@@ -185,7 +185,7 @@ class JpiPomCustomizerIntegrationSpec extends IntegrationSpec {
         setup:
         build << """\
             jenkinsPlugin {
-                jenkinsVersion = '1.580.1'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             dependencies {
                 api 'org.jenkins-ci.plugins:credentials:1.9.4'
@@ -204,7 +204,7 @@ class JpiPomCustomizerIntegrationSpec extends IntegrationSpec {
         setup:
         build << """\
             jenkinsPlugin {
-                jenkinsVersion = '1.580.1'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             dependencies {
                 api 'org.jenkins-ci.plugins:credentials:1.9.+'
@@ -239,7 +239,7 @@ class JpiPomCustomizerIntegrationSpec extends IntegrationSpec {
         setup:
         build << """\
             jenkinsPlugin {
-                jenkinsVersion = '1.580.1'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             dependencies {
                 api 'org.jenkins-ci.plugins:credentials:latest.release'
@@ -273,7 +273,7 @@ class JpiPomCustomizerIntegrationSpec extends IntegrationSpec {
         setup:
         build << """\
             jenkinsPlugin {
-                jenkinsVersion = '1.580.1'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             java {
                 registerFeature('credentials') {
@@ -297,7 +297,7 @@ class JpiPomCustomizerIntegrationSpec extends IntegrationSpec {
         setup:
         build << """\
             jenkinsPlugin {
-                jenkinsVersion = '1.580.1'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             dependencies {
                 api 'org.apache.commons:commons-lang3:3.9'
@@ -316,7 +316,7 @@ class JpiPomCustomizerIntegrationSpec extends IntegrationSpec {
         setup:
         build << """\
             jenkinsPlugin {
-                jenkinsVersion = '1.580.1'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             dependencies {
                 api('org.bitbucket.b_c:jose4j:0.5.5') {

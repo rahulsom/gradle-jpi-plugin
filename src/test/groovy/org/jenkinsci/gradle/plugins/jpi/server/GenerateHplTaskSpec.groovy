@@ -2,6 +2,7 @@ package org.jenkinsci.gradle.plugins.jpi.server
 
 import org.jenkinsci.gradle.plugins.jpi.IntegrationSpec
 import org.jenkinsci.gradle.plugins.jpi.TestDataGenerator
+import org.jenkinsci.gradle.plugins.jpi.TestSupport
 import spock.lang.Unroll
 
 import java.util.jar.Manifest
@@ -45,7 +46,7 @@ abstract class GenerateHplTaskSpec extends IntegrationSpec {
         build << """
             jenkinsPlugin {
                 shortName = 'strawberry'
-                jenkinsVersion = '2.222.3'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
                 $inner
             }
             $outer
@@ -112,7 +113,7 @@ abstract class GenerateHplTaskSpec extends IntegrationSpec {
         build << """
             jenkinsPlugin {
                 shortName = 'strawberry'
-                jenkinsVersion = '2.222.3'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
                 workDir = file('embedded-jenkins')
             }
             version = '6.0.13'
