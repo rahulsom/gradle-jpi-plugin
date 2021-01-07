@@ -1,6 +1,6 @@
-## 0.41.0 (unreleased)
+## 0.41.0 (2021-01-07)
 
-  * introduce `checkAccessModifier` task as a dependency of `check`
+  * introduce `checkAccessModifier` task as a dependency of `check` - it will not fail the build by default
   * support `-PcheckAccessModifier.useBeta=true` to opt into beta APIs
   * add `:sourceJar` dependency on `:localizer` to fix Gradle 7.0 warning
   * fix cyclic dependency when using `java-test-fixtures` plugin [#175](https://github.com/jenkinsci/gradle-jpi-plugin/issues/175)
