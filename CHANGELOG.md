@@ -1,3 +1,5 @@
+## 0.42.0 (unreleased)
+
 ## 0.41.0 (2021-01-07)
 
   * introduce `checkAccessModifier` task as a dependency of `check` - it will not fail the build by default
