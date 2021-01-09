@@ -39,6 +39,7 @@ class JpiExtension implements JpiExtensionBridge {
     final Provider<String> validatedJenkinsVersion
     private final Property<String> pluginId
     private final Property<String> humanReadableName
+    private final Property<URI> homePage
 
     JpiExtension(Project project) {
         this.project = project
@@ -52,6 +53,7 @@ class JpiExtension implements JpiExtensionBridge {
         }
         this.pluginId = project.objects.property(String).convention(trimOffPluginSuffix(project.name))
         this.humanReadableName = project.objects.property(String).convention(pluginId)
+        this.homePage = project.objects.property(URI)
     }
 
     /**
@@ -99,7 +101,14 @@ class JpiExtension implements JpiExtensionBridge {
     /**
      * URL that points to the home page of this plugin.
      */
-    String url
+    @SuppressWarnings('UnnecessaryGetter')
+    String getUrl() {
+        homePage.getOrNull()?.toASCIIString()
+    }
+
+    void setUrl(String s) {
+        homePage.set(project.uri(s))
+    }
 
     /**
      * TODO: document
@@ -273,6 +282,11 @@ class JpiExtension implements JpiExtensionBridge {
     @Override
     Property<String> getHumanReadableName() {
         humanReadableName
+    }
+
+    @Override
+    Property<URI> getHomePage() {
+        homePage
     }
 
     class Developers {
