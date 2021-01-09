@@ -2,6 +2,7 @@ package org.jenkinsci.gradle.plugins.manifest
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.getByType
@@ -30,6 +31,9 @@ open class JenkinsManifestPlugin : Plugin<Project> {
             description = "Generate manifest for Jenkins plugin"
             upstreamManifests.from(pluginClass, dynamicSupport)
             groupId.set(project.provider { project.group as String })
+            minimumJavaVersion.set(project.provider {
+                project.extensions.getByType<JavaPluginExtension>().targetCompatibility.toString()
+            })
             outputFile.set(project.layout.buildDirectory.file("jenkins-manifests/jenkins.mf"))
         }
     }

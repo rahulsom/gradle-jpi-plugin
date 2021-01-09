@@ -16,7 +16,6 @@
 package org.jenkinsci.gradle.plugins.jpi
 
 import org.gradle.api.Project
-import org.gradle.api.plugins.JavaPluginConvention
 import org.jenkinsci.gradle.plugins.jpi.internal.VersionCalculator
 
 import java.util.jar.Attributes
@@ -32,7 +31,6 @@ import static java.util.jar.Attributes.Name.MANIFEST_VERSION
 class JpiManifest extends Manifest {
     JpiManifest(Project project) {
         def conv = project.extensions.getByType(JpiExtension)
-        def javaPluginConvention = project.convention.getPlugin(JavaPluginConvention)
 
         mainAttributes[MANIFEST_VERSION] = '1.0'
 
@@ -49,7 +47,6 @@ class JpiManifest extends Manifest {
         mainAttributes.putValue('Plugin-Version', version.toString())
 
         mainAttributes.putValue('Jenkins-Version', conv.jenkinsVersion.get())
-        mainAttributes.putValue('Minimum-Java-Version', javaPluginConvention.targetCompatibility.toString())
 
         mainAttributes.putValue('Mask-Classes', conv.maskClasses)
 
