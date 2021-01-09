@@ -23,6 +23,7 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.SourceSet
 import org.gradle.util.ConfigureUtil
 import org.gradle.util.GradleVersion
+import org.jenkinsci.gradle.plugins.jpi.internal.JpiExtensionBridge
 
 /**
  * This gets exposed to the project as 'jpi' to offer additional convenience methods.
@@ -30,12 +31,13 @@ import org.gradle.util.GradleVersion
  * @author Kohsuke Kawaguchi
  * @author Andrew Bayer
  */
-class JpiExtension {
+class JpiExtension implements JpiExtensionBridge {
     final Project project
     @Deprecated
     Map<String, String> jenkinsWarCoordinates
     final Property<String> jenkinsVersion
     final Provider<String> validatedJenkinsVersion
+    private final Property<String> pluginId
 
     JpiExtension(Project project) {
         this.project = project
@@ -47,20 +49,19 @@ class JpiExtension {
             }
             resolved
         }
+        this.pluginId = project.objects.property(String).convention(trimOffPluginSuffix(project.name))
     }
-
-    private String shortName
 
     /**
      * Short name of the plugin is the ID that uniquely identifies a plugin.
      * If unspecified, we use the project name except the trailing "-plugin"
      */
     String getShortName() {
-        shortName ?: trimOffPluginSuffix(project.name)
+        pluginId.get()
     }
 
     void setShortName(String shortName) {
-        this.shortName = shortName
+        pluginId.set(shortName)
     }
 
     private static String trimOffPluginSuffix(String s) {
@@ -262,6 +263,11 @@ class JpiExtension {
     @Deprecated
     SourceSet testSourceTree() {
         project.convention.getPlugin(JavaPluginConvention).sourceSets.getByName(SourceSet.TEST_SOURCE_SET_NAME)
+    }
+
+    @Override
+    Property<String> getPluginId() {
+        pluginId
     }
 
     class Developers {

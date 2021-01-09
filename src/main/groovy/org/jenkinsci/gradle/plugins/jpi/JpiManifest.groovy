@@ -34,14 +34,12 @@ class JpiManifest extends Manifest {
 
         mainAttributes[MANIFEST_VERSION] = '1.0'
 
-        mainAttributes.putValue('Short-Name', conv.shortName)
         mainAttributes.putValue('Long-Name', conv.displayName)
         mainAttributes.putValue('Url', conv.url)
         mainAttributes.putValue('Compatible-Since-Version', conv.compatibleSinceVersion)
         if (conv.sandboxStatus) {
             mainAttributes.putValue('Sandbox-Status', conv.sandboxStatus.toString())
         }
-        mainAttributes.putValue('Extension-Name', conv.shortName)
 
         def version = new VersionCalculator().calculate(project.version.toString())
         mainAttributes.putValue('Plugin-Version', version.toString())

@@ -26,6 +26,9 @@ open class GenerateJenkinsManifestTask : DefaultTask() {
     @Input
     val minimumJavaVersion: Property<String> = project.objects.property()
 
+    @Input
+    val pluginId: Property<String> = project.objects.property()
+
     @OutputFile
     val outputFile: RegularFileProperty = project.objects.fileProperty()
 
@@ -44,6 +47,8 @@ open class GenerateJenkinsManifestTask : DefaultTask() {
             }
         }
         manifest.mainAttributes.putValue("Minimum-Java-Version", minimumJavaVersion.get())
+        manifest.mainAttributes.putValue("Short-Name", pluginId.get())
+        manifest.mainAttributes.putValue("Extension-Name", pluginId.get())
         outputFile.asFile.get().outputStream().use {
             manifest.write(it)
         }

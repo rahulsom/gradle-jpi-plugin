@@ -7,6 +7,7 @@ import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.register
+import org.jenkinsci.gradle.plugins.jpi.internal.JpiExtensionBridge
 
 open class JenkinsManifestPlugin : Plugin<Project> {
     override fun apply(target: Project) {
@@ -34,6 +35,8 @@ open class JenkinsManifestPlugin : Plugin<Project> {
             minimumJavaVersion.set(project.provider {
                 project.extensions.getByType<JavaPluginExtension>().targetCompatibility.toString()
             })
+            val ext = project.extensions.getByType<JpiExtensionBridge>()
+            pluginId.set(ext.pluginId)
             outputFile.set(project.layout.buildDirectory.file("jenkins-manifests/jenkins.mf"))
         }
     }
