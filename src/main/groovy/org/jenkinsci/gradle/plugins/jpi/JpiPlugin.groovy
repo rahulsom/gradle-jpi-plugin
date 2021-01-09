@@ -126,6 +126,7 @@ class JpiPlugin implements Plugin<Project> {
                 GenerateHplTask) { GenerateHplTask t ->
             t.fileName.set(ext.shortName + '.hpl')
             t.hplDir.set(project.layout.buildDirectory.dir('hpl'))
+            t.resourcePath.set(project.file(WEB_APP_DIR))
             t.upstreamManifests.from(pluginClass, dynamicLoading)
             t.description = 'Generate hpl (Hudson plugin link) for running locally'
             t.group = 'Jenkins Server'
@@ -549,6 +550,7 @@ class JpiPlugin implements Plugin<Project> {
         def generateTestHplTask = project.tasks.register('generateTestHpl', GenerateHplTask) {
             it.fileName.set('the.hpl')
             it.hplDir.set(outputDir)
+            it.resourcePath.set(project.file(WEB_APP_DIR))
             it.upstreamManifests.from(pluginClass, dynamicLoading)
         }
 

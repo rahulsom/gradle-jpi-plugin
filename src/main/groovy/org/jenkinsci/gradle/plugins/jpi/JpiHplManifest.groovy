@@ -26,9 +26,6 @@ class JpiHplManifest extends JpiManifest {
 
         def jpiExtension = project.extensions.getByType(JpiExtension)
 
-        // src/main/webApp
-        mainAttributes.putValue('Resource-Path', project.file(JpiPlugin.WEB_APP_DIR).absolutePath)
-
         // add resource directories directly so that we can pick up the source, then add all the jars and class path
         Set<File> libraries = (jpiExtension.mainSourceTree().resources.srcDirs + jpiExtension.mainSourceTree().output
                 + project.plugins.getPlugin(JpiPlugin).dependencyAnalysis.allLibraryDependencies)

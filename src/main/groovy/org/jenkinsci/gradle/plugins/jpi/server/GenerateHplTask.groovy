@@ -31,6 +31,9 @@ class GenerateHplTask extends DefaultTask {
         hplDir.asFile.get().absolutePath
     }
 
+    @Input
+    final Property<File> resourcePath = project.objects.property(File)
+
     @InputFiles
     final ConfigurableFileCollection upstreamManifests = project.objects.fileCollection()
 
@@ -44,6 +47,7 @@ class GenerateHplTask extends DefaultTask {
         def destination = hpl.get().asFile
         destination.parentFile.mkdirs()
         def manifest = new JpiHplManifest(project)
+        manifest.mainAttributes.putValue('Resource-Path', resourcePath.get().absolutePath)
         upstreamManifests.each {
             it.withInputStream {
                 manifest.read(it)
