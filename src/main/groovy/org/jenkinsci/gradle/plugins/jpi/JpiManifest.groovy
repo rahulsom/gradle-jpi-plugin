@@ -36,7 +36,6 @@ class JpiManifest extends Manifest {
 
         mainAttributes[MANIFEST_VERSION] = '1.0'
 
-        mainAttributes.putValue('Group-Id', project.group.toString())
         mainAttributes.putValue('Short-Name', conv.shortName)
         mainAttributes.putValue('Long-Name', conv.displayName)
         mainAttributes.putValue('Url', conv.url)

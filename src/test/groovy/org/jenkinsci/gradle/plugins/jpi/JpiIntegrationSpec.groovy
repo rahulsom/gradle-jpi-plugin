@@ -212,10 +212,10 @@ class JpiIntegrationSpec extends IntegrationSpec {
         'generateJenkinsPluginClassManifest'         | ':compileGroovy'                              | TaskOutcome.NO_SOURCE
         'generateJenkinsSupportDynamicLoadingManifest' | ':compileJava'                                  | TaskOutcome.NO_SOURCE
         'generateJenkinsSupportDynamicLoadingManifest' | ':compileGroovy'                                | TaskOutcome.NO_SOURCE
-        'generateJenkinsServerHpl'                     | ':generateJenkinsPluginClassManifest'           | TaskOutcome.SUCCESS
-        'generateJenkinsServerHpl'                     | ':generateJenkinsSupportDynamicLoadingManifest' | TaskOutcome.SUCCESS
-        'generateTestHpl'                              | ':generateJenkinsPluginClassManifest'           | TaskOutcome.SUCCESS
-        'generateTestHpl'                              | ':generateJenkinsSupportDynamicLoadingManifest' | TaskOutcome.SUCCESS
+        'generateJenkinsServerHpl'                     | ':generateJenkinsManifest'                      | TaskOutcome.SUCCESS
+        'generateTestHpl'                              | ':generateJenkinsManifest'                      | TaskOutcome.SUCCESS
+        'generateJenkinsManifest'                      | ':generateJenkinsPluginClassManifest'           | TaskOutcome.SUCCESS
+        'generateJenkinsManifest'                      | ':generateJenkinsSupportDynamicLoadingManifest' | TaskOutcome.SUCCESS
     }
 
     @Unroll

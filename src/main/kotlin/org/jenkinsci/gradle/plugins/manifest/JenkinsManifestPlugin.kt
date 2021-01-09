@@ -9,7 +9,7 @@ import org.gradle.kotlin.dsl.register
 
 open class JenkinsManifestPlugin : Plugin<Project> {
     override fun apply(target: Project) {
-        target.tasks.register<GeneratePluginClassManifestTask>(GeneratePluginClassManifestTask.NAME) {
+        val pluginClass = target.tasks.register<GeneratePluginClassManifestTask>(GeneratePluginClassManifestTask.NAME) {
             group = "Build"
             description = "Finds sole hudson.Plugin subclass for Manifest"
             val dirs = project.extensions.getByType<SourceSetContainer>()["main"].output.classesDirs
@@ -17,12 +17,20 @@ open class JenkinsManifestPlugin : Plugin<Project> {
             outputFile.set(project.layout.buildDirectory.file("jenkins-manifests/plugin-class.mf"))
         }
 
-        target.tasks.register<GenerateSupportDynamicLoadingManifestTask>(GenerateSupportDynamicLoadingManifestTask.NAME) {
+        val dynamicSupport = target.tasks.register<GenerateSupportDynamicLoadingManifestTask>(GenerateSupportDynamicLoadingManifestTask.NAME) {
             group = "Build"
             description = "Aggregates dynamic loading values of @Extensions"
             val dirs = project.extensions.getByType<SourceSetContainer>()["main"].output.classesDirs
             classesDirs.from(dirs)
             outputFile.set(project.layout.buildDirectory.file("jenkins-manifests/support-dynamic-loading.mf"))
+        }
+
+        target.tasks.register<GenerateJenkinsManifestTask>(GenerateJenkinsManifestTask.NAME) {
+            group = "Build"
+            description = "Generate manifest for Jenkins plugin"
+            upstreamManifests.from(pluginClass, dynamicSupport)
+            groupId.set(project.provider { project.group as String })
+            outputFile.set(project.layout.buildDirectory.file("jenkins-manifests/jenkins.mf"))
         }
     }
 }

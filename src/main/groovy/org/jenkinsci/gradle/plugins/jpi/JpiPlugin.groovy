@@ -121,8 +121,7 @@ class JpiPlugin implements Plugin<Project> {
             it.dependsOn(overlap)
         }
 
-        def pluginClass = gradleProject.tasks.named('generateJenkinsPluginClassManifest')
-        def dynamicLoading = gradleProject.tasks.named('generateJenkinsSupportDynamicLoadingManifest')
+        def jenkinsManifest = gradleProject.tasks.named('generateJenkinsManifest')
         def generateHpl = gradleProject.tasks.register(GenerateHplTask.TASK_NAME,
                 GenerateHplTask) { GenerateHplTask t ->
             def main = project.extensions.getByType(SourceSetContainer)['main']
@@ -133,7 +132,7 @@ class JpiPlugin implements Plugin<Project> {
             t.hplDir.set(project.layout.buildDirectory.dir('hpl'))
             t.resourcePath.set(project.file(WEB_APP_DIR))
             t.libraries.from(mainResources, mainOutput.classesDirs, mainOutput.resourcesDir, libraries)
-            t.upstreamManifests.from(pluginClass, dynamicLoading)
+            t.upstreamManifests.from(jenkinsManifest)
             t.description = 'Generate hpl (Hudson plugin link) for running locally'
             t.group = 'Jenkins Server'
         }
@@ -242,27 +241,25 @@ class JpiPlugin implements Plugin<Project> {
         TaskProvider<War> jpiProvider = project.tasks.named(JPI_TASK_NAME) as TaskProvider<War>
         TaskProvider<Jar> jarProvider = project.tasks.named(JavaPlugin.JAR_TASK_NAME) as TaskProvider<Jar>
 
-        def generatePluginClassManifest = project.tasks.named('generateJenkinsPluginClassManifest')
-        def generateDynamicLoadingManifest = project.tasks.named('generateJenkinsSupportDynamicLoadingManifest')
+        def generateJenkinsManifest = project.tasks.named('generateJenkinsManifest')
         def configureManifest = project.tasks.register('configureManifest') {
-            def pluginManifest = generatePluginClassManifest.get().outputFile
-            def supportDynamicLoadingManifest = generateDynamicLoadingManifest.get().outputFile
+            def jenkinsManifest = generateJenkinsManifest.get().outputFile
             it.doLast {
                 Map<String, ?> attributes = attributesToMap(new JpiManifest(project).mainAttributes)
                 jpiProvider.configure {
-                    it.manifest.from(pluginManifest, supportDynamicLoadingManifest)
+                    it.manifest.from(jenkinsManifest)
                     it.manifest.attributes(attributes)
                     it.inputs.property('manifest', attributes)
                 }
                 jarProvider.configure {
-                    it.manifest.from(pluginManifest, supportDynamicLoadingManifest)
+                    it.manifest.from(jenkinsManifest)
                     it.manifest.attributes(attributes)
                     it.inputs.property('manifest', attributes)
                 }
             }
 
             it.dependsOn(javaPluginConvention.sourceSets.getByName(MAIN_SOURCE_SET_NAME).output)
-            it.dependsOn(generatePluginClassManifest, generateDynamicLoadingManifest)
+            it.dependsOn(jenkinsManifest)
         }
 
         jpiProvider.configure { it.dependsOn(configureManifest) }
@@ -551,8 +548,7 @@ class JpiPlugin implements Plugin<Project> {
         def outputDir = project.layout.buildDirectory.dir('generated-resources/test')
         testSourceSet.output.dir(outputDir)
 
-        def pluginClass = project.tasks.named('generateJenkinsPluginClassManifest')
-        def dynamicLoading = project.tasks.named('generateJenkinsSupportDynamicLoadingManifest')
+        def jenkinsManifest = project.tasks.named('generateJenkinsManifest')
         def generateTestHplTask = project.tasks.register('generateTestHpl', GenerateHplTask) {
             def main = project.extensions.getByType(SourceSetContainer)['main']
             def mainResources = main.resources.srcDirs
@@ -562,7 +558,7 @@ class JpiPlugin implements Plugin<Project> {
             it.hplDir.set(outputDir)
             it.resourcePath.set(project.file(WEB_APP_DIR))
             it.libraries.from(mainResources, mainOutput.classesDirs, mainOutput.resourcesDir, libraries)
-            it.upstreamManifests.from(pluginClass, dynamicLoading)
+            it.upstreamManifests.from(jenkinsManifest)
         }
 
         project.tasks.register('generate-test-hpl') {
