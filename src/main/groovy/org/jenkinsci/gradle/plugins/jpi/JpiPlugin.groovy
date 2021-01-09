@@ -42,6 +42,7 @@ import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.tasks.SourceSet
+import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.War
@@ -124,9 +125,14 @@ class JpiPlugin implements Plugin<Project> {
         def dynamicLoading = gradleProject.tasks.named('generateJenkinsSupportDynamicLoadingManifest')
         def generateHpl = gradleProject.tasks.register(GenerateHplTask.TASK_NAME,
                 GenerateHplTask) { GenerateHplTask t ->
+            def main = project.extensions.getByType(SourceSetContainer)['main']
+            def mainResources = main.resources.srcDirs
+            def mainOutput = main.output
+            def libraries = project.plugins.getPlugin(JpiPlugin).dependencyAnalysis.allLibraryDependencies
             t.fileName.set(ext.shortName + '.hpl')
             t.hplDir.set(project.layout.buildDirectory.dir('hpl'))
             t.resourcePath.set(project.file(WEB_APP_DIR))
+            t.libraries.from(mainResources, mainOutput.classesDirs, mainOutput.resourcesDir, libraries)
             t.upstreamManifests.from(pluginClass, dynamicLoading)
             t.description = 'Generate hpl (Hudson plugin link) for running locally'
             t.group = 'Jenkins Server'
@@ -548,9 +554,14 @@ class JpiPlugin implements Plugin<Project> {
         def pluginClass = project.tasks.named('generateJenkinsPluginClassManifest')
         def dynamicLoading = project.tasks.named('generateJenkinsSupportDynamicLoadingManifest')
         def generateTestHplTask = project.tasks.register('generateTestHpl', GenerateHplTask) {
+            def main = project.extensions.getByType(SourceSetContainer)['main']
+            def mainResources = main.resources.srcDirs
+            def mainOutput = main.output
+            def libraries = project.plugins.getPlugin(JpiPlugin).dependencyAnalysis.allLibraryDependencies
             it.fileName.set('the.hpl')
             it.hplDir.set(outputDir)
             it.resourcePath.set(project.file(WEB_APP_DIR))
+            it.libraries.from(mainResources, mainOutput.classesDirs, mainOutput.resourcesDir, libraries)
             it.upstreamManifests.from(pluginClass, dynamicLoading)
         }
 

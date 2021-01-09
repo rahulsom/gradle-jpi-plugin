@@ -248,10 +248,18 @@ class JpiExtension {
         ConfigureUtil.configure(closure, developers)
     }
 
+    /**
+     * @deprecated To be removed in 1.0.0
+     */
+    @Deprecated
     SourceSet mainSourceTree() {
         project.convention.getPlugin(JavaPluginConvention).sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME)
     }
 
+    /**
+     * @deprecated To be removed in 1.0.0
+     */
+    @Deprecated
     SourceSet testSourceTree() {
         project.convention.getPlugin(JavaPluginConvention).sourceSets.getByName(SourceSet.TEST_SOURCE_SET_NAME)
     }

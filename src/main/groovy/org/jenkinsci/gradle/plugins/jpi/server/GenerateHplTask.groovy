@@ -8,12 +8,13 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFile
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
-import org.jenkinsci.gradle.plugins.jpi.JpiHplManifest
+import org.jenkinsci.gradle.plugins.jpi.JpiManifest
 
 @CompileStatic
 class GenerateHplTask extends DefaultTask {
@@ -34,6 +35,9 @@ class GenerateHplTask extends DefaultTask {
     @Input
     final Property<File> resourcePath = project.objects.property(File)
 
+    @Classpath
+    final ConfigurableFileCollection libraries = project.objects.fileCollection()
+
     @InputFiles
     final ConfigurableFileCollection upstreamManifests = project.objects.fileCollection()
 
@@ -46,8 +50,9 @@ class GenerateHplTask extends DefaultTask {
     void generate() {
         def destination = hpl.get().asFile
         destination.parentFile.mkdirs()
-        def manifest = new JpiHplManifest(project)
+        def manifest = new JpiManifest(project)
         manifest.mainAttributes.putValue('Resource-Path', resourcePath.get().absolutePath)
+        manifest.mainAttributes.putValue('Libraries', libraries.filter { File f -> f.exists() }.join(','))
         upstreamManifests.each {
             it.withInputStream {
                 manifest.read(it)
