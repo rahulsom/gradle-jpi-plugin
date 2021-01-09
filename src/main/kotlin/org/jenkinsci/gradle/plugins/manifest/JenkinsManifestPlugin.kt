@@ -37,6 +37,7 @@ open class JenkinsManifestPlugin : Plugin<Project> {
             })
             val ext = project.extensions.getByType<JpiExtensionBridge>()
             pluginId.set(ext.pluginId)
+            humanReadableName.set(ext.humanReadableName)
             outputFile.set(project.layout.buildDirectory.file("jenkins-manifests/jenkins.mf"))
         }
     }

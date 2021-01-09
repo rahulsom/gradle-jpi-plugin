@@ -4,4 +4,5 @@ import org.gradle.api.provider.Property;
 
 public interface JpiExtensionBridge {
     Property<String> getPluginId();
+    Property<String> getHumanReadableName();
 }

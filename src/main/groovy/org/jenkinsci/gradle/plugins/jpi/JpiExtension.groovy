@@ -38,6 +38,7 @@ class JpiExtension implements JpiExtensionBridge {
     final Property<String> jenkinsVersion
     final Provider<String> validatedJenkinsVersion
     private final Property<String> pluginId
+    private final Property<String> humanReadableName
 
     JpiExtension(Project project) {
         this.project = project
@@ -50,6 +51,7 @@ class JpiExtension implements JpiExtensionBridge {
             resolved
         }
         this.pluginId = project.objects.property(String).convention(trimOffPluginSuffix(project.name))
+        this.humanReadableName = project.objects.property(String).convention(pluginId)
     }
 
     /**
@@ -81,19 +83,17 @@ class JpiExtension implements JpiExtensionBridge {
         this.fileExtension = s
     }
 
-    private String displayName
-
     /**
      * One-line display name of this plugin. Should be human readable.
      * For example, "Git plugin", "Acme Executor plugin", etc.
      */
     @SuppressWarnings('UnnecessaryGetter')
     String getDisplayName() {
-        displayName ?: getShortName()
+        humanReadableName.get()
     }
 
     void setDisplayName(String s) {
-        this.displayName = s
+        humanReadableName.set(s)
     }
 
     /**
@@ -268,6 +268,11 @@ class JpiExtension implements JpiExtensionBridge {
     @Override
     Property<String> getPluginId() {
         pluginId
+    }
+
+    @Override
+    Property<String> getHumanReadableName() {
+        humanReadableName
     }
 
     class Developers {
