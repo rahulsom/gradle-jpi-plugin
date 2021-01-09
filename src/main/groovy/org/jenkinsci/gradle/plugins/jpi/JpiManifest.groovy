@@ -34,7 +34,6 @@ class JpiManifest extends Manifest {
 
         mainAttributes[MANIFEST_VERSION] = '1.0'
 
-        mainAttributes.putValue('Compatible-Since-Version', conv.compatibleSinceVersion)
         if (conv.sandboxStatus) {
             mainAttributes.putValue('Sandbox-Status', conv.sandboxStatus.toString())
         }

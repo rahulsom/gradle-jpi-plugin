@@ -10,4 +10,5 @@ public interface JpiExtensionBridge {
     Property<String> getHumanReadableName();
     Property<URI> getHomePage();
     Provider<String> getJenkinsCoreVersion();
+    Property<String> getMinimumJenkinsCoreVersion();
 }

@@ -41,6 +41,10 @@ open class GenerateJenkinsManifestTask : DefaultTask() {
     @Input
     val jenkinsVersion: Property<String> = project.objects.property()
 
+    @Input
+    @Optional
+    val minimumJenkinsVersion: Property<String> = project.objects.property()
+
     @OutputFile
     val outputFile: RegularFileProperty = project.objects.fileProperty()
 
@@ -65,6 +69,9 @@ open class GenerateJenkinsManifestTask : DefaultTask() {
         manifest.mainAttributes.putValue("Jenkins-Version", jenkinsVersion.get())
         homePage.orNull?.apply {
             manifest.mainAttributes.putValue("Url", toASCIIString())
+        }
+        minimumJenkinsVersion.orNull?.apply {
+            manifest.mainAttributes.putValue("Compatible-Since-Version", this)
         }
         outputFile.asFile.get().outputStream().use {
             manifest.write(it)

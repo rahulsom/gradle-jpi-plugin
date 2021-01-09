@@ -40,6 +40,7 @@ class JpiExtension implements JpiExtensionBridge {
     private final Property<String> pluginId
     private final Property<String> humanReadableName
     private final Property<URI> homePage
+    private final Property<String> minimumJenkinsVersion
 
     JpiExtension(Project project) {
         this.project = project
@@ -54,6 +55,7 @@ class JpiExtension implements JpiExtensionBridge {
         this.pluginId = project.objects.property(String).convention(trimOffPluginSuffix(project.name))
         this.humanReadableName = project.objects.property(String).convention(pluginId)
         this.homePage = project.objects.property(URI)
+        this.minimumJenkinsVersion = project.objects.property(String)
     }
 
     /**
@@ -111,9 +113,20 @@ class JpiExtension implements JpiExtensionBridge {
     }
 
     /**
-     * TODO: document
+     * The earliest version of Jenkins this plugin will work on.
+     *
+     * This option should be used sparingly. Favor automatic data upgrades where possible.
+     *
+     * https://wiki.jenkins.io/display/JENKINS/Marking+a+new+plugin+version+as+incompatible+with+older+versions
      */
-    String compatibleSinceVersion
+    @SuppressWarnings('UnnecessaryGetter')
+    String getCompatibleSinceVersion() {
+        minimumJenkinsVersion.orNull
+    }
+
+    void setCompatibleSinceVersion(String s) {
+        minimumJenkinsVersion.set(s)
+    }
 
     /**
      * TODO: document
@@ -292,6 +305,11 @@ class JpiExtension implements JpiExtensionBridge {
     @Override
     Provider<String> getJenkinsCoreVersion() {
         validatedJenkinsVersion
+    }
+
+    @Override
+    Property<String> getMinimumJenkinsCoreVersion() {
+        minimumJenkinsVersion
     }
 
     class Developers {
