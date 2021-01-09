@@ -5,6 +5,8 @@ import org.jenkinsci.gradle.plugins.jpi.TestDataGenerator
 import org.jenkinsci.gradle.plugins.jpi.TestSupport
 import spock.lang.Unroll
 
+import java.nio.file.Files
+import java.nio.file.Path
 import java.util.jar.Manifest
 
 abstract class GenerateHplTaskSpec extends IntegrationSpec {
@@ -110,6 +112,11 @@ abstract class GenerateHplTaskSpec extends IntegrationSpec {
 
     def 'should load libraries and plugin-dependencies'() {
         given:
+        Path srcMainJava = new File(projectDir.root, 'src/main/java').toPath()
+        TestSupport.CALCULATOR.writeTo(srcMainJava)
+        Path srcMainResources = new File(projectDir.root, 'src/main/resources').toPath()
+        Files.createDirectories(srcMainResources)
+        Files.createFile(srcMainResources.resolve('some.properties'))
         build << """
             jenkinsPlugin {
                 shortName = 'strawberry'
@@ -144,7 +151,85 @@ abstract class GenerateHplTaskSpec extends IntegrationSpec {
             """.stripIndent()
         def depFilesResult = gradleRunner().withArguments('depFiles', '-q').build()
         minimalAttributes['Plugin-Dependencies'] = 'git:4.0.0'
-        minimalAttributes['Libraries'] = depFilesResult.output
+        minimalAttributes['Libraries'] = [
+                srcMainResources.toFile(),
+                new File(projectDir.root, 'build/classes/java/main'),
+                new File(projectDir.root, 'build/resources/main'),
+                depFilesResult.output,
+        ].join(',')
+
+        when:
+        gradleRunner()
+                .withArguments(taskName())
+                .build()
+
+        then:
+        def file = new File(projectDir.root, expectedRelativeHplLocation())
+        file.exists()
+        new Manifest(file.newInputStream()) == toManifest(minimalAttributes)
+    }
+
+    def 'should load classes in Libraries if present'() {
+        given:
+        Path srcMainJava = new File(projectDir.root, 'src/main/java').toPath()
+        TestSupport.CALCULATOR.writeTo(srcMainJava)
+        build << """
+            jenkinsPlugin {
+                shortName = 'strawberry'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                workDir = file('embedded-jenkins')
+            }
+            version = '6.0.13'
+
+            java {
+                targetCompatibility = JavaVersion.VERSION_1_8
+            }
+
+            dependencies {
+                implementation 'org.jenkins-ci.plugins:git:4.0.0'
+            }
+            """.stripIndent()
+        minimalAttributes['Plugin-Dependencies'] = 'git:4.0.0'
+        minimalAttributes['Libraries'] = new File(projectDir.root, 'build/classes/java/main').absolutePath
+
+        when:
+        gradleRunner()
+                .withArguments(taskName())
+                .build()
+
+        then:
+        def file = new File(projectDir.root, expectedRelativeHplLocation())
+        file.exists()
+        new Manifest(file.newInputStream()) == toManifest(minimalAttributes)
+    }
+
+    def 'should load resources in Libraries if present'() {
+        given:
+        Path srcMainResources = new File(projectDir.root, 'src/main/resources').toPath()
+        Files.createDirectories(srcMainResources)
+        Files.createFile(srcMainResources.resolve('some.properties'))
+        build << """
+            jenkinsPlugin {
+                shortName = 'strawberry'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                workDir = file('embedded-jenkins')
+            }
+            version = '6.0.13'
+
+            java {
+                targetCompatibility = JavaVersion.VERSION_1_8
+            }
+
+            dependencies {
+                implementation 'org.jenkins-ci.plugins:git:4.0.0'
+            }
+            """.stripIndent()
+        minimalAttributes['Plugin-Dependencies'] = 'git:4.0.0'
+        minimalAttributes['Libraries'] = [
+                // TODO: unclear why these are both present. possibly so one can edit without rebuilding?
+                srcMainResources.toFile(),
+                new File(projectDir.root, 'build/resources/main'),
+        ].join(',')
 
         when:
         gradleRunner()
