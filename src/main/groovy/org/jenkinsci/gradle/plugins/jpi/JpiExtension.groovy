@@ -31,6 +31,7 @@ import org.jenkinsci.gradle.plugins.jpi.internal.JpiExtensionBridge
  * @author Kohsuke Kawaguchi
  * @author Andrew Bayer
  */
+@SuppressWarnings('MethodCount')
 class JpiExtension implements JpiExtensionBridge {
     final Project project
     @Deprecated
@@ -41,6 +42,7 @@ class JpiExtension implements JpiExtensionBridge {
     private final Property<String> humanReadableName
     private final Property<URI> homePage
     private final Property<String> minimumJenkinsVersion
+    private final Property<Boolean> sandboxed
 
     JpiExtension(Project project) {
         this.project = project
@@ -56,6 +58,7 @@ class JpiExtension implements JpiExtensionBridge {
         this.humanReadableName = project.objects.property(String).convention(pluginId)
         this.homePage = project.objects.property(URI)
         this.minimumJenkinsVersion = project.objects.property(String)
+        this.sandboxed = project.objects.property(Boolean).convention(false)
     }
 
     /**
@@ -129,9 +132,16 @@ class JpiExtension implements JpiExtensionBridge {
     }
 
     /**
-     * TODO: document
+     * Optional - sandbox status of this plugin
      */
-    boolean sandboxStatus
+    @SuppressWarnings('UnnecessaryGetter')
+    boolean getSandboxStatus() {
+        sandboxed.get()
+    }
+
+    void setSandboxStatus(boolean sandboxed) {
+        this.sandboxed.set(sandboxed)
+    }
 
     /**
      * TODO: document
@@ -310,6 +320,11 @@ class JpiExtension implements JpiExtensionBridge {
     @Override
     Property<String> getMinimumJenkinsCoreVersion() {
         minimumJenkinsVersion
+    }
+
+    @Override
+    Property<Boolean> getSandboxed() {
+        sandboxed
     }
 
     class Developers {

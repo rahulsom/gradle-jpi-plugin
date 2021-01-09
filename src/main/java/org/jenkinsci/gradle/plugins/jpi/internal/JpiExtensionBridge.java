@@ -11,4 +11,5 @@ public interface JpiExtensionBridge {
     Property<URI> getHomePage();
     Provider<String> getJenkinsCoreVersion();
     Property<String> getMinimumJenkinsCoreVersion();
+    Property<Boolean> getSandboxed();
 }

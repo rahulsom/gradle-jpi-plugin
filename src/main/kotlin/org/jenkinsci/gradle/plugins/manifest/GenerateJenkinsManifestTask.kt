@@ -45,6 +45,9 @@ open class GenerateJenkinsManifestTask : DefaultTask() {
     @Optional
     val minimumJenkinsVersion: Property<String> = project.objects.property()
 
+    @Input
+    val sandboxed: Property<Boolean> = project.objects.property()
+
     @OutputFile
     val outputFile: RegularFileProperty = project.objects.fileProperty()
 
@@ -72,6 +75,11 @@ open class GenerateJenkinsManifestTask : DefaultTask() {
         }
         minimumJenkinsVersion.orNull?.apply {
             manifest.mainAttributes.putValue("Compatible-Since-Version", this)
+        }
+        sandboxed.get().apply {
+            if (this) {
+                manifest.mainAttributes.putValue("Sandbox-Status", this.toString())
+            }
         }
         outputFile.asFile.get().outputStream().use {
             manifest.write(it)

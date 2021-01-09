@@ -34,10 +34,6 @@ class JpiManifest extends Manifest {
 
         mainAttributes[MANIFEST_VERSION] = '1.0'
 
-        if (conv.sandboxStatus) {
-            mainAttributes.putValue('Sandbox-Status', conv.sandboxStatus.toString())
-        }
-
         def version = new VersionCalculator().calculate(project.version.toString())
         mainAttributes.putValue('Plugin-Version', version.toString())
 
