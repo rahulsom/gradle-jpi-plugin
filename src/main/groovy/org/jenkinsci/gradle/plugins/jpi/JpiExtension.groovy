@@ -289,6 +289,11 @@ class JpiExtension implements JpiExtensionBridge {
         homePage
     }
 
+    @Override
+    Provider<String> getJenkinsCoreVersion() {
+        validatedJenkinsVersion
+    }
+
     class Developers {
         def developerMap = [:]
 

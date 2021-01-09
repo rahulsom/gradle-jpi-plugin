@@ -42,8 +42,6 @@ class JpiManifest extends Manifest {
         def version = new VersionCalculator().calculate(project.version.toString())
         mainAttributes.putValue('Plugin-Version', version.toString())
 
-        mainAttributes.putValue('Jenkins-Version', conv.jenkinsVersion.get())
-
         mainAttributes.putValue('Mask-Classes', conv.maskClasses)
 
         def dep = project.plugins.getPlugin(JpiPlugin).dependencyAnalysis.analyse().manifestPluginDependencies

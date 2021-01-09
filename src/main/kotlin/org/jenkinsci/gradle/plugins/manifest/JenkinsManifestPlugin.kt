@@ -39,6 +39,7 @@ open class JenkinsManifestPlugin : Plugin<Project> {
             pluginId.set(ext.pluginId)
             humanReadableName.set(ext.humanReadableName)
             homePage.set(ext.homePage)
+            jenkinsVersion.set(ext.jenkinsCoreVersion)
             outputFile.set(project.layout.buildDirectory.file("jenkins-manifests/jenkins.mf"))
         }
     }

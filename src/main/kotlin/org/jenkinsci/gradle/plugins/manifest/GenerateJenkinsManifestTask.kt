@@ -38,6 +38,9 @@ open class GenerateJenkinsManifestTask : DefaultTask() {
     @Optional
     val homePage: Property<URI> = project.objects.property()
 
+    @Input
+    val jenkinsVersion: Property<String> = project.objects.property()
+
     @OutputFile
     val outputFile: RegularFileProperty = project.objects.fileProperty()
 
@@ -59,6 +62,7 @@ open class GenerateJenkinsManifestTask : DefaultTask() {
         manifest.mainAttributes.putValue("Short-Name", pluginId.get())
         manifest.mainAttributes.putValue("Extension-Name", pluginId.get())
         manifest.mainAttributes.putValue("Long-Name", humanReadableName.get())
+        manifest.mainAttributes.putValue("Jenkins-Version", jenkinsVersion.get())
         homePage.orNull?.apply {
             manifest.mainAttributes.putValue("Url", toASCIIString())
         }
