@@ -80,8 +80,10 @@ abstract class GenerateHplTaskSpec extends IntegrationSpec {
         '''compatibleSinceVersion = '2.64' '''       | ''                                 | ['Compatible-Since-Version': '2.64']
         '''sandboxStatus = true '''                  | ''                                 | ['Sandbox-Status': 'true']
         '''sandboxStatus = false '''                 | ''                                 | [:]
-        '''maskClasses = true '''                    | ''                                 | ['Mask-Classes': 'true']
-        '''maskClasses = false '''                   | ''                                 | ['Mask-Classes': 'false']
+        '''maskClasses = 'com.google.guava.' '''     | ''                                 | ['Mask-Classes': 'com.google.guava.']
+        '''maskClasses = 'a.b.c. a.b.c. y.z.' '''    | ''                                 | ['Mask-Classes': 'a.b.c. y.z.']
+        '''maskClasses = null '''                    | ''                                 | [:]
+        '''maskClasses = '' '''                      | ''                                 | [:]
         '''pluginFirstClassLoader = true '''         | ''                                 | ['PluginFirstClassLoader': 'true']
         '''pluginFirstClassLoader = false '''        | ''                                 | [:]
         '''\

@@ -33,8 +33,6 @@ class JpiManifest extends Manifest {
 
         mainAttributes[MANIFEST_VERSION] = '1.0'
 
-        mainAttributes.putValue('Mask-Classes', conv.maskClasses)
-
         def dep = project.plugins.getPlugin(JpiPlugin).dependencyAnalysis.analyse().manifestPluginDependencies
         if (dep.length() > 0) {
             mainAttributes.putValue('Plugin-Dependencies', dep)

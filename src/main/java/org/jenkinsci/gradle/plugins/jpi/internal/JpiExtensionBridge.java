@@ -2,6 +2,7 @@ package org.jenkinsci.gradle.plugins.jpi.internal;
 
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.SetProperty;
 
 import java.net.URI;
 
@@ -13,4 +14,5 @@ public interface JpiExtensionBridge {
     Property<String> getMinimumJenkinsCoreVersion();
     Property<Boolean> getSandboxed();
     Property<Boolean> getUsePluginFirstClassLoader();
+    SetProperty<String> getMaskedClassesFromCore();
 }

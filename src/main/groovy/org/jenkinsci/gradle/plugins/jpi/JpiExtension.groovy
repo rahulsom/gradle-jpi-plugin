@@ -20,6 +20,7 @@ import org.gradle.api.model.ReplacedBy
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.SourceSet
 import org.gradle.util.ConfigureUtil
 import org.gradle.util.GradleVersion
@@ -44,7 +45,9 @@ class JpiExtension implements JpiExtensionBridge {
     private final Property<String> minimumJenkinsVersion
     private final Property<Boolean> sandboxed
     private final Property<Boolean> usePluginFirstClassLoader
+    private final SetProperty<String> maskedClassesFromCore
 
+    @SuppressWarnings('UnnecessarySetter')
     JpiExtension(Project project) {
         this.project = project
         this.jenkinsVersion = project.objects.property(String)
@@ -61,6 +64,7 @@ class JpiExtension implements JpiExtensionBridge {
         this.minimumJenkinsVersion = project.objects.property(String)
         this.sandboxed = project.objects.property(Boolean).convention(false)
         this.usePluginFirstClassLoader = project.objects.property(Boolean).convention(false)
+        this.maskedClassesFromCore = project.objects.setProperty(String).convention([])
     }
 
     /**
@@ -146,9 +150,18 @@ class JpiExtension implements JpiExtensionBridge {
     }
 
     /**
-     * TODO: document
+     * list of package prefixes to hide from core
      */
-    String maskClasses
+    @SuppressWarnings('UnnecessaryGetter')
+    String getMaskClasses() {
+        maskedClassesFromCore.get().join(' ')
+    }
+
+    void setMaskClasses(String spaceSeparatedPackages) {
+        if (spaceSeparatedPackages) {
+            maskedClassesFromCore.addAll(spaceSeparatedPackages.split('\\s+'))
+        }
+    }
 
     /**
      * https://www.jenkins.io/doc/developer/plugin-development/dependencies-and-class-loading
@@ -342,6 +355,11 @@ class JpiExtension implements JpiExtensionBridge {
     @Override
     Property<Boolean> getUsePluginFirstClassLoader() {
         usePluginFirstClassLoader
+    }
+
+    @Override
+    SetProperty<String> getMaskedClassesFromCore() {
+        maskedClassesFromCore
     }
 
     class Developers {

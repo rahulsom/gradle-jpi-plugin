@@ -5,6 +5,7 @@ import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
@@ -12,6 +13,7 @@ import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.property
+import org.gradle.kotlin.dsl.setProperty
 import org.jenkinsci.gradle.plugins.jpi.internal.VersionCalculator
 import java.net.URI
 import java.util.jar.Attributes.Name.MANIFEST_VERSION
@@ -65,6 +67,9 @@ open class GenerateJenkinsManifestTask : DefaultTask() {
     @Input
     val pluginVersion: Provider<String> = version.map { VersionCalculator().calculate(it) }
 
+    @Input
+    val maskedClasses: SetProperty<String> = project.objects.setProperty()
+
     @OutputFile
     val outputFile: RegularFileProperty = project.objects.fileProperty()
 
@@ -104,6 +109,11 @@ open class GenerateJenkinsManifestTask : DefaultTask() {
             }
         }
         manifest.mainAttributes.putValue("Plugin-Version", pluginVersion.get())
+        maskedClasses.get().apply {
+            if (isNotEmpty()) {
+                manifest.mainAttributes.putValue("Mask-Classes", joinToString(" "))
+            }
+        }
         outputFile.asFile.get().outputStream().use {
             manifest.write(it)
         }

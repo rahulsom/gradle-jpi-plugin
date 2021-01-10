@@ -44,6 +44,7 @@ open class JenkinsManifestPlugin : Plugin<Project> {
             sandboxed.set(ext.sandboxed)
             usePluginFirstClassLoader.set(ext.usePluginFirstClassLoader)
             version.set(project.provider { project.version.toString() })
+            maskedClasses.set(ext.maskedClassesFromCore)
             outputFile.set(project.layout.buildDirectory.file("jenkins-manifests/jenkins.mf"))
         }
     }
