@@ -70,6 +70,9 @@ open class GenerateJenkinsManifestTask : DefaultTask() {
     @Input
     val maskedClasses: SetProperty<String> = project.objects.setProperty()
 
+    @Input
+    val pluginDependencies: Property<String> = project.objects.property()
+
     @OutputFile
     val outputFile: RegularFileProperty = project.objects.fileProperty()
 
@@ -112,6 +115,11 @@ open class GenerateJenkinsManifestTask : DefaultTask() {
         maskedClasses.get().apply {
             if (isNotEmpty()) {
                 manifest.mainAttributes.putValue("Mask-Classes", joinToString(" "))
+            }
+        }
+        pluginDependencies.get().apply {
+            if (isNotEmpty()) {
+                manifest.mainAttributes.putValue("Plugin-Dependencies", this)
             }
         }
         outputFile.asFile.get().outputStream().use {

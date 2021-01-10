@@ -52,6 +52,7 @@ import org.gradle.api.tasks.testing.Test
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.util.GradleVersion
 import org.jenkinsci.gradle.plugins.jpi.internal.DependencyLookup
+import org.jenkinsci.gradle.plugins.jpi.internal.PluginDependencyProvider
 import org.jenkinsci.gradle.plugins.jpi.legacy.LegacyWorkaroundsPlugin
 import org.jenkinsci.gradle.plugins.jpi.server.GenerateHplTask
 import org.jenkinsci.gradle.plugins.jpi.server.InstallJenkinsServerPluginsTask
@@ -70,7 +71,7 @@ import static org.jenkinsci.gradle.plugins.jpi.JpiManifest.attributesToMap
  * @author Kohsuke Kawaguchi
  * @author Andrew Bayer
  */
-class JpiPlugin implements Plugin<Project> {
+class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
 
     /**
      * Represents the extra dependencies on other Jenkins plugins for the server task.
@@ -566,6 +567,11 @@ class JpiPlugin implements Plugin<Project> {
         }
 
         project.tasks.named(JavaPlugin.TEST_CLASSES_TASK_NAME).configure { it.dependsOn(generateTestHplTask) }
+    }
+
+    @Override
+    String pluginDependencies() {
+        dependencyAnalysis.analyse().manifestPluginDependencies
     }
 
     private static class JPILibraryElementsCompatibilityRule implements

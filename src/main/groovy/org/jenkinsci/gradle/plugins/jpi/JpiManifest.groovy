@@ -33,11 +33,6 @@ class JpiManifest extends Manifest {
 
         mainAttributes[MANIFEST_VERSION] = '1.0'
 
-        def dep = project.plugins.getPlugin(JpiPlugin).dependencyAnalysis.analyse().manifestPluginDependencies
-        if (dep.length() > 0) {
-            mainAttributes.putValue('Plugin-Dependencies', dep)
-        }
-
         if (conv.developers) {
             mainAttributes.putValue(
                     'Plugin-Developers',

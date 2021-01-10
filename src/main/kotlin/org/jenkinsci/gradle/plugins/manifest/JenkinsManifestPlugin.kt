@@ -8,6 +8,7 @@ import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.register
 import org.jenkinsci.gradle.plugins.jpi.internal.JpiExtensionBridge
+import org.jenkinsci.gradle.plugins.jpi.internal.PluginDependencyProvider
 
 open class JenkinsManifestPlugin : Plugin<Project> {
     override fun apply(target: Project) {
@@ -45,6 +46,10 @@ open class JenkinsManifestPlugin : Plugin<Project> {
             usePluginFirstClassLoader.set(ext.usePluginFirstClassLoader)
             version.set(project.provider { project.version.toString() })
             maskedClasses.set(ext.maskedClassesFromCore)
+            pluginDependencies.set(project.provider {
+                val provider = project.plugins.findPlugin("org.jenkins-ci.jpi") as PluginDependencyProvider
+                provider.pluginDependencies()
+            })
             outputFile.set(project.layout.buildDirectory.file("jenkins-manifests/jenkins.mf"))
         }
     }
