@@ -48,6 +48,9 @@ open class GenerateJenkinsManifestTask : DefaultTask() {
     @Input
     val sandboxed: Property<Boolean> = project.objects.property()
 
+    @Input
+    val usePluginFirstClassLoader: Property<Boolean> = project.objects.property()
+
     @OutputFile
     val outputFile: RegularFileProperty = project.objects.fileProperty()
 
@@ -79,6 +82,11 @@ open class GenerateJenkinsManifestTask : DefaultTask() {
         sandboxed.get().apply {
             if (this) {
                 manifest.mainAttributes.putValue("Sandbox-Status", this.toString())
+            }
+        }
+        usePluginFirstClassLoader.get().apply {
+            if (this) {
+                manifest.mainAttributes.putValue("PluginFirstClassLoader", this.toString())
             }
         }
         outputFile.asFile.get().outputStream().use {

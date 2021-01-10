@@ -44,10 +44,6 @@ class JpiManifest extends Manifest {
             mainAttributes.putValue('Plugin-Dependencies', dep)
         }
 
-        if (conv.pluginFirstClassLoader) {
-            mainAttributes.putValue('PluginFirstClassLoader', 'true')
-        }
-
         if (conv.developers) {
             mainAttributes.putValue(
                     'Plugin-Developers',

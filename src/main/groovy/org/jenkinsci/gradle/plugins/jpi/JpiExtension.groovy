@@ -43,6 +43,7 @@ class JpiExtension implements JpiExtensionBridge {
     private final Property<URI> homePage
     private final Property<String> minimumJenkinsVersion
     private final Property<Boolean> sandboxed
+    private final Property<Boolean> usePluginFirstClassLoader
 
     JpiExtension(Project project) {
         this.project = project
@@ -59,6 +60,7 @@ class JpiExtension implements JpiExtensionBridge {
         this.homePage = project.objects.property(URI)
         this.minimumJenkinsVersion = project.objects.property(String)
         this.sandboxed = project.objects.property(Boolean).convention(false)
+        this.usePluginFirstClassLoader = project.objects.property(Boolean).convention(false)
     }
 
     /**
@@ -148,7 +150,17 @@ class JpiExtension implements JpiExtensionBridge {
      */
     String maskClasses
 
-    boolean pluginFirstClassLoader
+    /**
+     * https://www.jenkins.io/doc/developer/plugin-development/dependencies-and-class-loading
+     */
+    @SuppressWarnings('UnnecessaryGetter')
+    boolean getPluginFirstClassLoader() {
+        usePluginFirstClassLoader.get()
+    }
+
+    void setPluginFirstClassLoader(boolean pluginFirst) {
+        usePluginFirstClassLoader.set(pluginFirst)
+    }
 
     /**
      * Version of core that we depend on.
@@ -325,6 +337,11 @@ class JpiExtension implements JpiExtensionBridge {
     @Override
     Property<Boolean> getSandboxed() {
         sandboxed
+    }
+
+    @Override
+    Property<Boolean> getUsePluginFirstClassLoader() {
+        usePluginFirstClassLoader
     }
 
     class Developers {
