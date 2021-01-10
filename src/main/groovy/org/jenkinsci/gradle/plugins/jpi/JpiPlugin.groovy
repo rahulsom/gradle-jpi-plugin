@@ -62,7 +62,6 @@ import org.jenkinsci.gradle.plugins.jpi.verification.CheckOverlappingSourcesTask
 import static org.gradle.api.logging.LogLevel.INFO
 import static org.gradle.api.tasks.SourceSet.MAIN_SOURCE_SET_NAME
 import static org.gradle.api.tasks.SourceSet.TEST_SOURCE_SET_NAME
-import static org.jenkinsci.gradle.plugins.jpi.JpiManifest.attributesToMap
 
 /**
  * Loads HPI related tasks into the current project.
@@ -246,16 +245,11 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
         def configureManifest = project.tasks.register('configureManifest') {
             def jenkinsManifest = generateJenkinsManifest.get().outputFile
             it.doLast {
-                Map<String, ?> attributes = attributesToMap(new JpiManifest(project).mainAttributes)
                 jpiProvider.configure {
                     it.manifest.from(jenkinsManifest)
-                    it.manifest.attributes(attributes)
-                    it.inputs.property('manifest', attributes)
                 }
                 jarProvider.configure {
                     it.manifest.from(jenkinsManifest)
-                    it.manifest.attributes(attributes)
-                    it.inputs.property('manifest', attributes)
                 }
             }
 

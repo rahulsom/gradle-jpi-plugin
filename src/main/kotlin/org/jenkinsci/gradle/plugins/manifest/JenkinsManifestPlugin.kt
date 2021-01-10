@@ -50,6 +50,7 @@ open class JenkinsManifestPlugin : Plugin<Project> {
                 val provider = project.plugins.findPlugin("org.jenkins-ci.jpi") as PluginDependencyProvider
                 provider.pluginDependencies()
             })
+            pluginDevelopers.set(ext.pluginDevelopers)
             outputFile.set(project.layout.buildDirectory.file("jenkins-manifests/jenkins.mf"))
         }
     }

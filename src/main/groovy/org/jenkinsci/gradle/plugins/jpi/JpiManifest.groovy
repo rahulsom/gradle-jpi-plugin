@@ -20,28 +20,18 @@ import org.gradle.api.Project
 import java.util.jar.Attributes
 import java.util.jar.Manifest
 
-import static java.util.jar.Attributes.Name.MANIFEST_VERSION
-
 /**
  * Encapsulates the Jenkins plugin manifest and its generation.
  *
+ * This manifest is now created by the generateJenkinsManifest task.
+ *
  * @author Kohsuke Kawaguchi
+ * @deprecated To be removed in 1.0.0
+ * @see org.jenkinsci.gradle.plugins.manifest.GenerateJenkinsManifestTask
  */
+@Deprecated
 class JpiManifest extends Manifest {
     JpiManifest(Project project) {
-        def conv = project.extensions.getByType(JpiExtension)
-
-        mainAttributes[MANIFEST_VERSION] = '1.0'
-
-        if (conv.developers) {
-            mainAttributes.putValue(
-                    'Plugin-Developers',
-                    conv.developers.collect { "${it.name ?: ''}:${it.id ?: ''}:${it.email ?: ''}" }.join(',')
-            )
-        }
-
-        // remove empty values
-        mainAttributes.entrySet().removeAll { it.value == null || it.value.toString().empty }
     }
 
     static Map<String, ?> attributesToMap(Attributes attributes) {

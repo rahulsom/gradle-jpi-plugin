@@ -3,17 +3,21 @@ package org.jenkinsci.gradle.plugins.manifest
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
+import org.gradle.kotlin.dsl.listProperty
 import org.gradle.kotlin.dsl.property
 import org.gradle.kotlin.dsl.setProperty
+import org.jenkinsci.gradle.plugins.jpi.core.PluginDeveloper
 import org.jenkinsci.gradle.plugins.jpi.internal.VersionCalculator
 import java.net.URI
 import java.util.jar.Attributes.Name.MANIFEST_VERSION
@@ -55,6 +59,9 @@ open class GenerateJenkinsManifestTask : DefaultTask() {
 
     @Input
     val usePluginFirstClassLoader: Property<Boolean> = project.objects.property()
+
+    @Nested
+    val pluginDevelopers: ListProperty<PluginDeveloper> = project.objects.listProperty()
 
     @Internal
     val version: Property<String> = project.objects.property()
@@ -120,6 +127,16 @@ open class GenerateJenkinsManifestTask : DefaultTask() {
         pluginDependencies.get().apply {
             if (isNotEmpty()) {
                 manifest.mainAttributes.putValue("Plugin-Dependencies", this)
+            }
+        }
+        pluginDevelopers.get().apply {
+            if (isNotEmpty()) {
+                val formatted = joinToString(",") { dev ->
+                    listOf(dev.name, dev.id, dev.email).joinToString(":") {
+                        it.getOrElse("")
+                    }
+                }
+                manifest.mainAttributes.putValue("Plugin-Developers", formatted)
             }
         }
         outputFile.asFile.get().outputStream().use {

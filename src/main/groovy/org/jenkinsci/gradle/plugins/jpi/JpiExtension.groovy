@@ -15,15 +15,21 @@
  */
 package org.jenkinsci.gradle.plugins.jpi
 
+import groovy.transform.CompileStatic
+import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.model.ReplacedBy
 import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.SourceSet
 import org.gradle.util.ConfigureUtil
 import org.gradle.util.GradleVersion
+import org.jenkinsci.gradle.plugins.jpi.core.PluginDeveloper
+import org.jenkinsci.gradle.plugins.jpi.core.PluginDeveloperSpec
+import org.jenkinsci.gradle.plugins.jpi.internal.BackwardsCompatiblePluginDevelopers
 import org.jenkinsci.gradle.plugins.jpi.internal.JpiExtensionBridge
 
 /**
@@ -46,6 +52,7 @@ class JpiExtension implements JpiExtensionBridge {
     private final Property<Boolean> sandboxed
     private final Property<Boolean> usePluginFirstClassLoader
     private final SetProperty<String> maskedClassesFromCore
+    private final ListProperty<PluginDeveloper> pluginDevelopers
 
     @SuppressWarnings('UnnecessarySetter')
     JpiExtension(Project project) {
@@ -65,6 +72,7 @@ class JpiExtension implements JpiExtensionBridge {
         this.sandboxed = project.objects.property(Boolean).convention(false)
         this.usePluginFirstClassLoader = project.objects.property(Boolean).convention(false)
         this.maskedClassesFromCore = project.objects.setProperty(String).convention([])
+        this.pluginDevelopers = project.objects.listProperty(PluginDeveloper)
     }
 
     /**
@@ -300,10 +308,24 @@ class JpiExtension implements JpiExtensionBridge {
      */
     boolean configurePublishing = true
 
+    /**
+     * Use #getPluginDevelopers instead.
+     *
+     * @deprecated To be removed in 1.0.0
+     */
+    @Deprecated
+    @ReplacedBy('pluginDevelopers')
     Developers developers = new Developers()
 
     def developers(Closure closure) {
-        ConfigureUtil.configure(closure, developers)
+        developers(ConfigureUtil.configureUsing(closure))
+    }
+
+    @CompileStatic
+    void developers(Action<? super PluginDeveloperSpec> action) {
+        def devs = new BackwardsCompatiblePluginDevelopers(project.objects)
+        action.execute(devs)
+        pluginDevelopers.set(devs.developers)
     }
 
     /**
@@ -362,6 +384,16 @@ class JpiExtension implements JpiExtensionBridge {
         maskedClassesFromCore
     }
 
+    @Override
+    ListProperty<PluginDeveloper> getPluginDevelopers() {
+        pluginDevelopers
+    }
+
+    /**
+     * @see PluginDeveloper
+     * @deprecated To be removed in 1.0.0
+     */
+    @Deprecated
     class Developers {
         def developerMap = [:]
 
