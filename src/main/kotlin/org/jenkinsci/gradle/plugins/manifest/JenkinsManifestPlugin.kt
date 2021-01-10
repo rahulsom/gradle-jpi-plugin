@@ -31,7 +31,7 @@ open class JenkinsManifestPlugin : Plugin<Project> {
             group = "Build"
             description = "Generate manifest for Jenkins plugin"
             upstreamManifests.from(pluginClass, dynamicSupport)
-            groupId.set(project.provider { project.group as String })
+            groupId.set(project.provider { project.group.toString() })
             minimumJavaVersion.set(project.provider {
                 project.extensions.getByType<JavaPluginExtension>().targetCompatibility.toString()
             })
@@ -43,6 +43,7 @@ open class JenkinsManifestPlugin : Plugin<Project> {
             minimumJenkinsVersion.set(ext.minimumJenkinsCoreVersion)
             sandboxed.set(ext.sandboxed)
             usePluginFirstClassLoader.set(ext.usePluginFirstClassLoader)
+            version.set(project.provider { project.version.toString() })
             outputFile.set(project.layout.buildDirectory.file("jenkins-manifests/jenkins.mf"))
         }
     }

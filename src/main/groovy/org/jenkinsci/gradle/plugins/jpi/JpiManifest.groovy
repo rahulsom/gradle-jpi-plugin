@@ -16,7 +16,6 @@
 package org.jenkinsci.gradle.plugins.jpi
 
 import org.gradle.api.Project
-import org.jenkinsci.gradle.plugins.jpi.internal.VersionCalculator
 
 import java.util.jar.Attributes
 import java.util.jar.Manifest
@@ -33,9 +32,6 @@ class JpiManifest extends Manifest {
         def conv = project.extensions.getByType(JpiExtension)
 
         mainAttributes[MANIFEST_VERSION] = '1.0'
-
-        def version = new VersionCalculator().calculate(project.version.toString())
-        mainAttributes.putValue('Plugin-Version', version.toString())
 
         mainAttributes.putValue('Mask-Classes', conv.maskClasses)
 
