@@ -72,6 +72,10 @@ class TestSupport {
         q("org.jenkins-ci.plugins:ant:$version")
     }
 
+    static String git(String version) {
+        q("org.jenkins-ci.plugins:git:$version")
+    }
+
     static String log4jApi(String version) {
         q("org.apache.logging.log4j:log4j-api:$version")
     }

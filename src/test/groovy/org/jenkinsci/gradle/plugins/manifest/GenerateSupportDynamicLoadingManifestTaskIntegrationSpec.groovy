@@ -9,6 +9,7 @@ import org.gradle.testkit.runner.TaskOutcome
 import org.jenkinsci.gradle.plugins.jpi.IntegrationSpec
 import org.jenkinsci.gradle.plugins.jpi.TestDataGenerator
 import org.jenkinsci.gradle.plugins.jpi.TestSupport
+import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
 import javax.lang.model.element.Modifier
@@ -162,6 +163,27 @@ class GenerateSupportDynamicLoadingManifestTaskIntegrationSpec extends Integrati
         then:
         result.task(taskPath).outcome == TaskOutcome.SUCCESS
         actualManifest() == expected
+    }
+
+    @IgnoreIf({ isBeforeConfigurationCache() })
+    def 'should support configuration cache'() {
+        given:
+        def plugin = TypeSpec.classBuilder('TestPlugin')
+                .addModifiers(Modifier.PUBLIC)
+                .addAnnotation(AnnotationSpec.builder(Extension)
+                        .addMember('dynamicLoadable', '$T.$L', YesNoMaybe, YesNoMaybe.YES.name())
+                        .build())
+                .build()
+        def myExamplePlugin = JavaFile.builder('my.example', plugin).build()
+        myExamplePlugin.writeTo(srcMainJava)
+
+        when:
+        def result = gradleRunner()
+                .withArguments(GenerateSupportDynamicLoadingManifestTask.NAME, '--configuration-cache')
+                .build()
+
+        then:
+        result.task(taskPath).outcome == TaskOutcome.SUCCESS
     }
 
     def writeDefaultValuePlugin() {

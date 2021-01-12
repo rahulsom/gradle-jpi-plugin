@@ -7,9 +7,11 @@ import org.jenkinsci.gradle.plugins.jpi.TestDataGenerator
 import org.jenkinsci.gradle.plugins.jpi.TestSupport
 import spock.lang.IgnoreIf
 import spock.lang.Issue
+import spock.lang.PendingFeature
 import spock.lang.Unroll
 
 import static org.jenkinsci.gradle.plugins.jpi.TestSupport.ant
+import static org.jenkinsci.gradle.plugins.jpi.TestSupport.git
 import static org.jenkinsci.gradle.plugins.jpi.TestSupport.log4jApi
 
 class GeneratePluginDependenciesManifestTaskIntegrationSpec extends IntegrationSpec {
@@ -94,6 +96,7 @@ class GeneratePluginDependenciesManifestTaskIntegrationSpec extends IntegrationS
 
     @Unroll
     @Issue('https://github.com/gradle/gradle/issues/13278')
+    @SuppressWarnings('UnnecessaryGetter')
     @IgnoreIf({ getGradleVersionForTest() < GradleVersion.version('6.7') })
     def 'should rerun only if #config plugin dependencies change 6.7+'(String before, String after, TaskOutcome secondRun) {
         given:
@@ -141,5 +144,31 @@ class GeneratePluginDependenciesManifestTaskIntegrationSpec extends IntegrationS
         ant('1.10')        | ant('1.11')        | TaskOutcome.SUCCESS
         // non-plugin changes shouldn't force this to rerun
         log4jApi('2.13.0') | log4jApi('2.14.0') | TaskOutcome.UP_TO_DATE
+    }
+
+    @PendingFeature
+    @IgnoreIf({ isBeforeConfigurationCache() })
+    def 'should support configuration cache'() {
+        given:
+        build.text = """\
+            $BUILD_FILE
+            java {
+                registerFeature('ant') {
+                    usingSourceSet(sourceSets.main)
+                }
+            }
+            dependencies {
+                antImplementation ${ant('1.10')}
+                implementation ${git('4.5.2')}
+            }
+            """.stripIndent()
+
+        when:
+        def result = gradleRunner()
+                .withArguments(taskName, '--configuration-cache')
+                .build()
+
+        then:
+        result.task(taskPath).outcome == TaskOutcome.SUCCESS
     }
 }

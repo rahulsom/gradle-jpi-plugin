@@ -4,6 +4,8 @@ import org.gradle.testkit.runner.TaskOutcome
 import org.jenkinsci.gradle.plugins.jpi.IntegrationSpec
 import org.jenkinsci.gradle.plugins.jpi.TestDataGenerator
 import org.jenkinsci.gradle.plugins.jpi.TestSupport
+import spock.lang.IgnoreIf
+import spock.lang.PendingFeature
 import spock.lang.Unroll
 
 import static org.jenkinsci.gradle.plugins.jpi.TestSupport.q
@@ -202,6 +204,7 @@ class GenerateJenkinsManifestTaskIntegrationSpec extends IntegrationSpec {
         'maskClasses'            | q('com.google.guava.')  | q('com.google.guava. org.junit.')
     }
 
+    @SuppressWarnings('ClosureAsLastMethodParameter')
     def 'should rerun if plugin developers change'(List<String> before, List<String> after) {
         given:
         build.text = """\
@@ -251,5 +254,38 @@ class GenerateJenkinsManifestTaskIntegrationSpec extends IntegrationSpec {
         before     | after
         ['a']      | ['b']
         ['a', 'b'] | ['b', 'c']
+    }
+
+    @PendingFeature
+    @IgnoreIf({ isBeforeConfigurationCache() })
+    def 'should support configuration cache'() {
+        given:
+        build.text = """\
+            $MIN_BUILD_FILE
+            jenkinsPlugin {
+                jenkinsVersion.set('${TestSupport.RECENT_JENKINS_VERSION}')
+                maskClasses = 'com.google.guava.'
+                developers {
+                    developer {
+                        id = 'ab'
+                        name = 'Aaron Bowser'
+                        email = 'ab@example.org'
+                    }
+                    developer {
+                        id 'cs'
+                        name 'Chris Smith'
+                        email 'cs@example.org'
+                    }
+                }
+            }
+            """.stripIndent()
+
+        when:
+        def result = gradleRunner()
+                .withArguments(taskName, '--configuration-cache')
+                .build()
+
+        then:
+        result.task(taskPath).outcome == TaskOutcome.SUCCESS
     }
 }
