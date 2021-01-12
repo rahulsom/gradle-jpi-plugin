@@ -131,7 +131,7 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
             t.hplDir.set(project.layout.buildDirectory.dir('hpl'))
             t.resourcePath.set(project.file(WEB_APP_DIR))
             t.libraries.from(mainResources, mainOutput.classesDirs, mainOutput.resourcesDir, libraries)
-            t.upstreamManifests.from(jenkinsManifest)
+            t.upstreamManifest.set(jenkinsManifest.get().outputFile)
             t.description = 'Generate hpl (Hudson plugin link) for running locally'
             t.group = 'Jenkins Server'
         }
@@ -546,7 +546,7 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
             it.hplDir.set(outputDir)
             it.resourcePath.set(project.file(WEB_APP_DIR))
             it.libraries.from(mainResources, mainOutput.classesDirs, mainOutput.resourcesDir, libraries)
-            it.upstreamManifests.from(jenkinsManifest)
+            it.upstreamManifest.set(jenkinsManifest.get().outputFile)
         }
 
         project.tasks.register('generate-test-hpl') {

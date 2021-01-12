@@ -6,11 +6,12 @@ import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFile
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
@@ -39,8 +40,8 @@ class GenerateHplTask extends DefaultTask {
     @Classpath
     final ConfigurableFileCollection libraries = project.objects.fileCollection()
 
-    @InputFiles
-    final ConfigurableFileCollection upstreamManifests = project.objects.fileCollection()
+    @InputFile
+    final RegularFileProperty upstreamManifest = project.objects.fileProperty()
 
     @OutputFile
     final Provider<RegularFile> hpl = fileName.flatMap { String name ->
@@ -52,13 +53,11 @@ class GenerateHplTask extends DefaultTask {
         def destination = hpl.get().asFile
         destination.parentFile.mkdirs()
         def manifest = new Manifest()
+        upstreamManifest.asFile.get().withInputStream {
+            manifest.read(it)
+        }
         manifest.mainAttributes.putValue('Resource-Path', resourcePath.get().absolutePath)
         manifest.mainAttributes.putValue('Libraries', libraries.filter { File f -> f.exists() }.join(','))
-        upstreamManifests.each {
-            it.withInputStream {
-                manifest.read(it)
-            }
-        }
         destination.withOutputStream {
             manifest.write(it)
         }
