@@ -43,7 +43,6 @@ import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
-import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.War
 import org.gradle.api.tasks.compile.GroovyCompile
@@ -237,28 +236,22 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
     }
 
     private static configureManifest(Project project) {
-        JavaPluginConvention javaPluginConvention = project.convention.getPlugin(JavaPluginConvention)
-        TaskProvider<War> jpiProvider = project.tasks.named(JPI_TASK_NAME) as TaskProvider<War>
-        TaskProvider<Jar> jarProvider = project.tasks.named(JavaPlugin.JAR_TASK_NAME) as TaskProvider<Jar>
-
         def generateJenkinsManifest = project.tasks.named('generateJenkinsManifest')
-        def configureManifest = project.tasks.register('configureManifest') {
-            def jenkinsManifest = generateJenkinsManifest.get().outputFile
-            it.doLast {
-                jpiProvider.configure {
-                    it.manifest.from(jenkinsManifest)
-                }
-                jarProvider.configure {
-                    it.manifest.from(jenkinsManifest)
-                }
-            }
-
-            it.dependsOn(javaPluginConvention.sourceSets.getByName(MAIN_SOURCE_SET_NAME).output)
-            it.dependsOn(jenkinsManifest)
+        project.tasks.named(JPI_TASK_NAME).configure { War t ->
+            t.dependsOn(generateJenkinsManifest)
+            t.manifest.from(generateJenkinsManifest.get().outputFile)
+        }
+        project.tasks.named(JavaPlugin.JAR_TASK_NAME).configure { Jar t ->
+            t.dependsOn(generateJenkinsManifest)
+            t.manifest.from(generateJenkinsManifest.get().outputFile)
         }
 
-        jpiProvider.configure { it.dependsOn(configureManifest) }
-        jarProvider.configure { it.dependsOn(configureManifest) }
+        project.tasks.register('configureManifest') {
+            it.doLast {
+                logger.warn('This task no longer does anything')
+                logger.warn('It will be removed in org.jenkins-ci.jpi 1.0.0')
+            }
+        }
     }
 
     private configureJpi(Project project) {

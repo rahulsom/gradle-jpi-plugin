@@ -7,6 +7,7 @@ import spock.lang.Unroll
 
 import java.util.jar.JarInputStream
 
+@SuppressWarnings('MethodCount')
 abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
     protected final String projectName = TestDataGenerator.generateName()
     protected final String projectVersion = TestDataGenerator.generateVersion()
@@ -541,6 +542,33 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
 
         then:
         actual['Plugin-Dependencies'] == 'git:4.0.1'
+    }
+
+    def 'should not cause cyclical dependency with java-test-fixtures plugin optional'() {
+        given:
+        build.text = """\
+            plugins {
+                id 'java-test-fixtures'
+                id 'org.jenkins-ci.jpi'
+            }
+            jenkinsPlugin {
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+            }
+            java {
+                registerFeature('git') {
+                    usingSourceSet(sourceSets.main)
+                }
+            }
+            dependencies {
+                gitImplementation 'org.jenkins-ci.plugins:git:4.0.1'
+            }
+            """.stripIndent()
+
+        when:
+        def actual = generateManifestThroughGradle()
+
+        then:
+        actual['Plugin-Dependencies'] == 'git:4.0.1;resolution:=optional'
     }
 
     @CompileStatic

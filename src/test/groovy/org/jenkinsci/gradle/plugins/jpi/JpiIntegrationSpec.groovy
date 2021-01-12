@@ -196,8 +196,8 @@ class JpiIntegrationSpec extends IntegrationSpec {
 
         where:
         task                                         | dependency                                    | outcome
-        'jar'                                        | ':configureManifest'                          | TaskOutcome.SUCCESS
-        'jpi'                                        | ':configureManifest'                          | TaskOutcome.SUCCESS
+        'jar'                                        | ':generateJenkinsManifest'                    | TaskOutcome.SUCCESS
+        'jpi'                                        | ':generateJenkinsManifest'                    | TaskOutcome.SUCCESS
         'processTestResources'                       | ':resolveTestDependencies'                    | TaskOutcome.SUCCESS
         'compileTestJava'                            | ':insertTest'                                 | TaskOutcome.SKIPPED
         'testClasses'                                | ':generateTestHpl'                          | TaskOutcome.SUCCESS
@@ -215,6 +215,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
         'generateJenkinsServerHpl'                     | ':generateJenkinsManifest'                      | TaskOutcome.SUCCESS
         'generateTestHpl'                              | ':generateJenkinsManifest'                      | TaskOutcome.SUCCESS
         'generateJenkinsManifest'                      | ':generateJenkinsPluginClassManifest'           | TaskOutcome.SUCCESS
+        'generateJenkinsManifest'                      | ':generateJenkinsPluginDependenciesManifest'    | TaskOutcome.SUCCESS
         'generateJenkinsManifest'                      | ':generateJenkinsSupportDynamicLoadingManifest' | TaskOutcome.SUCCESS
     }
 

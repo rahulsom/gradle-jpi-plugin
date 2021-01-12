@@ -2,13 +2,15 @@ package org.jenkinsci.gradle.plugins.manifest
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.attributes.LibraryElements
+import org.gradle.api.attributes.LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE
 import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.getByType
+import org.gradle.kotlin.dsl.named
 import org.gradle.kotlin.dsl.register
 import org.jenkinsci.gradle.plugins.jpi.internal.JpiExtensionBridge
-import org.jenkinsci.gradle.plugins.jpi.internal.PluginDependencyProvider
 
 open class JenkinsManifestPlugin : Plugin<Project> {
     override fun apply(target: Project) {
@@ -28,10 +30,23 @@ open class JenkinsManifestPlugin : Plugin<Project> {
             outputFile.set(project.layout.buildDirectory.file("jenkins-manifests/support-dynamic-loading.mf"))
         }
 
+        val pluginDependencies = target.tasks.register<GeneratePluginDependenciesManifestTask>(GeneratePluginDependenciesManifestTask.NAME) {
+            group = "Build"
+            description = "Finds optional and required plugin dependencies"
+            val jpi = project.objects.named<LibraryElements>("jpi")
+            project.configurations
+                    .filter { it.isCanBeResolved }
+                    .filter { it.attributes.getAttribute(LIBRARY_ELEMENTS_ATTRIBUTE) == jpi }
+                    .filterNot { it.name.startsWith("serverRuntime") } // these dependencies should not be a part
+                    .filterNot { it.name.startsWith("testRuntime") }   // of the plugin dependency calculation
+                    .forEach { pluginConfigurations.from(it) }
+            outputFile.set(project.layout.buildDirectory.file("jenkins-manifests/plugin-dependencies.mf"))
+        }
+
         target.tasks.register<GenerateJenkinsManifestTask>(GenerateJenkinsManifestTask.NAME) {
             group = "Build"
             description = "Generate manifest for Jenkins plugin"
-            upstreamManifests.from(pluginClass, dynamicSupport)
+            upstreamManifests.from(pluginClass, dynamicSupport, pluginDependencies)
             groupId.set(project.provider { project.group.toString() })
             minimumJavaVersion.set(project.provider {
                 project.extensions.getByType<JavaPluginExtension>().targetCompatibility.toString()
@@ -46,10 +61,6 @@ open class JenkinsManifestPlugin : Plugin<Project> {
             usePluginFirstClassLoader.set(ext.usePluginFirstClassLoader)
             version.set(project.provider { project.version.toString() })
             maskedClasses.set(ext.maskedClassesFromCore)
-            pluginDependencies.set(project.provider {
-                val provider = project.plugins.findPlugin("org.jenkins-ci.jpi") as PluginDependencyProvider
-                provider.pluginDependencies()
-            })
             pluginDevelopers.set(ext.pluginDevelopers)
             outputFile.set(project.layout.buildDirectory.file("jenkins-manifests/jenkins.mf"))
         }

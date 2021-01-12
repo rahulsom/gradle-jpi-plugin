@@ -77,9 +77,6 @@ open class GenerateJenkinsManifestTask : DefaultTask() {
     @Input
     val maskedClasses: SetProperty<String> = project.objects.setProperty()
 
-    @Input
-    val pluginDependencies: Property<String> = project.objects.property()
-
     @OutputFile
     val outputFile: RegularFileProperty = project.objects.fileProperty()
 
@@ -87,11 +84,18 @@ open class GenerateJenkinsManifestTask : DefaultTask() {
     fun discover() {
         val manifest = Manifest()
         manifest.mainAttributes[MANIFEST_VERSION] = "1.0"
-        for (upstream in upstreamManifests) {
-            upstream.inputStream().use {
-                manifest.read(it)
-            }
-        }
+        upstreamManifests.asSequence()
+                .map { f ->
+                    f.inputStream().use {
+                        Manifest().apply { read(it) }
+                    }
+                }
+                .map { it.mainAttributes }
+                .flatMap { it.entries.asSequence() }
+                .filterNot { (k, _) -> k == MANIFEST_VERSION.toString() }
+                .forEach { (k, v) ->
+                    manifest.mainAttributes.putValue(k.toString(), v.toString())
+                }
         groupId.getOrElse("").apply {
             if (isNotEmpty()) {
                 manifest.mainAttributes.putValue("Group-Id", groupId.get())
@@ -122,11 +126,6 @@ open class GenerateJenkinsManifestTask : DefaultTask() {
         maskedClasses.get().apply {
             if (isNotEmpty()) {
                 manifest.mainAttributes.putValue("Mask-Classes", joinToString(" "))
-            }
-        }
-        pluginDependencies.get().apply {
-            if (isNotEmpty()) {
-                manifest.mainAttributes.putValue("Plugin-Dependencies", this)
             }
         }
         pluginDevelopers.get().apply {

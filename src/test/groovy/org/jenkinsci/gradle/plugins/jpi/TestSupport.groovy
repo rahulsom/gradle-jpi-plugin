@@ -60,4 +60,19 @@ class TestSupport {
 
     static final String LOG4J_API_2_13_0 = 'org.apache.logging.log4j:log4j-api:2.13.0'
     static final String LOG4J_API_2_14_0 = 'org.apache.logging.log4j:log4j-api:2.14.0'
+
+    /**
+     * Adds quotes to given string
+     */
+    static String q(String s) {
+        "'$s'"
+    }
+
+    static String ant(String version) {
+        q("org.jenkins-ci.plugins:ant:$version")
+    }
+
+    static String log4jApi(String version) {
+        q("org.apache.logging.log4j:log4j-api:$version")
+    }
 }
