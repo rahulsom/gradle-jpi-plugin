@@ -24,7 +24,7 @@ open class GeneratePluginClassManifestTask : DefaultTask() {
     val outputFile: RegularFileProperty = project.objects.fileProperty()
 
     @TaskAction
-    fun discover() {
+    fun generate() {
         val implementations = classesDirs.asSequence()
                 .map { File(it, FILEPATH) }
                 .filter { it.exists() }

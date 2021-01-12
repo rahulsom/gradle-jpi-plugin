@@ -26,7 +26,7 @@ open class GenerateSupportDynamicLoadingManifestTask : DefaultTask() {
     val outputFile: RegularFileProperty = project.objects.fileProperty()
 
     @TaskAction
-    fun discover() {
+    fun generate() {
         val classes: Array<URL> = classesDirs.asSequence()
                 .map { it.toURI().toURL() }
                 .toList()

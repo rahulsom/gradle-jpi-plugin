@@ -81,7 +81,7 @@ open class GenerateJenkinsManifestTask : DefaultTask() {
     val outputFile: RegularFileProperty = project.objects.fileProperty()
 
     @TaskAction
-    fun discover() {
+    fun generate() {
         val manifest = Manifest()
         manifest.mainAttributes[MANIFEST_VERSION] = "1.0"
         upstreamManifests.asSequence()
