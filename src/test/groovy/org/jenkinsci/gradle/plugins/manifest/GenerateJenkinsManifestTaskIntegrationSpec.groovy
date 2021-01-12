@@ -201,4 +201,55 @@ class GenerateJenkinsManifestTaskIntegrationSpec extends IntegrationSpec {
         'pluginFirstClassLoader' | 'true'                  | 'false'
         'maskClasses'            | q('com.google.guava.')  | q('com.google.guava. org.junit.')
     }
+
+    def 'should rerun if plugin developers change'(List<String> before, List<String> after) {
+        given:
+        build.text = """\
+            $MIN_BUILD_FILE
+            jenkinsPlugin {
+                jenkinsVersion.set('${TestSupport.RECENT_JENKINS_VERSION}')
+                developers {
+                    ${before.collect { "developer { id = '$it' }" }}
+                }
+            }
+            """.stripIndent()
+
+        when:
+        def result = gradleRunner()
+                .withArguments(taskName)
+                .build()
+
+        then:
+        result.task(taskPath).outcome == TaskOutcome.SUCCESS
+
+        when:
+        build.text = """\
+            $MIN_BUILD_FILE
+            jenkinsPlugin {
+                jenkinsVersion.set('${TestSupport.RECENT_JENKINS_VERSION}')
+                developers {
+                    ${after.collect { "developer { id = '$it' }" }}
+                }
+            }
+            """.stripIndent()
+        def rerunResult = gradleRunner()
+                .withArguments(taskName)
+                .build()
+
+        then:
+        rerunResult.task(taskPath).outcome == TaskOutcome.SUCCESS
+
+        when:
+        def thirdResult = gradleRunner()
+                .withArguments(taskName)
+                .build()
+
+        then:
+        thirdResult.task(taskPath).outcome == TaskOutcome.UP_TO_DATE
+
+        where:
+        before     | after
+        ['a']      | ['b']
+        ['a', 'b'] | ['b', 'c']
+    }
 }
