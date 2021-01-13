@@ -14,6 +14,7 @@ abstract class GenerateHplTaskSpec extends IntegrationSpec {
     protected File settings
     protected File build
     protected Map<String, String> minimalAttributes
+    private Path realProjectDir
 
     abstract String taskName()
     abstract String expectedRelativeHplLocation()
@@ -27,7 +28,7 @@ abstract class GenerateHplTaskSpec extends IntegrationSpec {
                 id 'org.jenkins-ci.jpi'
             }
             '''.stripIndent()
-        def realProjectDir = projectDir.root.toPath().toRealPath()
+        realProjectDir = projectDir.root.toPath().toRealPath()
         minimalAttributes = [
                 'Long-Name'              : 'strawberry',
                 'Minimum-Java-Version'   : '1.8',
@@ -154,9 +155,9 @@ abstract class GenerateHplTaskSpec extends IntegrationSpec {
         def depFilesResult = gradleRunner().withArguments('depFiles', '-q').build()
         minimalAttributes['Plugin-Dependencies'] = 'git:4.0.0'
         minimalAttributes['Libraries'] = [
-                srcMainResources.toFile(),
-                new File(projectDir.root, 'build/classes/java/main'),
-                new File(projectDir.root, 'build/resources/main'),
+                realProjectDir.resolve('src/main/resources').toString(),
+                realProjectDir.resolve('build/classes/java/main').toString(),
+                realProjectDir.resolve('build/resources/main').toString(),
                 depFilesResult.output,
         ].join(',')
 
@@ -192,7 +193,7 @@ abstract class GenerateHplTaskSpec extends IntegrationSpec {
             }
             """.stripIndent()
         minimalAttributes['Plugin-Dependencies'] = 'git:4.0.0'
-        minimalAttributes['Libraries'] = new File(projectDir.root, 'build/classes/java/main').absolutePath
+        minimalAttributes['Libraries'] = realProjectDir.resolve('build/classes/java/main').toString()
 
         when:
         gradleRunner()
@@ -229,8 +230,8 @@ abstract class GenerateHplTaskSpec extends IntegrationSpec {
         minimalAttributes['Plugin-Dependencies'] = 'git:4.0.0'
         minimalAttributes['Libraries'] = [
                 // TODO: unclear why these are both present. possibly so one can edit without rebuilding?
-                srcMainResources.toFile(),
-                new File(projectDir.root, 'build/resources/main'),
+                realProjectDir.resolve('src/main/resources').toString(),
+                realProjectDir.resolve('build/resources/main').toString(),
         ].join(',')
 
         when:
