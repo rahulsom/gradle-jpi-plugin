@@ -128,7 +128,7 @@ abstract class GenerateHplTaskSpec extends IntegrationSpec {
             version = '6.0.13'
 
             java {
-                targetCompatibility = JavaVersion.VERSION_1_8
+                sourceCompatibility = JavaVersion.VERSION_1_8
             }
 
             configurations {
@@ -184,7 +184,7 @@ abstract class GenerateHplTaskSpec extends IntegrationSpec {
             version = '6.0.13'
 
             java {
-                targetCompatibility = JavaVersion.VERSION_1_8
+                sourceCompatibility = JavaVersion.VERSION_1_8
             }
 
             dependencies {
@@ -219,7 +219,7 @@ abstract class GenerateHplTaskSpec extends IntegrationSpec {
             version = '6.0.13'
 
             java {
-                targetCompatibility = JavaVersion.VERSION_1_8
+                sourceCompatibility = JavaVersion.VERSION_1_8
             }
 
             dependencies {
