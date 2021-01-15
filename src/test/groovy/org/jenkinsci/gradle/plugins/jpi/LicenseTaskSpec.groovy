@@ -3,6 +3,8 @@ package org.jenkinsci.gradle.plugins.jpi
 import org.gradle.testkit.runner.TaskOutcome
 import org.xmlunit.builder.DiffBuilder
 import org.xmlunit.builder.Input
+import spock.lang.IgnoreIf
+import spock.lang.PendingFeature
 import spock.lang.Unroll
 
 class LicenseTaskSpec extends IntegrationSpec {
@@ -29,6 +31,23 @@ class LicenseTaskSpec extends IntegrationSpec {
         buildFile                      | expectedLicensesFile
         'licenseInfo.gradle'           | 'licenses.xml'
         'licenseInfoWithKotlin.gradle' | 'licensesWithKotlin.xml'
+    }
+
+    @PendingFeature
+    @IgnoreIf({ isBeforeConfigurationCache() })
+    def 'support configuration cache'() {
+        given:
+        File projectFolder = projectDir.newFolder('bar')
+        new File(projectFolder, 'build.gradle') << getClass().getResource('licenseInfo.gradle').text
+
+        when:
+        def result = gradleRunner()
+                .withProjectDir(projectFolder)
+                .withArguments('generateLicenseInfo', "-PembeddedIvyUrl=${TestSupport.EMBEDDED_IVY_URL}", '--configuration-cache')
+                .build()
+
+        then:
+        result.task(':generateLicenseInfo').outcome == TaskOutcome.SUCCESS
     }
 
     private static boolean compareXml(String actual, String expected) {
