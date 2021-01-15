@@ -17,8 +17,9 @@ class JpiLocalizerTaskIntegrationSpec extends IntegrationSpec {
                 jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
-        projectDir.newFolder('src', 'main', 'resources')
-        projectDir.newFile('src/main/resources/Messages.properties') << 'key1=value1\nkey2=value2'
+        projectDir.newFolder('src', 'main', 'resources', 'org', 'example')
+        projectDir.newFile('src/main/resources/org/example/Messages.properties') << 'key1=value1\nkey2=value2'
+        projectDir.newFile('src/main/resources/Messages.properties') << 'key3=value1\nkey4=value2'
 
         when:
         def result = gradleRunner()
@@ -27,10 +28,14 @@ class JpiLocalizerTaskIntegrationSpec extends IntegrationSpec {
 
         then:
         result.task(':localizer').outcome == TaskOutcome.SUCCESS
-        def generatedJavaFile = new File(projectDir.root, "$expected/Messages.java")
-        generatedJavaFile.exists()
-        generatedJavaFile.text.contains('public static String key1()')
-        generatedJavaFile.text.contains('public static String key2()')
+        def orgExampleMessages = new File(projectDir.root, "$expected/org/example/Messages.java")
+        orgExampleMessages.exists()
+        orgExampleMessages.text.contains('public static String key1()')
+        orgExampleMessages.text.contains('public static String key2()')
+        def messages = new File(projectDir.root, "$expected/Messages.java")
+        messages.exists()
+        messages.text.contains('public static String key3()')
+        messages.text.contains('public static String key4()')
 
         where:
         dir     | expected
