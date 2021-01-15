@@ -1,6 +1,7 @@
 package org.jenkinsci.gradle.plugins.jpi
 
 import org.gradle.testkit.runner.TaskOutcome
+import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
 class JpiLocalizerTaskIntegrationSpec extends IntegrationSpec {
@@ -42,6 +43,29 @@ class JpiLocalizerTaskIntegrationSpec extends IntegrationSpec {
         null    | 'build/generated-src/localizer'
         "''"    | 'build/generated-src/localizer'
         "'foo'" | 'foo'
+    }
+
+    @IgnoreIf({ isBeforeConfigurationCache() })
+    def 'should support configuration cache'() {
+        given:
+        projectDir.newFile('build.gradle') << """\
+            plugins {
+                id 'org.jenkins-ci.jpi'
+            }
+            jenkinsPlugin {
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+            }
+            """.stripIndent()
+        projectDir.newFolder('src', 'main', 'resources', 'org', 'example')
+        projectDir.newFile('src/main/resources/org/example/Messages.properties') << 'key1=value1\nkey2=value2'
+
+        when:
+        def result = gradleRunner()
+                .withArguments('--configuration-cache', 'localizer', '-i')
+                .build()
+
+        then:
+        result.task(':localizer').outcome == TaskOutcome.SUCCESS
     }
 
     def 'multi-module project should be able to run LocalizerTask'() {
