@@ -37,6 +37,11 @@ class InstallJenkinsServerPluginsTaskSpec extends IntegrationSpec {
     private ProjectFile.Builder projectBuilder
 
     def setup() {
+        def props = new Properties()
+        props.setProperty('version', '3.2.1')
+        new File(projectDir.root, 'gradle.properties').withOutputStream {
+            props.store(it, 'set to not ending in -SNAPSHOT so VersionCalculator does not add timestamp')
+        }
         projectBuilder = ProjectFile.newBuilder()
                 .withName(projectName)
                 .withPlugins(PluginsBlock.newBuilder()

@@ -19,19 +19,16 @@ import org.gradle.api.Project
 
 /**
  * @author Kohsuke Kawaguchi
+ *
+ * The task now directly creates the manifest. The task also models the inputs,
+ * allowing up-to-date checks to work on manifest generation.
+ *
+ * @see org.jenkinsci.gradle.plugins.jpi.server.GenerateHplTask
+ * @deprecated To be removed in 1.0.0
  */
+@Deprecated
 class JpiHplManifest extends JpiManifest {
     JpiHplManifest(Project project) {
         super(project)
-
-        def jpiExtension = project.extensions.getByType(JpiExtension)
-
-        // src/main/webApp
-        mainAttributes.putValue('Resource-Path', project.file(JpiPlugin.WEB_APP_DIR).absolutePath)
-
-        // add resource directories directly so that we can pick up the source, then add all the jars and class path
-        Set<File> libraries = (jpiExtension.mainSourceTree().resources.srcDirs + jpiExtension.mainSourceTree().output
-                + project.plugins.getPlugin(JpiPlugin).dependencyAnalysis.allLibraryDependencies)
-        mainAttributes.putValue('Libraries', libraries.findAll { it.exists() }.join(','))
     }
 }

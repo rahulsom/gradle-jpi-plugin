@@ -15,101 +15,23 @@
  */
 package org.jenkinsci.gradle.plugins.jpi
 
-import hudson.Extension
-import jenkins.YesNoMaybe
-import net.java.sezpoz.Index
 import org.gradle.api.Project
-import org.gradle.api.file.FileCollection
-import org.gradle.api.plugins.JavaPluginConvention
-import org.jenkinsci.gradle.plugins.jpi.internal.VersionCalculator
 
 import java.util.jar.Attributes
 import java.util.jar.Manifest
 
-import static java.util.jar.Attributes.Name.MANIFEST_VERSION
-import static org.gradle.api.tasks.SourceSet.MAIN_SOURCE_SET_NAME
-
 /**
  * Encapsulates the Jenkins plugin manifest and its generation.
  *
+ * This manifest is now created by the generateJenkinsManifest task.
+ *
  * @author Kohsuke Kawaguchi
+ * @deprecated To be removed in 1.0.0
+ * @see org.jenkinsci.gradle.plugins.manifest.GenerateJenkinsManifestTask
  */
+@Deprecated
 class JpiManifest extends Manifest {
     JpiManifest(Project project) {
-        def conv = project.extensions.getByType(JpiExtension)
-        def javaPluginConvention = project.convention.getPlugin(JavaPluginConvention)
-        def classDirs = javaPluginConvention.sourceSets.getByName(MAIN_SOURCE_SET_NAME).output.classesDirs
-
-        mainAttributes[MANIFEST_VERSION] = '1.0'
-
-        def pluginImpls = classDirs.collect {
-            new File(it, 'META-INF/services/hudson.Plugin')
-        }.findAll {
-            it.exists()
-        }
-
-        def pluginImpl = pluginImpls.find()
-
-        if (pluginImpl?.exists()) {
-            mainAttributes.putValue('Plugin-Class', pluginImpl.readLines('UTF-8')[0])
-        }
-
-        mainAttributes.putValue('Group-Id', project.group.toString())
-        mainAttributes.putValue('Short-Name', conv.shortName)
-        mainAttributes.putValue('Long-Name', conv.displayName)
-        mainAttributes.putValue('Url', conv.url)
-        mainAttributes.putValue('Compatible-Since-Version', conv.compatibleSinceVersion)
-        if (conv.sandboxStatus) {
-            mainAttributes.putValue('Sandbox-Status', conv.sandboxStatus.toString())
-        }
-        mainAttributes.putValue('Extension-Name', conv.shortName)
-
-        def version = new VersionCalculator().calculate(project.version.toString())
-        mainAttributes.putValue('Plugin-Version', version.toString())
-
-        mainAttributes.putValue('Jenkins-Version', conv.jenkinsVersion.get())
-        mainAttributes.putValue('Minimum-Java-Version', javaPluginConvention.targetCompatibility.toString())
-
-        mainAttributes.putValue('Mask-Classes', conv.maskClasses)
-
-        def dep = project.plugins.getPlugin(JpiPlugin).dependencyAnalysis.analyse().manifestPluginDependencies
-        if (dep.length() > 0) {
-            mainAttributes.putValue('Plugin-Dependencies', dep)
-        }
-
-        if (conv.pluginFirstClassLoader) {
-            mainAttributes.putValue('PluginFirstClassLoader', 'true')
-        }
-
-        if (conv.developers) {
-            mainAttributes.putValue(
-                    'Plugin-Developers',
-                    conv.developers.collect { "${it.name ?: ''}:${it.id ?: ''}:${it.email ?: ''}" }.join(',')
-            )
-        }
-
-        YesNoMaybe supportDynamicLoading = isSupportDynamicLoading(classDirs)
-        if (supportDynamicLoading != YesNoMaybe.MAYBE) {
-            mainAttributes.putValue('Support-Dynamic-Loading', (supportDynamicLoading == YesNoMaybe.YES).toString())
-        }
-
-        // remove empty values
-        mainAttributes.entrySet().removeAll { it.value == null || it.value.toString().empty }
-    }
-
-    private static YesNoMaybe isSupportDynamicLoading(FileCollection classDirs) throws IOException {
-        ClassLoader classLoader = new URLClassLoader(
-                classDirs*.toURI()*.toURL() as URL[],
-                JpiManifest.classLoader as ClassLoader
-        )
-        def enums = Index.load(Extension, Object, classLoader).collect { it.annotation().dynamicLoadable() }
-        if (enums.contains(YesNoMaybe.NO)) {
-            return YesNoMaybe.NO
-        }
-        if (enums.contains(YesNoMaybe.MAYBE)) {
-            return YesNoMaybe.MAYBE
-        }
-        YesNoMaybe.YES
     }
 
     static Map<String, ?> attributesToMap(Attributes attributes) {

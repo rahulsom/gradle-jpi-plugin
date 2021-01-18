@@ -11,6 +11,7 @@ import org.gradle.api.publish.maven.MavenPomDeveloperSpec
 import org.gradle.api.publish.maven.MavenPomLicense
 import org.gradle.api.publish.maven.MavenPomLicenseSpec
 import org.gradle.api.publish.maven.MavenPomScm
+import org.jenkinsci.gradle.plugins.jpi.core.PluginDeveloper
 
 import static org.gradle.api.artifacts.ArtifactRepositoryContainer.DEFAULT_MAVEN_CENTRAL_REPO_NAME
 import static org.gradle.api.artifacts.ArtifactRepositoryContainer.DEFAULT_MAVEN_LOCAL_REPO_NAME
@@ -66,20 +67,20 @@ class JpiPomCustomizer {
                 }
             }
         }
-        if (!jpiExtension.developers.isEmpty()) {
+        def devs = jpiExtension.pluginDevelopers.get()
+        if (!devs.isEmpty()) {
             pom.developers { MavenPomDeveloperSpec s ->
-                jpiExtension.developers.each { JpiDeveloper declared ->
+                for (PluginDeveloper dev : devs) {
                     s.developer { MavenPomDeveloper d ->
-                        ['id'             : d.id,
-                         'name'           : d.name,
-                         'email'          : d.email,
-                         'url'            : d.url,
-                         'organization'   : d.organization,
-                         'organizationUrl': d.organizationUrl,
-                         'timezone'       : d.timezone,
-                        ].each {
-                            mapExtensionToProperty(declared, it.key, it.value)
-                        }
+                        d.id.set(dev.id)
+                        d.name.set(dev.name)
+                        d.email.set(dev.email)
+                        d.url.set(dev.url)
+                        d.organization.set(dev.organization)
+                        d.organizationUrl.set(dev.organizationUrl)
+                        d.timezone.set(dev.timezone)
+                        d.roles.set(dev.roles)
+                        d.properties.set(dev.properties)
                     }
                 }
             }

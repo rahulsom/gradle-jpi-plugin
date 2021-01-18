@@ -196,8 +196,8 @@ class JpiIntegrationSpec extends IntegrationSpec {
 
         where:
         task                                         | dependency                                    | outcome
-        'jar'                                        | ':configureManifest'                          | TaskOutcome.SUCCESS
-        'jpi'                                        | ':configureManifest'                          | TaskOutcome.SUCCESS
+        'jar'                                        | ':generateJenkinsManifest'                    | TaskOutcome.SUCCESS
+        'jpi'                                        | ':generateJenkinsManifest'                    | TaskOutcome.SUCCESS
         'processTestResources'                       | ':resolveTestDependencies'                    | TaskOutcome.SUCCESS
         'compileTestJava'                            | ':insertTest'                                 | TaskOutcome.SKIPPED
         'testClasses'                                | ':generateTestHpl'                          | TaskOutcome.SUCCESS
@@ -208,6 +208,15 @@ class JpiIntegrationSpec extends IntegrationSpec {
         'check'                                      | ':checkAccessModifier'                        | TaskOutcome.SUCCESS
         'checkAccessModifier'                        | ':compileJava'                                | TaskOutcome.NO_SOURCE
         'checkAccessModifier'                        | ':compileGroovy'                              | TaskOutcome.NO_SOURCE
+        'generateJenkinsPluginClassManifest'         | ':compileJava'                                | TaskOutcome.NO_SOURCE
+        'generateJenkinsPluginClassManifest'         | ':compileGroovy'                              | TaskOutcome.NO_SOURCE
+        'generateJenkinsSupportDynamicLoadingManifest' | ':compileJava'                                  | TaskOutcome.NO_SOURCE
+        'generateJenkinsSupportDynamicLoadingManifest' | ':compileGroovy'                                | TaskOutcome.NO_SOURCE
+        'generateJenkinsServerHpl'                     | ':generateJenkinsManifest'                      | TaskOutcome.SUCCESS
+        'generateTestHpl'                              | ':generateJenkinsManifest'                      | TaskOutcome.SUCCESS
+        'generateJenkinsManifest'                      | ':generateJenkinsPluginClassManifest'           | TaskOutcome.SUCCESS
+        'generateJenkinsManifest'                      | ':generateJenkinsPluginDependenciesManifest'    | TaskOutcome.SUCCESS
+        'generateJenkinsManifest'                      | ':generateJenkinsSupportDynamicLoadingManifest' | TaskOutcome.SUCCESS
     }
 
     @Unroll

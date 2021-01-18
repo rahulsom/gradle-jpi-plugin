@@ -42,7 +42,7 @@ import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.tasks.SourceSet
-import org.gradle.api.tasks.TaskProvider
+import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.War
 import org.gradle.api.tasks.compile.GroovyCompile
@@ -51,6 +51,7 @@ import org.gradle.api.tasks.testing.Test
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.util.GradleVersion
 import org.jenkinsci.gradle.plugins.jpi.internal.DependencyLookup
+import org.jenkinsci.gradle.plugins.jpi.internal.PluginDependencyProvider
 import org.jenkinsci.gradle.plugins.jpi.legacy.LegacyWorkaroundsPlugin
 import org.jenkinsci.gradle.plugins.jpi.server.GenerateHplTask
 import org.jenkinsci.gradle.plugins.jpi.server.InstallJenkinsServerPluginsTask
@@ -60,7 +61,6 @@ import org.jenkinsci.gradle.plugins.jpi.verification.CheckOverlappingSourcesTask
 import static org.gradle.api.logging.LogLevel.INFO
 import static org.gradle.api.tasks.SourceSet.MAIN_SOURCE_SET_NAME
 import static org.gradle.api.tasks.SourceSet.TEST_SOURCE_SET_NAME
-import static org.jenkinsci.gradle.plugins.jpi.JpiManifest.attributesToMap
 
 /**
  * Loads HPI related tasks into the current project.
@@ -69,7 +69,7 @@ import static org.jenkinsci.gradle.plugins.jpi.JpiManifest.attributesToMap
  * @author Kohsuke Kawaguchi
  * @author Andrew Bayer
  */
-class JpiPlugin implements Plugin<Project> {
+class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
 
     /**
      * Represents the extra dependencies on other Jenkins plugins for the server task.
@@ -100,6 +100,7 @@ class JpiPlugin implements Plugin<Project> {
         gradleProject.plugins.apply(JavaLibraryPlugin)
         gradleProject.plugins.apply(GroovyPlugin)
         gradleProject.plugins.apply(kotlinPlugin('org.jenkinsci.gradle.plugins.accmod.AccessModifierPlugin'))
+        gradleProject.plugins.apply(kotlinPlugin('org.jenkinsci.gradle.plugins.manifest.JenkinsManifestPlugin'))
 
         def ext = gradleProject.extensions.create('jenkinsPlugin', JpiExtension, gradleProject)
         gradleProject.plugins.apply(LegacyWorkaroundsPlugin)
@@ -119,10 +120,18 @@ class JpiPlugin implements Plugin<Project> {
             it.dependsOn(overlap)
         }
 
+        def jenkinsManifest = gradleProject.tasks.named('generateJenkinsManifest')
         def generateHpl = gradleProject.tasks.register(GenerateHplTask.TASK_NAME,
                 GenerateHplTask) { GenerateHplTask t ->
+            def main = project.extensions.getByType(SourceSetContainer)['main']
+            def mainResources = main.resources.srcDirs
+            def mainOutput = main.output
+            def libraries = project.plugins.getPlugin(JpiPlugin).dependencyAnalysis.allLibraryDependencies
             t.fileName.set(ext.shortName + '.hpl')
             t.hplDir.set(project.layout.buildDirectory.dir('hpl'))
+            t.resourcePath.set(project.file(WEB_APP_DIR))
+            t.libraries.from(mainResources, mainOutput.classesDirs, mainOutput.resourcesDir, libraries)
+            t.upstreamManifest.set(jenkinsManifest.get().outputFile)
             t.description = 'Generate hpl (Hudson plugin link) for running locally'
             t.group = 'Jenkins Server'
         }
@@ -227,28 +236,22 @@ class JpiPlugin implements Plugin<Project> {
     }
 
     private static configureManifest(Project project) {
-        JavaPluginConvention javaPluginConvention = project.convention.getPlugin(JavaPluginConvention)
-        TaskProvider<War> jpiProvider = project.tasks.named(JPI_TASK_NAME) as TaskProvider<War>
-        TaskProvider<Jar> jarProvider = project.tasks.named(JavaPlugin.JAR_TASK_NAME) as TaskProvider<Jar>
-
-        def configureManifest = project.tasks.register('configureManifest') {
-            it.doLast {
-                Map<String, ?> attributes = attributesToMap(new JpiManifest(project).mainAttributes)
-                jpiProvider.configure {
-                    it.manifest.attributes(attributes)
-                    it.inputs.property('manifest', attributes)
-                }
-                jarProvider.configure {
-                    it.manifest.attributes(attributes)
-                    it.inputs.property('manifest', attributes)
-                }
-            }
-
-            it.dependsOn(javaPluginConvention.sourceSets.getByName(MAIN_SOURCE_SET_NAME).output)
+        def generateJenkinsManifest = project.tasks.named('generateJenkinsManifest')
+        project.tasks.named(JPI_TASK_NAME).configure { War t ->
+            t.dependsOn(generateJenkinsManifest)
+            t.manifest.from(generateJenkinsManifest.get().outputFile)
+        }
+        project.tasks.named(JavaPlugin.JAR_TASK_NAME).configure { Jar t ->
+            t.dependsOn(generateJenkinsManifest)
+            t.manifest.from(generateJenkinsManifest.get().outputFile)
         }
 
-        jpiProvider.configure { it.dependsOn(configureManifest) }
-        jarProvider.configure { it.dependsOn(configureManifest) }
+        project.tasks.register('configureManifest') {
+            it.doLast {
+                logger.warn('This task no longer does anything')
+                logger.warn('It will be removed in org.jenkins-ci.jpi 1.0.0')
+            }
+        }
     }
 
     private configureJpi(Project project) {
@@ -533,9 +536,17 @@ class JpiPlugin implements Plugin<Project> {
         def outputDir = project.layout.buildDirectory.dir('generated-resources/test')
         testSourceSet.output.dir(outputDir)
 
+        def jenkinsManifest = project.tasks.named('generateJenkinsManifest')
         def generateTestHplTask = project.tasks.register('generateTestHpl', GenerateHplTask) {
+            def main = project.extensions.getByType(SourceSetContainer)['main']
+            def mainResources = main.resources.srcDirs
+            def mainOutput = main.output
+            def libraries = project.plugins.getPlugin(JpiPlugin).dependencyAnalysis.allLibraryDependencies
             it.fileName.set('the.hpl')
             it.hplDir.set(outputDir)
+            it.resourcePath.set(project.file(WEB_APP_DIR))
+            it.libraries.from(mainResources, mainOutput.classesDirs, mainOutput.resourcesDir, libraries)
+            it.upstreamManifest.set(jenkinsManifest.get().outputFile)
         }
 
         project.tasks.register('generate-test-hpl') {
@@ -543,6 +554,11 @@ class JpiPlugin implements Plugin<Project> {
         }
 
         project.tasks.named(JavaPlugin.TEST_CLASSES_TASK_NAME).configure { it.dependsOn(generateTestHplTask) }
+    }
+
+    @Override
+    String pluginDependencies() {
+        dependencyAnalysis.analyse().manifestPluginDependencies
     }
 
     private static class JPILibraryElementsCompatibilityRule implements

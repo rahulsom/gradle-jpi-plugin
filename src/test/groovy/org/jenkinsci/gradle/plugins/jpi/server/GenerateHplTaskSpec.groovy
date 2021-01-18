@@ -5,6 +5,8 @@ import org.jenkinsci.gradle.plugins.jpi.TestDataGenerator
 import org.jenkinsci.gradle.plugins.jpi.TestSupport
 import spock.lang.Unroll
 
+import java.nio.file.Files
+import java.nio.file.Path
 import java.util.jar.Manifest
 
 abstract class GenerateHplTaskSpec extends IntegrationSpec {
@@ -12,6 +14,7 @@ abstract class GenerateHplTaskSpec extends IntegrationSpec {
     protected File settings
     protected File build
     protected Map<String, String> minimalAttributes
+    private Path realProjectDir
 
     abstract String taskName()
     abstract String expectedRelativeHplLocation()
@@ -25,7 +28,7 @@ abstract class GenerateHplTaskSpec extends IntegrationSpec {
                 id 'org.jenkins-ci.jpi'
             }
             '''.stripIndent()
-        def realProjectDir = projectDir.root.toPath().toRealPath()
+        realProjectDir = projectDir.root.toPath().toRealPath()
         minimalAttributes = [
                 'Long-Name'              : 'strawberry',
                 'Minimum-Java-Version'   : '1.8',
@@ -78,8 +81,10 @@ abstract class GenerateHplTaskSpec extends IntegrationSpec {
         '''compatibleSinceVersion = '2.64' '''       | ''                                 | ['Compatible-Since-Version': '2.64']
         '''sandboxStatus = true '''                  | ''                                 | ['Sandbox-Status': 'true']
         '''sandboxStatus = false '''                 | ''                                 | [:]
-        '''maskClasses = true '''                    | ''                                 | ['Mask-Classes': 'true']
-        '''maskClasses = false '''                   | ''                                 | ['Mask-Classes': 'false']
+        '''maskClasses = 'com.google.guava.' '''     | ''                                 | ['Mask-Classes': 'com.google.guava.']
+        '''maskClasses = 'a.b.c. a.b.c. y.z.' '''    | ''                                 | ['Mask-Classes': 'a.b.c. y.z.']
+        '''maskClasses = null '''                    | ''                                 | [:]
+        '''maskClasses = '' '''                      | ''                                 | [:]
         '''pluginFirstClassLoader = true '''         | ''                                 | ['PluginFirstClassLoader': 'true']
         '''pluginFirstClassLoader = false '''        | ''                                 | [:]
         '''\
@@ -110,6 +115,11 @@ abstract class GenerateHplTaskSpec extends IntegrationSpec {
 
     def 'should load libraries and plugin-dependencies'() {
         given:
+        Path srcMainJava = new File(projectDir.root, 'src/main/java').toPath()
+        TestSupport.CALCULATOR.writeTo(srcMainJava)
+        Path srcMainResources = new File(projectDir.root, 'src/main/resources').toPath()
+        Files.createDirectories(srcMainResources)
+        Files.createFile(srcMainResources.resolve('some.properties'))
         build << """
             jenkinsPlugin {
                 shortName = 'strawberry'
@@ -119,7 +129,7 @@ abstract class GenerateHplTaskSpec extends IntegrationSpec {
             version = '6.0.13'
 
             java {
-                targetCompatibility = JavaVersion.VERSION_1_8
+                sourceCompatibility = JavaVersion.VERSION_1_8
             }
 
             configurations {
@@ -144,7 +154,85 @@ abstract class GenerateHplTaskSpec extends IntegrationSpec {
             """.stripIndent()
         def depFilesResult = gradleRunner().withArguments('depFiles', '-q').build()
         minimalAttributes['Plugin-Dependencies'] = 'git:4.0.0'
-        minimalAttributes['Libraries'] = depFilesResult.output
+        minimalAttributes['Libraries'] = [
+                realProjectDir.resolve('src/main/resources').toString(),
+                realProjectDir.resolve('build/classes/java/main').toString(),
+                realProjectDir.resolve('build/resources/main').toString(),
+                depFilesResult.output,
+        ].join(',')
+
+        when:
+        gradleRunner()
+                .withArguments(taskName())
+                .build()
+
+        then:
+        def file = new File(projectDir.root, expectedRelativeHplLocation())
+        file.exists()
+        new Manifest(file.newInputStream()) == toManifest(minimalAttributes)
+    }
+
+    def 'should load classes in Libraries if present'() {
+        given:
+        Path srcMainJava = new File(projectDir.root, 'src/main/java').toPath()
+        TestSupport.CALCULATOR.writeTo(srcMainJava)
+        build << """
+            jenkinsPlugin {
+                shortName = 'strawberry'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                workDir = file('embedded-jenkins')
+            }
+            version = '6.0.13'
+
+            java {
+                sourceCompatibility = JavaVersion.VERSION_1_8
+            }
+
+            dependencies {
+                implementation 'org.jenkins-ci.plugins:git:4.0.0'
+            }
+            """.stripIndent()
+        minimalAttributes['Plugin-Dependencies'] = 'git:4.0.0'
+        minimalAttributes['Libraries'] = realProjectDir.resolve('build/classes/java/main').toString()
+
+        when:
+        gradleRunner()
+                .withArguments(taskName())
+                .build()
+
+        then:
+        def file = new File(projectDir.root, expectedRelativeHplLocation())
+        file.exists()
+        new Manifest(file.newInputStream()) == toManifest(minimalAttributes)
+    }
+
+    def 'should load resources in Libraries if present'() {
+        given:
+        Path srcMainResources = new File(projectDir.root, 'src/main/resources').toPath()
+        Files.createDirectories(srcMainResources)
+        Files.createFile(srcMainResources.resolve('some.properties'))
+        build << """
+            jenkinsPlugin {
+                shortName = 'strawberry'
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                workDir = file('embedded-jenkins')
+            }
+            version = '6.0.13'
+
+            java {
+                sourceCompatibility = JavaVersion.VERSION_1_8
+            }
+
+            dependencies {
+                implementation 'org.jenkins-ci.plugins:git:4.0.0'
+            }
+            """.stripIndent()
+        minimalAttributes['Plugin-Dependencies'] = 'git:4.0.0'
+        minimalAttributes['Libraries'] = [
+                // TODO: unclear why these are both present. possibly so one can edit without rebuilding?
+                realProjectDir.resolve('src/main/resources').toString(),
+                realProjectDir.resolve('build/resources/main').toString(),
+        ].join(',')
 
         when:
         gradleRunner()

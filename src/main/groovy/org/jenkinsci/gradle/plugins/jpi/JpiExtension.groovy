@@ -15,14 +15,22 @@
  */
 package org.jenkinsci.gradle.plugins.jpi
 
+import groovy.transform.CompileStatic
+import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.model.ReplacedBy
 import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.SourceSet
 import org.gradle.util.ConfigureUtil
 import org.gradle.util.GradleVersion
+import org.jenkinsci.gradle.plugins.jpi.core.PluginDeveloper
+import org.jenkinsci.gradle.plugins.jpi.core.PluginDeveloperSpec
+import org.jenkinsci.gradle.plugins.jpi.internal.BackwardsCompatiblePluginDevelopers
+import org.jenkinsci.gradle.plugins.jpi.internal.JpiExtensionBridge
 
 /**
  * This gets exposed to the project as 'jpi' to offer additional convenience methods.
@@ -30,13 +38,23 @@ import org.gradle.util.GradleVersion
  * @author Kohsuke Kawaguchi
  * @author Andrew Bayer
  */
-class JpiExtension {
+@SuppressWarnings('MethodCount')
+class JpiExtension implements JpiExtensionBridge {
     final Project project
     @Deprecated
     Map<String, String> jenkinsWarCoordinates
     final Property<String> jenkinsVersion
     final Provider<String> validatedJenkinsVersion
+    private final Property<String> pluginId
+    private final Property<String> humanReadableName
+    private final Property<URI> homePage
+    private final Property<String> minimumJenkinsVersion
+    private final Property<Boolean> sandboxed
+    private final Property<Boolean> usePluginFirstClassLoader
+    private final SetProperty<String> maskedClassesFromCore
+    private final ListProperty<PluginDeveloper> pluginDevelopers
 
+    @SuppressWarnings('UnnecessarySetter')
     JpiExtension(Project project) {
         this.project = project
         this.jenkinsVersion = project.objects.property(String)
@@ -47,20 +65,26 @@ class JpiExtension {
             }
             resolved
         }
+        this.pluginId = project.objects.property(String).convention(trimOffPluginSuffix(project.name))
+        this.humanReadableName = project.objects.property(String).convention(pluginId)
+        this.homePage = project.objects.property(URI)
+        this.minimumJenkinsVersion = project.objects.property(String)
+        this.sandboxed = project.objects.property(Boolean).convention(false)
+        this.usePluginFirstClassLoader = project.objects.property(Boolean).convention(false)
+        this.maskedClassesFromCore = project.objects.setProperty(String).convention([])
+        this.pluginDevelopers = project.objects.listProperty(PluginDeveloper)
     }
-
-    private String shortName
 
     /**
      * Short name of the plugin is the ID that uniquely identifies a plugin.
      * If unspecified, we use the project name except the trailing "-plugin"
      */
     String getShortName() {
-        shortName ?: trimOffPluginSuffix(project.name)
+        pluginId.get()
     }
 
     void setShortName(String shortName) {
-        this.shortName = shortName
+        pluginId.set(shortName)
     }
 
     private static String trimOffPluginSuffix(String s) {
@@ -80,42 +104,84 @@ class JpiExtension {
         this.fileExtension = s
     }
 
-    private String displayName
-
     /**
      * One-line display name of this plugin. Should be human readable.
      * For example, "Git plugin", "Acme Executor plugin", etc.
      */
     @SuppressWarnings('UnnecessaryGetter')
     String getDisplayName() {
-        displayName ?: getShortName()
+        humanReadableName.get()
     }
 
     void setDisplayName(String s) {
-        this.displayName = s
+        humanReadableName.set(s)
     }
 
     /**
      * URL that points to the home page of this plugin.
      */
-    String url
+    @SuppressWarnings('UnnecessaryGetter')
+    String getUrl() {
+        homePage.getOrNull()?.toASCIIString()
+    }
+
+    void setUrl(String s) {
+        homePage.set(project.uri(s))
+    }
 
     /**
-     * TODO: document
+     * The earliest version of Jenkins this plugin will work on.
+     *
+     * This option should be used sparingly. Favor automatic data upgrades where possible.
+     *
+     * https://wiki.jenkins.io/display/JENKINS/Marking+a+new+plugin+version+as+incompatible+with+older+versions
      */
-    String compatibleSinceVersion
+    @SuppressWarnings('UnnecessaryGetter')
+    String getCompatibleSinceVersion() {
+        minimumJenkinsVersion.orNull
+    }
+
+    void setCompatibleSinceVersion(String s) {
+        minimumJenkinsVersion.set(s)
+    }
 
     /**
-     * TODO: document
+     * Optional - sandbox status of this plugin
      */
-    boolean sandboxStatus
+    @SuppressWarnings('UnnecessaryGetter')
+    boolean getSandboxStatus() {
+        sandboxed.get()
+    }
+
+    void setSandboxStatus(boolean sandboxed) {
+        this.sandboxed.set(sandboxed)
+    }
 
     /**
-     * TODO: document
+     * list of package prefixes to hide from core
      */
-    String maskClasses
+    @SuppressWarnings('UnnecessaryGetter')
+    String getMaskClasses() {
+        maskedClassesFromCore.get().join(' ')
+    }
 
-    boolean pluginFirstClassLoader
+    void setMaskClasses(String spaceSeparatedPackages) {
+        if (spaceSeparatedPackages) {
+            maskedClassesFromCore.addAll(spaceSeparatedPackages.split('\\s+'))
+        }
+    }
+
+    /**
+     * https://www.jenkins.io/doc/developer/plugin-development/dependencies-and-class-loading
+     */
+    @SuppressWarnings('UnnecessaryGetter')
+    boolean getPluginFirstClassLoader() {
+        usePluginFirstClassLoader.get()
+    }
+
+    void setPluginFirstClassLoader(boolean pluginFirst) {
+        usePluginFirstClassLoader.set(pluginFirst)
+    }
 
     /**
      * Version of core that we depend on.
@@ -242,20 +308,92 @@ class JpiExtension {
      */
     boolean configurePublishing = true
 
+    /**
+     * Use #getPluginDevelopers instead.
+     *
+     * @deprecated To be removed in 1.0.0
+     */
+    @Deprecated
+    @ReplacedBy('pluginDevelopers')
     Developers developers = new Developers()
 
     def developers(Closure closure) {
-        ConfigureUtil.configure(closure, developers)
+        developers(ConfigureUtil.configureUsing(closure))
     }
 
+    @CompileStatic
+    void developers(Action<? super PluginDeveloperSpec> action) {
+        def devs = new BackwardsCompatiblePluginDevelopers(project.objects)
+        action.execute(devs)
+        pluginDevelopers.set(devs.developers)
+    }
+
+    /**
+     * @deprecated To be removed in 1.0.0
+     */
+    @Deprecated
     SourceSet mainSourceTree() {
         project.convention.getPlugin(JavaPluginConvention).sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME)
     }
 
+    /**
+     * @deprecated To be removed in 1.0.0
+     */
+    @Deprecated
     SourceSet testSourceTree() {
         project.convention.getPlugin(JavaPluginConvention).sourceSets.getByName(SourceSet.TEST_SOURCE_SET_NAME)
     }
 
+    @Override
+    Property<String> getPluginId() {
+        pluginId
+    }
+
+    @Override
+    Property<String> getHumanReadableName() {
+        humanReadableName
+    }
+
+    @Override
+    Property<URI> getHomePage() {
+        homePage
+    }
+
+    @Override
+    Provider<String> getJenkinsCoreVersion() {
+        validatedJenkinsVersion
+    }
+
+    @Override
+    Property<String> getMinimumJenkinsCoreVersion() {
+        minimumJenkinsVersion
+    }
+
+    @Override
+    Property<Boolean> getSandboxed() {
+        sandboxed
+    }
+
+    @Override
+    Property<Boolean> getUsePluginFirstClassLoader() {
+        usePluginFirstClassLoader
+    }
+
+    @Override
+    SetProperty<String> getMaskedClassesFromCore() {
+        maskedClassesFromCore
+    }
+
+    @Override
+    ListProperty<PluginDeveloper> getPluginDevelopers() {
+        pluginDevelopers
+    }
+
+    /**
+     * @see PluginDeveloper
+     * @deprecated To be removed in 1.0.0
+     */
+    @Deprecated
     class Developers {
         def developerMap = [:]
 
