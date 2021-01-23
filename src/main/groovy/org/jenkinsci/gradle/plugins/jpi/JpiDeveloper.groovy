@@ -23,7 +23,10 @@ import org.gradle.util.ConfigureUtil
  * Information on a single developer for the <developer> tag in the output POM.
  *
  * @author Andrew Bayer
+ * @deprecated To be removed in 1.0.0
+ * @see org.jenkinsci.gradle.plugins.jpi.core.PluginDeveloper
  */
+@Deprecated
 class JpiDeveloper {
     final static LEGAL_FIELDS = ['id', 'name', 'email', 'url', 'organization', 'organizationUrl', 'timezone']
 

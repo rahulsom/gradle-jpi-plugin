@@ -1,4 +1,22 @@
-## 0.42.0 (unreleased)
+## 0.42.0 (2020-01-23)
+
+  * improves task avoidance by properly modeling manifest generation inputs [#179][179] [JENKINS-58205][58205]
+  * introduce `generateJenkinsManifest` task for creating the jar and jpi manifest
+  * introduce `generateJenkinsSupportDynamicLoadingManifest` for aggregating the `@Extension` annotations
+  * introduce `generateJenkinsPluginDependenciesManifest` for building the plugin dependencies entry
+  * introduce `generateJenkinsPluginClassManifest` for scanning built sources to find an optional `hudson.Plugin` subclass
+  * fix hpl generation task input tracking by depending on `generateJenkinsManifest`
+  * fix problem where server would miss newly updated sources unless explicitly built first
+  * deprecate `configureManifest` task
+  * deprecate `org.jenkinsci.gradle.plugins.jpi.JpiManifest` - use the output of `GenerateJenkinsManifestTask` instead
+  * deprecate `org.jenkinsci.gradle.plugins.jpi.JpiHplManifest` - use the output of `GenerateHplTask` instead
+  * deprecate `org.jenkinsci.gradle.plugins.jpi.JpiExtension#testSourceTree` - resolve through Gradle
+  * deprecate `org.jenkinsci.gradle.plugins.jpi.JpiExtension#mainSourceTree` - resolve through Gradle
+  * deprecate `org.jenkinsci.gradle.plugins.jpi.JpiExtension.Developers` - see Gradle-managed `org.jenkinsci.gradle.plugins.jpi.core.PluginDeveloper`
+  * deprecate `org.jenkinsci.gradle.plugins.jpi.JpiExtension#developers` - see `JpiExtension#getPluginDevelopers()`
+
+[179]: https://github.com/jenkinsci/gradle-jpi-plugin/pull/179
+[58205]: https://issues.jenkins.io/browse/JENKINS-58205
 
 ## 0.41.0 (2021-01-07)
 
