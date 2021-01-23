@@ -1,3 +1,5 @@
+## 0.43.0 (unreleased)
+
 ## 0.42.0 (2020-01-23)
 
   * improves task avoidance by properly modeling manifest generation inputs [#179][179] [JENKINS-58205][58205]
