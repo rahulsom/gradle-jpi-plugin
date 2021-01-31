@@ -199,7 +199,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
         'jar'                                        | ':generateJenkinsManifest'                    | TaskOutcome.SUCCESS
         'jpi'                                        | ':generateJenkinsManifest'                    | TaskOutcome.SUCCESS
         'processTestResources'                       | ':resolveTestDependencies'                    | TaskOutcome.SUCCESS
-        'compileTestJava'                            | ':insertTest'                                 | TaskOutcome.SKIPPED
+        'compileTestJava'                            | ':generateJenkinsTests'                       | TaskOutcome.SKIPPED
         'testClasses'                                | ':generateTestHpl'                          | TaskOutcome.SUCCESS
         'generate-test-hpl'                          | ':generateTestHpl'                          | TaskOutcome.SUCCESS
         'compileJava'                                | ':localizer'                                  | TaskOutcome.SUCCESS
@@ -217,6 +217,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
         'generateJenkinsManifest'                      | ':generateJenkinsPluginClassManifest'           | TaskOutcome.SUCCESS
         'generateJenkinsManifest'                      | ':generateJenkinsPluginDependenciesManifest'    | TaskOutcome.SUCCESS
         'generateJenkinsManifest'                      | ':generateJenkinsSupportDynamicLoadingManifest' | TaskOutcome.SUCCESS
+        'insertTest'                                   | ':generateJenkinsTests'                         | TaskOutcome.SKIPPED
     }
 
     @Unroll
@@ -251,7 +252,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
     }
 
     @Unroll
-    def 'compileTestJava should run :insertTest as #outcome (configured: #value)'(boolean value, TaskOutcome outcome) {
+    def 'compileTestJava should run :generateJenkinsTests as #outcome (configured: #value)'(boolean value, TaskOutcome outcome) {
         given:
         build << """
             jenkinsPlugin {
@@ -266,7 +267,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
                 .build()
 
         then:
-        result.task(':insertTest').outcome == outcome
+        result.task(':generateJenkinsTests').outcome == outcome
 
         where:
         value | outcome

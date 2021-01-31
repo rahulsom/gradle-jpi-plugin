@@ -319,26 +319,25 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
     }
 
     private static configureInjectedTest(Project project) {
-        JpiExtension jpiExtension = project.extensions.getByType(JpiExtension)
         JavaPluginConvention javaConvention = project.convention.getPlugin(JavaPluginConvention)
         SourceSet testSourceSet = javaConvention.sourceSets.getByName(TEST_SOURCE_SET_NAME)
+        def replacementTask = 'generateJenkinsTests'
 
         File root = new File(project.buildDir, 'inject-tests')
         testSourceSet.java.srcDirs += root
 
-        def testInsertionTask = project.tasks.register(TestInsertionTask.TASK_NAME, TestInsertionTask) {
+        project.tasks.register(TestInsertionTask.TASK_NAME) {
             it.group = 'Verification'
-            it.description = 'Generates a Jenkins Test'
-            it.onlyIf { !jpiExtension.disabledTestInjection }
-        }
-
-        project.tasks.named('compileTestJava').configure { it.dependsOn(testInsertionTask) }
-
-        project.afterEvaluate {
-            testInsertionTask.configure {
-                it.testSuite = new File(root, "${jpiExtension.injectedTestName}.java")
+            it.description = '[deprecated] Generates a Jenkins Test'
+            it.dependsOn(replacementTask)
+            it.doFirst {
+                logger.warn('{} is deprecated and will be removed in 1.0.0. Please use {}',
+                        TestInsertionTask.TASK_NAME,
+                        replacementTask)
             }
         }
+
+        project.tasks.named('compileTestJava').configure { it.dependsOn(replacementTask) }
     }
 
     private static configureRepositories(Project project) {

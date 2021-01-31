@@ -8,6 +8,11 @@ import org.gradle.api.tasks.TaskAction
 
 import static org.gradle.api.tasks.SourceSet.MAIN_SOURCE_SET_NAME
 
+/**
+ * @deprecated To be removed in 1.0.0
+ * @see org.jenkinsci.gradle.plugins.testing.GenerateTestTask
+ */
+@Deprecated
 class TestInsertionTask extends DefaultTask {
     public static final String TASK_NAME = 'insertTest'
 
