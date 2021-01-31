@@ -209,6 +209,28 @@ class GenerateTestTaskIntegrationSpec extends IntegrationSpec {
         result.output.contains('not a valid name: A-Bad Value')
     }
 
+    def 'should generate code compiled without warnings'() {
+        given:
+        build << """
+            jenkinsPlugin {
+                generateTests.set(true)
+                jenkinsVersion.set('${TestSupport.RECENT_JENKINS_VERSION}')
+            }
+
+            compileGeneratedJenkinsTestJava {
+                options.compilerArgs = ['-Xlint:all', '-Werror']
+            }
+            """.stripIndent()
+
+        when:
+        def result = gradleRunner()
+                .withArguments('compileGeneratedJenkinsTestJava', '-s')
+                .build()
+
+        then:
+        result.task(':compileGeneratedJenkinsTestJava').outcome == TaskOutcome.SUCCESS
+    }
+
     @PendingFeature
     @IgnoreIf({ isBeforeConfigurationCache() })
     def 'should support configuration cache'() {

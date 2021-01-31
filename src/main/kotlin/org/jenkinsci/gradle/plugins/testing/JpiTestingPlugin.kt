@@ -8,6 +8,7 @@ import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.named
 import org.gradle.kotlin.dsl.register
+import org.gradle.kotlin.dsl.withDependencies
 import org.jenkinsci.gradle.plugins.jpi.internal.JpiExtensionBridge
 
 open class JpiTestingPlugin : Plugin<Project> {
@@ -26,7 +27,8 @@ open class JpiTestingPlugin : Plugin<Project> {
                 add(jenkinsTestHarness)
             }
         }
-        target.tasks.register<GenerateTestTask>("generateJenkinsTests") {
+        val generatedTestsDir = target.layout.buildDirectory.dir("inject-tests")
+        val generateJenkinsTests = target.tasks.register<GenerateTestTask>("generateJenkinsTests") {
             group = "Verification"
             description = "Generates a test class that runs org.jvnet.hudson.test.PluginAutomaticTestBuilder"
             val ext = project.extensions.getByType<JpiExtensionBridge>()
@@ -37,7 +39,20 @@ open class JpiTestingPlugin : Plugin<Project> {
             baseDir.set(project.projectDir)
             requireEscapeByDefaultInJelly.set(ext.requireEscapeByDefaultInJelly)
             mainResourcesOutputDir.set(project.extensions.getByType<SourceSetContainer>()["main"].output.resourcesDir)
-            outputDir.set(project.layout.buildDirectory.dir("inject-tests"))
+            outputDir.set(generatedTestsDir)
+        }
+        val sourceSet = target.extensions.getByType<SourceSetContainer>().create("generatedJenkinsTest") {
+            java {
+                setSrcDirs(listOf(generatedTestsDir.get()))
+            }
+        }
+        target.configurations.named(sourceSet.implementationConfigurationName).configure {
+            withDependencies {
+                add(jenkinsTestHarness)
+            }
+        }
+        target.tasks.named(sourceSet.compileJavaTaskName).configure {
+            dependsOn(generateJenkinsTests)
         }
     }
 }
