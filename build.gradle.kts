@@ -40,6 +40,13 @@ dependencies {
     compileOnly("org.kohsuke:access-modifier-checker:1.21")
     annotationProcessor(sezpoz)
     implementation(gradleApi())
+    compileOnly("com.squareup:javapoet:1.13.0") {
+        because("used for GenerateTestTask")
+    }
+    compileOnly("org.jenkins-ci.main:jenkins-test-harness:2.60") {
+        because("used for GenerateTestTask")
+        isTransitive = false
+    }
     implementation("org.jvnet.localizer:maven-localizer-plugin:1.24")
     implementation(sezpoz)
     implementation(localGroovy())
