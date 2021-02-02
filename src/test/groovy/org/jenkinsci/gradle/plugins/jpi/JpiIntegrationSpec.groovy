@@ -199,13 +199,14 @@ class JpiIntegrationSpec extends IntegrationSpec {
         'jar'                                        | ':generateJenkinsManifest'                    | TaskOutcome.SUCCESS
         'jpi'                                        | ':generateJenkinsManifest'                    | TaskOutcome.SUCCESS
         'processTestResources'                       | ':resolveTestDependencies'                    | TaskOutcome.SUCCESS
-        'compileTestJava'                            | ':generateJenkinsTests'                       | TaskOutcome.SKIPPED
+        'compileGeneratedJenkinsTestJava'            | ':generateJenkinsTests'                       | TaskOutcome.SKIPPED
         'testClasses'                                | ':generateTestHpl'                          | TaskOutcome.SUCCESS
         'generate-test-hpl'                          | ':generateTestHpl'                          | TaskOutcome.SUCCESS
         'compileJava'                                | ':localizer'                                  | TaskOutcome.SUCCESS
         'sourcesJar'                                 | ':localizer'                                  | TaskOutcome.SUCCESS
         'generateMetadataFileForMavenJpiPublication' | ':generateMetadataFileForMavenJpiPublication' | TaskOutcome.SUCCESS
         'check'                                      | ':checkAccessModifier'                        | TaskOutcome.SUCCESS
+        'check'                                      | ':generatedJenkinsTest'                       | TaskOutcome.NO_SOURCE
         'checkAccessModifier'                        | ':compileJava'                                | TaskOutcome.NO_SOURCE
         'checkAccessModifier'                        | ':compileGroovy'                              | TaskOutcome.NO_SOURCE
         'generateJenkinsPluginClassManifest'         | ':compileJava'                                | TaskOutcome.NO_SOURCE
@@ -213,6 +214,9 @@ class JpiIntegrationSpec extends IntegrationSpec {
         'generateJenkinsSupportDynamicLoadingManifest' | ':compileJava'                                  | TaskOutcome.NO_SOURCE
         'generateJenkinsSupportDynamicLoadingManifest' | ':compileGroovy'                                | TaskOutcome.NO_SOURCE
         'generateJenkinsServerHpl'                     | ':generateJenkinsManifest'                      | TaskOutcome.SUCCESS
+        'generatedJenkinsTest'                         | ':generateJenkinsTests'                         | TaskOutcome.SKIPPED
+        'generatedJenkinsTest'                         | ':generateTestHpl'                              | TaskOutcome.SUCCESS
+        'generatedJenkinsTest'                         | ':compileJava'                                  | TaskOutcome.NO_SOURCE
         'generateTestHpl'                              | ':generateJenkinsManifest'                      | TaskOutcome.SUCCESS
         'generateJenkinsManifest'                      | ':generateJenkinsPluginClassManifest'           | TaskOutcome.SUCCESS
         'generateJenkinsManifest'                      | ':generateJenkinsPluginDependenciesManifest'    | TaskOutcome.SUCCESS
@@ -252,7 +256,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
     }
 
     @Unroll
-    def 'compileTestJava should run :generateJenkinsTests as #outcome (configured: #value)'(boolean value, TaskOutcome outcome) {
+    def 'compileGeneratedJenkinsTestJava should run :generateJenkinsTests as #outcome (configured: #value)'(boolean value, TaskOutcome outcome) {
         given:
         build << """
             jenkinsPlugin {
@@ -263,7 +267,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
 
         when:
         def result = gradleRunner()
-                .withArguments('compileTestJava')
+                .withArguments('compileGeneratedJenkinsTestJava')
                 .build()
 
         then:

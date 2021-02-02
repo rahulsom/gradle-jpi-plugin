@@ -319,13 +319,7 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
     }
 
     private static configureInjectedTest(Project project) {
-        JavaPluginConvention javaConvention = project.convention.getPlugin(JavaPluginConvention)
-        SourceSet testSourceSet = javaConvention.sourceSets.getByName(TEST_SOURCE_SET_NAME)
         def replacementTask = 'generateJenkinsTests'
-
-        File root = new File(project.buildDir, 'inject-tests')
-        testSourceSet.java.srcDirs += root
-
         project.tasks.register(TestInsertionTask.TASK_NAME) {
             it.group = 'Verification'
             it.description = '[deprecated] Generates a Jenkins Test'
@@ -336,8 +330,6 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
                         replacementTask)
             }
         }
-
-        project.tasks.named('compileTestJava').configure { it.dependsOn(replacementTask) }
     }
 
     private static configureRepositories(Project project) {
@@ -547,6 +539,11 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
             it.resourcePath.set(project.file(WEB_APP_DIR))
             it.libraries.from(mainResources, mainOutput.classesDirs, mainOutput.resourcesDir, libraries)
             it.upstreamManifest.set(jenkinsManifest.get().outputFile)
+        }
+
+        project.tasks.named('generatedJenkinsTest', Test).configure {
+            it.inputs.files(generateTestHplTask)
+            it.classpath += project.files(outputDir.get().asFile)
         }
 
         project.tasks.register('generate-test-hpl') {

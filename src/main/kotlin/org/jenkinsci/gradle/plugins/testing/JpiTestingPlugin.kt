@@ -4,12 +4,13 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.attributes.Usage
 import org.gradle.api.tasks.SourceSetContainer
+import org.gradle.api.tasks.testing.Test
 import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.named
 import org.gradle.kotlin.dsl.register
-import org.gradle.kotlin.dsl.withDependencies
 import org.jenkinsci.gradle.plugins.jpi.internal.JpiExtensionBridge
+import java.io.File
 
 open class JpiTestingPlugin : Plugin<Project> {
     override fun apply(target: Project) {
@@ -41,18 +42,29 @@ open class JpiTestingPlugin : Plugin<Project> {
             mainResourcesOutputDir.set(project.extensions.getByType<SourceSetContainer>()["main"].output.resourcesDir)
             outputDir.set(generatedTestsDir)
         }
-        val sourceSet = target.extensions.getByType<SourceSetContainer>().create("generatedJenkinsTest") {
+        val mainSourceSet = target.extensions.getByType<SourceSetContainer>()["main"]
+        val generatedSourceSet = target.extensions.getByType<SourceSetContainer>().create("generatedJenkinsTest") {
             java {
                 setSrcDirs(listOf(generatedTestsDir.get()))
             }
-        }
-        target.configurations.named(sourceSet.implementationConfigurationName).configure {
-            withDependencies {
-                add(jenkinsTestHarness)
+            resources {
+                setSrcDirs(listOf<File>())
             }
+            runtimeClasspath += mainSourceSet.output
         }
-        target.tasks.named(sourceSet.compileJavaTaskName).configure {
+        target.tasks.named(generatedSourceSet.compileJavaTaskName).configure {
             dependsOn(generateJenkinsTests)
+        }
+        val testTask = target.tasks.register<Test>("generatedJenkinsTest") {
+            group = "Verification"
+            description = "Runs tests from org.jvnet.hudson.test.PluginAutomaticTestBuilder"
+            testClassesDirs = generatedSourceSet.output.classesDirs
+            classpath = generatedSourceSet.runtimeClasspath
+            // set build directory for Jenkins test harness, JENKINS-26331
+            systemProperty("buildDirectory", project.layout.buildDirectory.asFile.get().absolutePath)
+        }
+        target.tasks.named("check").configure {
+            dependsOn(testTask)
         }
     }
 }
