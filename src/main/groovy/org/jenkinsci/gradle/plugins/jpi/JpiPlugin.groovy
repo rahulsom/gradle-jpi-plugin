@@ -41,7 +41,6 @@ import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
-import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.War
@@ -60,7 +59,6 @@ import org.jenkinsci.gradle.plugins.jpi.verification.CheckOverlappingSourcesTask
 
 import static org.gradle.api.logging.LogLevel.INFO
 import static org.gradle.api.tasks.SourceSet.MAIN_SOURCE_SET_NAME
-import static org.gradle.api.tasks.SourceSet.TEST_SOURCE_SET_NAME
 
 /**
  * Loads HPI related tasks into the current project.
@@ -521,12 +519,8 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
     }
 
     private static configureTestHpl(Project project) {
-        JavaPluginConvention javaConvention = project.convention.getPlugin(JavaPluginConvention)
-        SourceSet testSourceSet = javaConvention.sourceSets.getByName(TEST_SOURCE_SET_NAME)
-
         // generate test hpl manifest for the current plugin, to be used during unit test
         def outputDir = project.layout.buildDirectory.dir('generated-resources/test')
-        testSourceSet.output.dir(outputDir)
 
         def jenkinsManifest = project.tasks.named('generateJenkinsManifest')
         def generateTestHplTask = project.tasks.register('generateTestHpl', GenerateHplTask) {
@@ -541,6 +535,11 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
             it.upstreamManifest.set(jenkinsManifest.get().outputFile)
         }
 
+        project.tasks.named('test', Test).configure {
+            it.inputs.files(generateTestHplTask)
+            it.classpath += project.files(outputDir.get().asFile)
+        }
+
         project.tasks.named('generatedJenkinsTest', Test).configure {
             it.inputs.files(generateTestHplTask)
             it.classpath += project.files(outputDir.get().asFile)
@@ -549,8 +548,6 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
         project.tasks.register('generate-test-hpl') {
             it.dependsOn(generateTestHplTask)
         }
-
-        project.tasks.named(JavaPlugin.TEST_CLASSES_TASK_NAME).configure { it.dependsOn(generateTestHplTask) }
     }
 
     @Override

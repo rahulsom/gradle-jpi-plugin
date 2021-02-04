@@ -200,7 +200,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
         'jpi'                                        | ':generateJenkinsManifest'                    | TaskOutcome.SUCCESS
         'processTestResources'                       | ':resolveTestDependencies'                    | TaskOutcome.SUCCESS
         'compileGeneratedJenkinsTestJava'            | ':generateJenkinsTests'                       | TaskOutcome.SKIPPED
-        'testClasses'                                | ':generateTestHpl'                          | TaskOutcome.SUCCESS
+        'test'                                       | ':generateTestHpl'                            | TaskOutcome.SUCCESS
         'generate-test-hpl'                          | ':generateTestHpl'                          | TaskOutcome.SUCCESS
         'compileJava'                                | ':localizer'                                  | TaskOutcome.SUCCESS
         'sourcesJar'                                 | ':localizer'                                  | TaskOutcome.SUCCESS
