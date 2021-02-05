@@ -41,8 +41,12 @@ class DependencyLookup {
                     deps.add('junit:junit-dep:4.10')
                 }
                 return deps
+            case 'testCompileOnly':
+                return ['net.jcip:jcip-annotations:1.0', findbugs] as Set
             case 'testRuntimeOnly':
                 return [war] as Set
+            case 'generatedJenkinsTestImplementation':
+                return [war, testHarness] as Set
             default:
                 [] as Set
         }
@@ -52,8 +56,10 @@ class DependencyLookup {
         [
                 'annotationProcessor',
                 'compileOnly',
+                'testCompileOnly',
                 'testImplementation',
                 'testRuntimeOnly',
+                'generatedJenkinsTestImplementation',
         ] as Set
     }
 }

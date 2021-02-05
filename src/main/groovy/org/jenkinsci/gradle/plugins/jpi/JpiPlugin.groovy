@@ -41,7 +41,6 @@ import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
-import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.War
@@ -60,7 +59,6 @@ import org.jenkinsci.gradle.plugins.jpi.verification.CheckOverlappingSourcesTask
 
 import static org.gradle.api.logging.LogLevel.INFO
 import static org.gradle.api.tasks.SourceSet.MAIN_SOURCE_SET_NAME
-import static org.gradle.api.tasks.SourceSet.TEST_SOURCE_SET_NAME
 
 /**
  * Loads HPI related tasks into the current project.
@@ -101,6 +99,7 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
         gradleProject.plugins.apply(GroovyPlugin)
         gradleProject.plugins.apply(kotlinPlugin('org.jenkinsci.gradle.plugins.accmod.AccessModifierPlugin'))
         gradleProject.plugins.apply(kotlinPlugin('org.jenkinsci.gradle.plugins.manifest.JenkinsManifestPlugin'))
+        gradleProject.plugins.apply(kotlinPlugin('org.jenkinsci.gradle.plugins.testing.JpiTestingPlugin'))
 
         def ext = gradleProject.extensions.create('jenkinsPlugin', JpiExtension, gradleProject)
         gradleProject.plugins.apply(LegacyWorkaroundsPlugin)
@@ -318,24 +317,15 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
     }
 
     private static configureInjectedTest(Project project) {
-        JpiExtension jpiExtension = project.extensions.getByType(JpiExtension)
-        JavaPluginConvention javaConvention = project.convention.getPlugin(JavaPluginConvention)
-        SourceSet testSourceSet = javaConvention.sourceSets.getByName(TEST_SOURCE_SET_NAME)
-
-        File root = new File(project.buildDir, 'inject-tests')
-        testSourceSet.java.srcDirs += root
-
-        def testInsertionTask = project.tasks.register(TestInsertionTask.TASK_NAME, TestInsertionTask) {
+        def replacementTask = 'generateJenkinsTests'
+        project.tasks.register(TestInsertionTask.TASK_NAME) {
             it.group = 'Verification'
-            it.description = 'Generates a Jenkins Test'
-            it.onlyIf { !jpiExtension.disabledTestInjection }
-        }
-
-        project.tasks.named('compileTestJava').configure { it.dependsOn(testInsertionTask) }
-
-        project.afterEvaluate {
-            testInsertionTask.configure {
-                it.testSuite = new File(root, "${jpiExtension.injectedTestName}.java")
+            it.description = '[deprecated] Generates a Jenkins Test'
+            it.dependsOn(replacementTask)
+            it.doFirst {
+                logger.warn('{} is deprecated and will be removed in 1.0.0. Please use {}',
+                        TestInsertionTask.TASK_NAME,
+                        replacementTask)
             }
         }
     }
@@ -529,12 +519,8 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
     }
 
     private static configureTestHpl(Project project) {
-        JavaPluginConvention javaConvention = project.convention.getPlugin(JavaPluginConvention)
-        SourceSet testSourceSet = javaConvention.sourceSets.getByName(TEST_SOURCE_SET_NAME)
-
         // generate test hpl manifest for the current plugin, to be used during unit test
         def outputDir = project.layout.buildDirectory.dir('generated-resources/test')
-        testSourceSet.output.dir(outputDir)
 
         def jenkinsManifest = project.tasks.named('generateJenkinsManifest')
         def generateTestHplTask = project.tasks.register('generateTestHpl', GenerateHplTask) {
@@ -549,11 +535,19 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
             it.upstreamManifest.set(jenkinsManifest.get().outputFile)
         }
 
+        project.tasks.named('test', Test).configure {
+            it.inputs.files(generateTestHplTask)
+            it.classpath += project.files(outputDir.get().asFile)
+        }
+
+        project.tasks.named('generatedJenkinsTest', Test).configure {
+            it.inputs.files(generateTestHplTask)
+            it.classpath += project.files(outputDir.get().asFile)
+        }
+
         project.tasks.register('generate-test-hpl') {
             it.dependsOn(generateTestHplTask)
         }
-
-        project.tasks.named(JavaPlugin.TEST_CLASSES_TASK_NAME).configure { it.dependsOn(generateTestHplTask) }
     }
 
     @Override

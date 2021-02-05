@@ -18,4 +18,8 @@ public interface JpiExtensionBridge {
     Property<Boolean> getUsePluginFirstClassLoader();
     SetProperty<String> getMaskedClassesFromCore();
     ListProperty<PluginDeveloper> getPluginDevelopers();
+
+    Property<Boolean> getGenerateTests();
+    Property<String> getGeneratedTestClassName();
+    Property<Boolean> getRequireEscapeByDefaultInJelly();
 }

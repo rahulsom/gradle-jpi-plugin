@@ -4,7 +4,7 @@ import org.jenkinsci.gradle.plugins.jpi.IntegrationSpec
 import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
-@IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
+@IgnoreIf({ isWindows() })
 class JenkinsServerTaskSpec extends IntegrationSpec {
 
     @Unroll

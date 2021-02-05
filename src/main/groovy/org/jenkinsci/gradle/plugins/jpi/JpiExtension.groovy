@@ -45,6 +45,18 @@ class JpiExtension implements JpiExtensionBridge {
     Map<String, String> jenkinsWarCoordinates
     final Property<String> jenkinsVersion
     final Provider<String> validatedJenkinsVersion
+
+    /**
+     * If true, the automatic test injection will be skipped.
+     *
+     * Disabled by default because of <a href="https://issues.jenkins-ci.org/browse/JENKINS-21977">JENKINS-21977</a>.
+     */
+    final Property<Boolean> generateTests
+    /**
+     * If true, verify that all the jelly scripts have the Jelly XSS PI in them.
+     */
+    final Property<Boolean> requireEscapeByDefaultInJelly
+    final Property<String> generatedTestClassName
     private final Property<String> pluginId
     private final Property<String> humanReadableName
     private final Property<URI> homePage
@@ -73,6 +85,9 @@ class JpiExtension implements JpiExtensionBridge {
         this.usePluginFirstClassLoader = project.objects.property(Boolean).convention(false)
         this.maskedClassesFromCore = project.objects.setProperty(String).convention([])
         this.pluginDevelopers = project.objects.listProperty(PluginDeveloper)
+        this.generateTests = project.objects.property(Boolean).convention(false)
+        this.requireEscapeByDefaultInJelly = project.objects.property(Boolean).convention(true)
+        this.generatedTestClassName = project.objects.property(String).convention('InjectedTest')
     }
 
     /**
@@ -84,7 +99,7 @@ class JpiExtension implements JpiExtensionBridge {
     }
 
     void setShortName(String shortName) {
-        pluginId.set(shortName)
+        pluginId.convention(shortName)
     }
 
     private static String trimOffPluginSuffix(String s) {
@@ -281,22 +296,29 @@ class JpiExtension implements JpiExtensionBridge {
         ConfigureUtil.configure(closure, licenses)
     }
 
-    /**
-     * If true, the automatic test injection will be skipped.
-     *
-     * Disabled by default because of <a href="https://issues.jenkins-ci.org/browse/JENKINS-21977">JENKINS-21977</a>.
-     */
-    boolean disabledTestInjection = true
+    boolean getDisabledTestInjection() {
+        !generateTests.get()
+    }
 
-    /**
-     * Name of the injected test.
-     */
-    String injectedTestName = 'InjectedTest'
+    void setDisabledTestInjection(boolean disable) {
+        generateTests.convention(!disable)
+    }
 
-    /**
-     * If true, verify that all the jelly scripts have the Jelly XSS PI in them.
-     */
-    boolean requirePI = true
+    String getInjectedTestName() {
+        generatedTestClassName.get()
+    }
+
+    void setInjectedTestName(String name) {
+        generatedTestClassName.convention(name)
+    }
+
+    boolean getRequirePI() {
+        requireEscapeByDefaultInJelly.get()
+    }
+
+    void setRequirePI(boolean require) {
+        requireEscapeByDefaultInJelly.convention(require)
+    }
 
     /**
      * Set to false to disable configuration of Maven Central, the local Maven cache and the Jenkins Maven repository.

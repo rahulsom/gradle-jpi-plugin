@@ -40,4 +40,8 @@ class IntegrationSpec extends Specification {
     static boolean isBeforeConfigurationCache() {
         gradleVersionForTest < GradleVersion.version('6.6')
     }
+
+    static boolean isWindows() {
+        System.getProperty('os.name').toLowerCase().contains('windows')
+    }
 }
