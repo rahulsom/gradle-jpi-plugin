@@ -70,6 +70,7 @@ class GenerateTestTaskIntegrationSpec extends IntegrationSpec {
         ]
     }
 
+    @IgnoreIf({ isWindows() })
     def 'should generate source with defaults'() {
         given:
         // ensure this is present so we can call realpath for Windows compatiblity
@@ -92,9 +93,9 @@ class GenerateTestTaskIntegrationSpec extends IntegrationSpec {
         Files.exists(expected.toRealPath())
         expected.text.contains('public class InjectedTest extends TestCase {')
         expected.text.contains('    public static Test suite() throws Exception {')
-        expected.text.contains("""parameters.put("basedir", "${projectDir.root.toPath().toRealPath()}");""")
+        expected.text.contains("""parameters.put("basedir", "${projectDir.root.toPath().toRealPath().toString()}");""")
         expected.text.contains("""parameters.put("artifactId", "$projectName");""")
-        expected.text.contains("""parameters.put("outputDirectory", "${mainOutputResources.toRealPath()}");""")
+        expected.text.contains("""parameters.put("outputDirectory", "${mainOutputResources.toRealPath().toString()}");""")
         expected.text.contains('parameters.put("requirePI", "true");')
         expected.text.contains('return PluginAutomaticTestBuilder.build(parameters);')
     }
