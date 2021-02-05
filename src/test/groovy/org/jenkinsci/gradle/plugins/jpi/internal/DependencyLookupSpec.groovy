@@ -56,7 +56,7 @@ class DependencyLookupSpec extends Specification {
         '1.532' | ['org.jenkins-ci.main:jenkins-core:1.532', 'org.jenkins-ci.main:jenkins-test-harness:1.532', 'org.jenkins-ci.main:ui-samples-plugin:1.532'] as Set
         '1.644' | ['org.jenkins-ci.main:jenkins-core:1.644', 'org.jenkins-ci.main:jenkins-test-harness:1.644', 'org.jenkins-ci.main:ui-samples-plugin:2.0'] as Set
         '1.645' | ['org.jenkins-ci.main:jenkins-core:1.645', 'org.jenkins-ci.main:jenkins-test-harness:2.0', 'org.jenkins-ci.main:ui-samples-plugin:2.0'] as Set
-        '2.64'  | ['org.jenkins-ci.main:jenkins-core:2.64', 'org.jenkins-ci.main:jenkins-test-harness:2.60', 'org.jenkins-ci.main:ui-samples-plugin:2.0'] as Set
+        '2.64'  | ['org.jenkins-ci.main:jenkins-core:2.64', 'org.jenkins-ci.main:jenkins-test-harness:2.71', 'org.jenkins-ci.main:ui-samples-plugin:2.0'] as Set
     }
 
     @Unroll
@@ -90,7 +90,7 @@ class DependencyLookupSpec extends Specification {
         then:
         actual == [
                 'org.jenkins-ci.main:jenkins-war:2.222.3',
-                'org.jenkins-ci.main:jenkins-test-harness:2.60',
+                'org.jenkins-ci.main:jenkins-test-harness:2.71',
         ] as Set<String>
     }
 }

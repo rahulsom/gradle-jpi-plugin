@@ -41,7 +41,7 @@ dependencies {
     compileOnly("com.squareup:javapoet:1.13.0") {
         because("used for GenerateTestTask")
     }
-    compileOnly("org.jenkins-ci.main:jenkins-test-harness:2.60") {
+    compileOnly("org.jenkins-ci.main:jenkins-test-harness:2.71") {
         because("used for GenerateTestTask")
         isTransitive = false
     }

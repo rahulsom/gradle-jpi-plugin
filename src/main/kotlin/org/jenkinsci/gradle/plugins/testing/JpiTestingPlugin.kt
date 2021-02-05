@@ -15,7 +15,7 @@ import java.io.File
 open class JpiTestingPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         val javapoet = target.dependencies.create("com.squareup:javapoet:1.13.0")
-        val jenkinsTestHarness = target.dependencies.create("org.jenkins-ci.main:jenkins-test-harness:2.60")
+        val jenkinsTestHarness = target.dependencies.create("org.jenkins-ci.main:jenkins-test-harness:2.71")
         val jenkinsTestGeneration = target.configurations.create("jenkinsTestGeneration") {
             attributes {
                 attribute(Usage.USAGE_ATTRIBUTE, target.objects.named(Usage.JAVA_RUNTIME))
