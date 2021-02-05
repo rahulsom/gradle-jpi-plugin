@@ -15,10 +15,8 @@ plugins {
 }
 
 repositories {
-    // using JCenter for dependency resolution is recommended, see https://plugins.gradle.org/docs/publish-plugin
-    jcenter()
     maven {
-        url = uri("https://repo.jenkins-ci.org/releases")
+        url = uri("https://repo.jenkins-ci.org/public")
     }
 }
 
