@@ -1,5 +1,15 @@
 ## 0.43.0 (unreleased)
 
+  * improve task dependencies: `test` depends on `generateTestHpl` (was `testClasses`)
+  * improve input modeling: `test` and `generatedJenkinsTest` classpaths include `generateTestHpl`
+  * introduce `jenkinsTestGeneration` sourceSet - dedicated configuration for generating the test class
+  * introduce `generatedJenkinsTest` - dedicated test task for running generated tests, allows for using other test
+    frameworks in the `test` task without negatively impacting the generated tests
+  * introduce `generateJenkinsTests` - tested to ensure generated code is warning-free
+  * deprecate `insertTest` task - use `generateJenkinsTests`
+  * upgrade dependency `org.jenkins-ci.main:jenkins-test-harness:2.60` -> `2.71`
+  * updated to Gradle 6.8.2
+
 ## 0.42.0 (2020-01-23)
 
   * improves task avoidance by properly modeling manifest generation inputs [#179][179] [JENKINS-58205][58205]
