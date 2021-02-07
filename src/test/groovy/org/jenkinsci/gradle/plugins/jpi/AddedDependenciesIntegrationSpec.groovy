@@ -39,23 +39,22 @@ class AddedDependenciesIntegrationSpec extends IntegrationSpec {
 
         when:
         def result = gradleRunner()
-                .withArguments('processTestResources', '--stacktrace')
+                .withArguments('test', '--stacktrace')
                 .build()
 
         then:
-        result.task(':resolveTestDependencies').outcome == TaskOutcome.SUCCESS
+        result.task(':copyTestPluginDependencies').outcome == TaskOutcome.SUCCESS
         result.task(':processTestResources').outcome == TaskOutcome.NO_SOURCE
-        File dir = new File(projectDir.root, 'build/resources/test/test-dependencies')
-        dir.directory
+        File dir = new File(projectDir.root, 'build/jpi-plugin/test/test-dependencies')
         new File(dir, 'index').text == [
                 'config-file-provider', 'structs', 'cloudbees-folder',
-                'ui-samples-plugin', 'token-macro', 'credentials',
+                'ui-samples-plugin', 'token-macro', 'credentials', '',
         ].join('\n')
-        new File(dir, 'structs.hpi').exists()
-        new File(dir, 'config-file-provider.hpi').exists()
-        new File(dir, 'cloudbees-folder.hpi').exists()
-        new File(dir, 'token-macro.hpi').exists()
-        new File(dir, 'credentials.hpi').exists()
+        new File(dir, 'structs.jpi').exists()
+        new File(dir, 'config-file-provider.jpi').exists()
+        new File(dir, 'cloudbees-folder.jpi').exists()
+        new File(dir, 'token-macro.jpi').exists()
+        new File(dir, 'credentials.jpi').exists()
     }
 
     def 'testCompileClasspath configuration contains plugin JAR dependencies'() {

@@ -198,9 +198,9 @@ class JpiIntegrationSpec extends IntegrationSpec {
         task                                         | dependency                                    | outcome
         'jar'                                        | ':generateJenkinsManifest'                    | TaskOutcome.SUCCESS
         'jpi'                                        | ':generateJenkinsManifest'                    | TaskOutcome.SUCCESS
-        'processTestResources'                       | ':resolveTestDependencies'                    | TaskOutcome.SUCCESS
         'compileGeneratedJenkinsTestJava'            | ':generateJenkinsTests'                       | TaskOutcome.SKIPPED
         'test'                                       | ':generateTestHpl'                            | TaskOutcome.SUCCESS
+        'test'                                       | ':copyTestPluginDependencies'                 | TaskOutcome.SUCCESS
         'generate-test-hpl'                          | ':generateTestHpl'                          | TaskOutcome.SUCCESS
         'compileJava'                                | ':localizer'                                  | TaskOutcome.SUCCESS
         'sourcesJar'                                 | ':localizer'                                  | TaskOutcome.SUCCESS
@@ -217,11 +217,13 @@ class JpiIntegrationSpec extends IntegrationSpec {
         'generatedJenkinsTest'                         | ':generateJenkinsTests'                         | TaskOutcome.SKIPPED
         'generatedJenkinsTest'                         | ':generateTestHpl'                              | TaskOutcome.SUCCESS
         'generatedJenkinsTest'                         | ':compileJava'                                  | TaskOutcome.NO_SOURCE
+        'generatedJenkinsTest'                         | ':copyGeneratedJenkinsTestPluginDependencies'   | TaskOutcome.SUCCESS
         'generateTestHpl'                              | ':generateJenkinsManifest'                      | TaskOutcome.SUCCESS
         'generateJenkinsManifest'                      | ':generateJenkinsPluginClassManifest'           | TaskOutcome.SUCCESS
         'generateJenkinsManifest'                      | ':generateJenkinsPluginDependenciesManifest'    | TaskOutcome.SUCCESS
         'generateJenkinsManifest'                      | ':generateJenkinsSupportDynamicLoadingManifest' | TaskOutcome.SUCCESS
         'insertTest'                                   | ':generateJenkinsTests'                         | TaskOutcome.SKIPPED
+        'resolveTestDependencies'                      | ':copyTestPluginDependencies'                   | TaskOutcome.SUCCESS
     }
 
     @Unroll

@@ -5,6 +5,11 @@ import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Copy
 
+/**
+ * @deprecated To be removed in 1.0.0
+ * @see org.jenkinsci.gradle.plugins.testing.CopyTestPluginDependenciesTask
+ */
+@Deprecated
 class TestDependenciesTask extends Copy {
     public static final String TASK_NAME = 'resolveTestDependencies'
 

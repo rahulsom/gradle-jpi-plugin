@@ -115,6 +115,9 @@ class TestTaskIntegrationSpec extends IntegrationSpec {
             compileTestJava {
                 options.compilerArgs = ['-Xlint:all', '-Xlint:-processing', '-Werror']
             }
+            dependencies {
+                implementation 'org.jenkins-ci.plugins:gradle:1.36'
+            }
             """.stripIndent()
         def srcTestJava = new File(projectDir.root, 'src/test/java')
         def jenkinsRule = ClassName.get('org.jvnet.hudson.test', 'JenkinsRule')

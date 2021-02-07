@@ -60,6 +60,8 @@ class TestSupport {
 
     static final String LOG4J_API_2_13_0 = 'org.apache.logging.log4j:log4j-api:2.13.0'
     static final String LOG4J_API_2_14_0 = 'org.apache.logging.log4j:log4j-api:2.14.0'
+    static final String ANT_1_10 = 'org.jenkins-ci.plugins:ant:1.10'
+    static final String ANT_1_11 = 'org.jenkins-ci.plugins:ant:1.11'
 
     /**
      * Adds quotes to given string

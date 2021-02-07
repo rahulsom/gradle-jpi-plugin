@@ -51,20 +51,42 @@ open class JpiTestingPlugin : Plugin<Project> {
                 setSrcDirs(listOf<File>())
             }
             runtimeClasspath += mainSourceSet.output
+            runtimeClasspath += mainSourceSet.runtimeClasspath
+        }
+        val generatedJenkinsPluginsDir = target.layout.buildDirectory.dir("jpi-plugin/plugins-for-generatedJenkinsTest/test-dependencies")
+        val copyPluginsForGeneratedJenkinsTest = target.tasks.register<CopyTestPluginDependenciesTask>("copyGeneratedJenkinsTestPluginDependencies") {
+            group = "Verification"
+            description = "Copies plugins on runtimeClasspath into directory for jenkins-test-harness to load in generatedJenkinsTest"
+            files.from(project.configurations.findByName("runtimeClasspathJenkins"))
+            outputDir.set(generatedJenkinsPluginsDir)
         }
         target.tasks.named(generatedSourceSet.compileJavaTaskName).configure {
             dependsOn(generateJenkinsTests)
         }
-        val testTask = target.tasks.register<Test>("generatedJenkinsTest") {
+        val generatedJenkinsTest = target.tasks.register<Test>("generatedJenkinsTest") {
+            inputs.files(copyPluginsForGeneratedJenkinsTest)
             group = "Verification"
             description = "Runs tests from org.jvnet.hudson.test.PluginAutomaticTestBuilder"
             testClassesDirs = generatedSourceSet.output.classesDirs
-            classpath = generatedSourceSet.runtimeClasspath
+            classpath = project.files(generatedJenkinsPluginsDir.get().asFile.parentFile) + generatedSourceSet.runtimeClasspath
             // set build directory for Jenkins test harness, JENKINS-26331
             systemProperty("buildDirectory", project.layout.buildDirectory.asFile.get().absolutePath)
         }
         target.tasks.named("check").configure {
-            dependsOn(testTask)
+            dependsOn(generatedJenkinsTest)
+        }
+
+        // configure test task
+        val testPluginsDir = target.layout.buildDirectory.dir("jpi-plugin/plugins-for-test/test-dependencies")
+        val copyPluginsForTest = target.tasks.register<CopyTestPluginDependenciesTask>("copyTestPluginDependencies") {
+            group = "Verification"
+            description = "Copies plugins on testRuntimeClasspath into directory for jenkins-test-harness to load in test"
+            files.from(project.configurations.findByName("testRuntimeClasspathJenkins"))
+            outputDir.set(testPluginsDir)
+        }
+        target.tasks.named<Test>("test").configure {
+            inputs.files(copyPluginsForTest)
+            classpath += project.files(testPluginsDir.get().asFile.parentFile)
         }
     }
 }

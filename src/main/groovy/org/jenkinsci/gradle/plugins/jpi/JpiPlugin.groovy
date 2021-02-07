@@ -273,14 +273,15 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
     }
 
     private static configureTestDependencies(Project project) {
-        JavaPluginConvention javaConvention = project.convention.getPlugin(JavaPluginConvention)
-
-        def testDependenciesTask = project.tasks.register(TestDependenciesTask.TASK_NAME, TestDependenciesTask) {
-            it.configuration = project.configurations[TEST_JENKINS_RUNTIME_CLASSPATH_CONFIGURATION_NAME]
-        }
-
-        project.tasks.named(javaConvention.sourceSets.test.processResourcesTaskName).configure {
-            it.dependsOn(testDependenciesTask)
+        def replacementName = 'copyTestPluginDependencies'
+        def replacement = project.tasks.named(replacementName)
+        project.tasks.register(TestDependenciesTask.TASK_NAME) {
+            it.description = "[deprecated - use $replacementName]"
+            dependsOn(replacement)
+            doFirst {
+                logger.warn('Task is deprecated and will be removed in 1.0.0.')
+                logger.warn('Please depend on {} instead', replacementName)
+            }
         }
     }
 

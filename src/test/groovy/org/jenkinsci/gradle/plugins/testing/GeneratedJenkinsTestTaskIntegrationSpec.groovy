@@ -103,6 +103,45 @@ class GeneratedJenkinsTestTaskIntegrationSpec extends IntegrationSpec {
         result.task(taskPath).outcome == TaskOutcome.SUCCESS
     }
 
+    def 'should pass for plugin with plugin dependencies'() {
+        given:
+        build << """
+            jenkinsPlugin {
+                generateTests.set(true)
+                jenkinsVersion.set('${TestSupport.RECENT_JENKINS_VERSION}')
+            }
+            compileJava {
+                options.compilerArgs = ['-Xlint:all', '-Xlint:-processing', '-Werror']
+            }
+            dependencies {
+                implementation 'org.jenkins-ci.plugins:jackson2-api:2.10.3'
+            }
+            """.stripIndent()
+        def decisionHandler = TypeSpec.classBuilder('NeverBuild')
+                .addAnnotation(Extension)
+                .addModifiers(Modifier.PUBLIC)
+                .superclass(Queue.QueueDecisionHandler)
+                .addMethod(MethodSpec.methodBuilder('shouldSchedule')
+                        .addAnnotation(Override)
+                        .addModifiers(Modifier.PUBLIC)
+                        .returns(boolean)
+                        .addParameter(Queue.Task, 'p')
+                        .addParameter(ParameterizedTypeName.get(List, Action), 'actions')
+                        .addStatement('return false')
+                        .build())
+                .build()
+        JavaFile.builder('org.example', decisionHandler).build()
+                .writeTo(new File(projectDir.root, 'src/main/java'))
+
+        when:
+        def result = gradleRunner()
+                .withArguments(taskPath, '-s')
+                .build()
+
+        then:
+        result.task(taskPath).outcome == TaskOutcome.SUCCESS
+    }
+
     def 'should fail for plugin injecting class without binding'() {
         given:
         build << """
