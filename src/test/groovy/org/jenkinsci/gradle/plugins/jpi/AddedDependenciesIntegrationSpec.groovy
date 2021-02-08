@@ -45,7 +45,7 @@ class AddedDependenciesIntegrationSpec extends IntegrationSpec {
         then:
         result.task(':copyTestPluginDependencies').outcome == TaskOutcome.SUCCESS
         result.task(':processTestResources').outcome == TaskOutcome.NO_SOURCE
-        File dir = new File(projectDir.root, 'build/jpi-plugin/test/test-dependencies')
+        File dir = new File(projectDir.root, 'build/jpi-plugin/plugins-for-test/test-dependencies')
         new File(dir, 'index').text == [
                 'config-file-provider', 'structs', 'cloudbees-folder',
                 'ui-samples-plugin', 'token-macro', 'credentials', '',

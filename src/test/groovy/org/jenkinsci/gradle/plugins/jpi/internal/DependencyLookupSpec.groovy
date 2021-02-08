@@ -73,13 +73,13 @@ class DependencyLookupSpec extends Specification {
         '2.222.3' | ['com.google.code.findbugs:annotations:3.0.0', 'net.jcip:jcip-annotations:1.0'] as Set
     }
 
-    def 'should get testRuntimeOnly dependencies for version'() {
+    def 'should get declaredJenkinsWar dependencies for version'() {
         when:
-        def actual = lookup.find('testRuntimeOnly', '2.222.3')
+        def actual = lookup.find('declaredJenkinsWar', '2.222.3')
 
         then:
         actual == [
-                'org.jenkins-ci.main:jenkins-war:2.222.3',
+                'org.jenkins-ci.main:jenkins-war:2.222.3@war',
         ] as Set<String>
     }
 
@@ -89,7 +89,7 @@ class DependencyLookupSpec extends Specification {
 
         then:
         actual == [
-                'org.jenkins-ci.main:jenkins-war:2.222.3',
+                'org.jenkins-ci.main:jenkins-core:2.222.3',
                 'org.jenkins-ci.main:jenkins-test-harness:2.71',
         ] as Set<String>
     }

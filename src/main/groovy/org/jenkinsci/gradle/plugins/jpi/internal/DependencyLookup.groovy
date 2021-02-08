@@ -7,7 +7,6 @@ import org.gradle.util.GradleVersion
 class DependencyLookup {
     Set<String> find(String configuration, String jenkinsVersion) {
         String core = "org.jenkins-ci.main:jenkins-core:${jenkinsVersion}"
-        String war = "org.jenkins-ci.main:jenkins-war:${jenkinsVersion}"
         String findbugs = 'com.google.code.findbugs:annotations:3.0.0'
         def version = GradleVersion.version(jenkinsVersion)
         if (version < GradleVersion.version('1.618')) {
@@ -43,10 +42,10 @@ class DependencyLookup {
                 return deps
             case 'testCompileOnly':
                 return ['net.jcip:jcip-annotations:1.0', findbugs] as Set
-            case 'testRuntimeOnly':
-                return [war] as Set
             case 'generatedJenkinsTestImplementation':
-                return [war, testHarness] as Set
+                return [core, testHarness] as Set
+            case 'declaredJenkinsWar':
+                return ["org.jenkins-ci.main:jenkins-war:${jenkinsVersion}@war"] as Set<String>
             default:
                 [] as Set
         }
@@ -56,9 +55,9 @@ class DependencyLookup {
         [
                 'annotationProcessor',
                 'compileOnly',
+                'declaredJenkinsWar',
                 'testCompileOnly',
                 'testImplementation',
-                'testRuntimeOnly',
                 'generatedJenkinsTestImplementation',
         ] as Set
     }

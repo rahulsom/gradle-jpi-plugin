@@ -14,6 +14,11 @@ import java.io.File
 
 open class JpiTestingPlugin : Plugin<Project> {
     override fun apply(target: Project) {
+        val declaredJenkinsWar = target.configurations.create("declaredJenkinsWar") {
+            isVisible = false
+            isCanBeConsumed = false
+            isCanBeResolved = true
+        }
         val javapoet = target.dependencies.create("com.squareup:javapoet:1.13.0")
         val jenkinsTestHarness = target.dependencies.create("org.jenkins-ci.main:jenkins-test-harness:2.71")
         val jenkinsTestGeneration = target.configurations.create("jenkinsTestGeneration") {
@@ -71,6 +76,7 @@ open class JpiTestingPlugin : Plugin<Project> {
             classpath = project.files(generatedJenkinsPluginsDir.get().asFile.parentFile) + generatedSourceSet.runtimeClasspath
             // set build directory for Jenkins test harness, JENKINS-26331
             systemProperty("buildDirectory", project.layout.buildDirectory.asFile.get().absolutePath)
+            systemProperty("jth.jenkins-war.path", declaredJenkinsWar.resolvedConfiguration.resolvedArtifacts.single().file.absolutePath)
         }
         target.tasks.named("check").configure {
             dependsOn(generatedJenkinsTest)
@@ -87,6 +93,7 @@ open class JpiTestingPlugin : Plugin<Project> {
         target.tasks.named<Test>("test").configure {
             inputs.files(copyPluginsForTest)
             classpath += project.files(testPluginsDir.get().asFile.parentFile)
+            systemProperty("jth.jenkins-war.path", declaredJenkinsWar.resolvedConfiguration.resolvedArtifacts.single().file.absolutePath)
         }
     }
 }
