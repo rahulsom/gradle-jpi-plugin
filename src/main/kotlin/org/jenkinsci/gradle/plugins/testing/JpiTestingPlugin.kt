@@ -93,6 +93,7 @@ open class JpiTestingPlugin : Plugin<Project> {
         target.tasks.named<Test>("test").configure {
             inputs.files(copyPluginsForTest)
             classpath += project.files(testPluginsDir.get().asFile.parentFile)
+            systemProperty("buildDirectory", project.layout.buildDirectory.asFile.get().absolutePath)
             systemProperty("jth.jenkins-war.path", declaredJenkinsWar.resolvedConfiguration.resolvedArtifacts.single().file.absolutePath)
         }
     }
