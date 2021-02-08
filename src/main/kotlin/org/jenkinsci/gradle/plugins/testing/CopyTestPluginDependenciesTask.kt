@@ -39,7 +39,7 @@ open class CopyTestPluginDependenciesTask @Inject constructor(private val fileSy
         index.get().asFile.bufferedWriter().use { w ->
             plugins.map { it.name.substringBeforeLast('-') }.forEach {
                 w.write(it)
-                w.newLine()
+                w.write("\n")
             }
         }
     }
