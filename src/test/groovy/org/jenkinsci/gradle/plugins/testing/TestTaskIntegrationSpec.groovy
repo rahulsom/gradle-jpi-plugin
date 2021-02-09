@@ -116,7 +116,8 @@ class TestTaskIntegrationSpec extends IntegrationSpec {
                 options.compilerArgs = ['-Xlint:all', '-Xlint:-processing', '-Werror']
             }
             dependencies {
-                implementation 'org.jenkins-ci.plugins:gradle:1.36'
+                implementation 'org.jenkins-ci.plugins:gradle:1.35'
+                implementation 'org.jenkins-ci.plugins:junit:1.20'
             }
             """.stripIndent()
         def srcTestJava = new File(projectDir.root, 'src/test/java')
