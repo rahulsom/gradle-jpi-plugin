@@ -281,7 +281,8 @@ class JpiIntegrationSpec extends IntegrationSpec {
         false | TaskOutcome.SUCCESS
     }
 
-    def 'set buildDirectory system property in test'() {
+    @Unroll
+    def 'set buildDirectory system property in #task'(String task, String srcDir, String expectedDir) {
         given:
         build << """\
             repositories { mavenCentral() }
@@ -294,18 +295,23 @@ class JpiIntegrationSpec extends IntegrationSpec {
             """.stripIndent()
         def actualFile = projectDir.newFile()
         TestSupport.TEST_THAT_WRITES_SYSTEM_PROPERTIES_TO.apply(actualFile)
-                .writeTo(new File(projectDir.root, 'src/test/java'))
+                .writeTo(new File(projectDir.root, srcDir))
 
         when:
         gradleRunner()
-                .withArguments('test')
+                .withArguments(task)
                 .build()
 
         then:
         def actual = new Properties()
         actual.load(new FileReader(actualFile))
-        def expected = new File(projectDir.root, 'build').toPath().toRealPath().toString()
+        def expected = new File(projectDir.root, expectedDir).toPath().toRealPath().toString()
         actual.get('buildDirectory') == expected
+
+        where:
+        task                   | srcDir               | expectedDir
+        'test'                 | 'src/test/java'      | 'build/jpi-plugin/test'
+        'generatedJenkinsTest' | 'build/inject-tests' | 'build/jpi-plugin/generatedJenkinsTest'
     }
 
     def 'sources and javadoc jars are created by default'() {
