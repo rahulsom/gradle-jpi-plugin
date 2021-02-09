@@ -1,5 +1,8 @@
 ## 0.43.0 (unreleased)
 
+  * introduce separate unpacked war directories for `test` and `generatedJenkinsTest` so they can use different plugins
+    while retaining backwards compatibility
+  * remove jenkins-war from `test`'s classpath
   * improve task dependencies: `test` depends on `generateTestHpl` (was `testClasses`)
   * improve input modeling: `test` and `generatedJenkinsTest` classpaths include `generateTestHpl`
   * introduce `jenkinsTestGeneration` sourceSet - dedicated configuration for generating the test class
