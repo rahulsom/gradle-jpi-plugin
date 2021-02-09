@@ -32,6 +32,25 @@ class GeneratedJenkinsTestTaskIntegrationSpec extends IntegrationSpec {
             """.stripIndent()
     }
 
+    def 'should support eager task resolution'() {
+        given:
+        build << """
+            tasks.named('generatedJenkinsTest').get()
+            jenkinsPlugin {
+                generateTests.set(true)
+                jenkinsVersion.set('${TestSupport.RECENT_JENKINS_VERSION}')
+            }
+            """.stripIndent()
+
+        when:
+        def result = gradleRunner()
+                .withArguments(taskPath, '-s')
+                .build()
+
+        then:
+        result.task(taskPath).outcome == TaskOutcome.SUCCESS
+    }
+
     def 'should not have source by default'() {
         given:
         build << """

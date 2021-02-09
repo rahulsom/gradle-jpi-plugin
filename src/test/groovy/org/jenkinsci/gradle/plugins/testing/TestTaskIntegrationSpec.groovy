@@ -43,6 +43,25 @@ class TestTaskIntegrationSpec extends IntegrationSpec {
             """.stripIndent()
     }
 
+    def 'should support eager task resolution'() {
+        given:
+        build << """
+            tasks.named('test').get()
+            jenkinsPlugin {
+                generateTests.set(false)
+                jenkinsVersion.set('${TestSupport.RECENT_JENKINS_VERSION}')
+            }
+            """.stripIndent()
+
+        when:
+        def result = gradleRunner()
+                .withArguments(taskPath, '-s')
+                .build()
+
+        then:
+        result.task(taskPath).outcome == TaskOutcome.NO_SOURCE
+    }
+
     def 'should work out of the box with JenkinsRule'() {
         given:
         build << """

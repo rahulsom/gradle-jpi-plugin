@@ -75,10 +75,13 @@ open class JpiTestingPlugin : Plugin<Project> {
             description = "Runs tests from org.jvnet.hudson.test.PluginAutomaticTestBuilder"
             testClassesDirs = generatedSourceSet.output.classesDirs
             classpath = project.files(generatedJenkinsPluginsDir.get().asFile.parentFile) + generatedSourceSet.runtimeClasspath
-            // set build directory for Jenkins test harness, JENKINS-26331
-            // this is the directory the war will be exploded to
-            systemProperty("buildDirectory", generatedTestTaskDir.get().asFile.absolutePath)
-            systemProperty("jth.jenkins-war.path", declaredJenkinsWar.resolvedConfiguration.resolvedArtifacts.single().file.absolutePath)
+            doFirst {
+                val war = declaredJenkinsWar.resolvedConfiguration.resolvedArtifacts.single()
+                // set build directory for Jenkins test harness, JENKINS-26331
+                // this is the directory the war will be exploded to
+                systemProperty("buildDirectory", generatedTestTaskDir.get().asFile.absolutePath)
+                systemProperty("jth.jenkins-war.path", war.file.absolutePath)
+            }
         }
         target.tasks.named("check").configure {
             dependsOn(generatedJenkinsTest)
@@ -96,8 +99,11 @@ open class JpiTestingPlugin : Plugin<Project> {
         target.tasks.named<Test>("test").configure {
             inputs.files(copyPluginsForTest)
             classpath += project.files(testPluginsDir.get().asFile.parentFile)
-            systemProperty("buildDirectory", testTaskDir.get().asFile.absolutePath)
-            systemProperty("jth.jenkins-war.path", declaredJenkinsWar.resolvedConfiguration.resolvedArtifacts.single().file.absolutePath)
+            doFirst {
+                val war = declaredJenkinsWar.resolvedConfiguration.resolvedArtifacts.single()
+                systemProperty("buildDirectory", testTaskDir.get().asFile.absolutePath)
+                systemProperty("jth.jenkins-war.path", war.file.absolutePath)
+            }
         }
     }
 }
