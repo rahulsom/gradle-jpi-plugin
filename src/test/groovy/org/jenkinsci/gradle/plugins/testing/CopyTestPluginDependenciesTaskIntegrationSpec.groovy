@@ -14,11 +14,13 @@ import static org.jenkinsci.gradle.plugins.jpi.TestSupport.ANT_1_10
 import static org.jenkinsci.gradle.plugins.jpi.TestSupport.ANT_1_11
 import static org.jenkinsci.gradle.plugins.jpi.TestSupport.LOG4J_API_2_13_0
 import static org.jenkinsci.gradle.plugins.jpi.TestSupport.LOG4J_API_2_14_0
+import static org.jenkinsci.gradle.plugins.jpi.TestSupport.q
 
 class CopyTestPluginDependenciesTaskIntegrationSpec extends IntegrationSpec {
     private final String projectName = TestDataGenerator.generateName()
     private final String taskPath = ':copyTestPluginDependencies'
     private File build
+    private File settings
     private final engine = new SimpleTemplateEngine()
     @SuppressWarnings('GStringExpressionWithinString')
     private final buildTemplate = '''\
@@ -30,14 +32,14 @@ class CopyTestPluginDependenciesTaskIntegrationSpec extends IntegrationSpec {
         }
         dependencies {
         <% for (dep in dependencies) { %>
-            ${dep.configuration} '${dep.coordinate}'
+            ${dep.configuration} ${dep.coordinate}
         <% } %>
         }
         '''.stripIndent()
     private final template = engine.createTemplate(buildTemplate)
 
     def setup() {
-        File settings = projectDir.newFile('settings.gradle')
+        settings = projectDir.newFile('settings.gradle')
         settings << """rootProject.name = \"$projectName\""""
         build = projectDir.newFile('build.gradle')
     }
@@ -53,7 +55,7 @@ class CopyTestPluginDependenciesTaskIntegrationSpec extends IntegrationSpec {
         given:
         def made = template.make([
                 'jenkinsVersion': TestSupport.RECENT_JENKINS_VERSION,
-                'dependencies'  : before.collect { ['configuration': configuration, 'coordinate': it] },
+                'dependencies'  : before.collect { ['configuration': configuration, 'coordinate': q(it)] },
         ])
         build.withWriter { made.writeTo(it) }
 
@@ -68,7 +70,7 @@ class CopyTestPluginDependenciesTaskIntegrationSpec extends IntegrationSpec {
         when:
         def remade = template.make([
                 'jenkinsVersion': TestSupport.RECENT_JENKINS_VERSION,
-                'dependencies'  : after.collect { ['configuration': configuration, 'coordinate': it] },
+                'dependencies'  : after.collect { ['configuration': configuration, 'coordinate': q(it)] },
         ])
         build.withWriter { remade.writeTo(it) }
         def rerunResult = gradleRunner()
@@ -77,11 +79,11 @@ class CopyTestPluginDependenciesTaskIntegrationSpec extends IntegrationSpec {
 
         then:
         rerunResult.task(taskPath).outcome == rerunOutcome
-        def actual = new File(projectDir.root, 'build/jpi-plugin/plugins-for-test/test-dependencies/index')
+        def actual = new File(projectDir.root, 'build/jpi-plugin/test/test-dependencies/index')
         if (actual.exists()) {
             actual.readLines().toSorted() == lines.toSorted()
             actual.eachLine {
-                assert new File(projectDir.root, "build/jpi-plugin/plugins-for-test/test-dependencies/${it}.jpi")
+                assert new File(projectDir.root, "build/jpi-plugin/test/test-dependencies/${it}.jpi")
             }
         }
 
@@ -142,7 +144,7 @@ class CopyTestPluginDependenciesTaskIntegrationSpec extends IntegrationSpec {
         def made = template.make([
                 'jenkinsVersion': TestSupport.RECENT_JENKINS_VERSION,
                 'dependencies'  : [
-                        ['configuration': 'implementation', 'coordinate': ANT_1_11]
+                        ['configuration': 'implementation', 'coordinate': q(ANT_1_11)]
                 ],
         ])
         build.withWriter { made.writeTo(it) }
