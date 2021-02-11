@@ -9,6 +9,7 @@ import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.named
 import org.gradle.kotlin.dsl.register
+import org.jenkinsci.gradle.plugins.core.VersionlessPluginLookup
 import org.jenkinsci.gradle.plugins.jpi.internal.JpiExtensionBridge
 import java.io.File
 
@@ -63,6 +64,7 @@ open class JpiTestingPlugin : Plugin<Project> {
         val copyPluginsForGeneratedJenkinsTest = target.tasks.register<CopyTestPluginDependenciesTask>("copyGeneratedJenkinsTestPluginDependencies") {
             group = "Verification"
             description = "Copies plugins on runtimeClasspath into directory for jenkins-test-harness to load in generatedJenkinsTest"
+            versionlessPluginLookup.set(project.provider(VersionlessPluginLookup(project.configurations)))
             files.from(project.configurations.findByName("runtimeClasspathJenkins"))
             outputDir.set(generatedJenkinsPluginsDir)
         }
@@ -94,6 +96,7 @@ open class JpiTestingPlugin : Plugin<Project> {
             group = "Verification"
             description = "Copies plugins on testRuntimeClasspath into directory for jenkins-test-harness to load in test"
             files.from(project.configurations.findByName("testRuntimeClasspathJenkins"))
+            versionlessPluginLookup.set(project.provider(VersionlessPluginLookup(project.configurations)))
             outputDir.set(testPluginsDir)
         }
         target.tasks.named<Test>("test").configure {

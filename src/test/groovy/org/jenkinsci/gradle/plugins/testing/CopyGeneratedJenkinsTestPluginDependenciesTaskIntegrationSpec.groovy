@@ -6,6 +6,7 @@ import org.jenkinsci.gradle.plugins.jpi.IntegrationSpec
 import org.jenkinsci.gradle.plugins.jpi.TestDataGenerator
 import org.jenkinsci.gradle.plugins.jpi.TestSupport
 import spock.lang.IgnoreIf
+import spock.lang.PendingFeature
 import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
@@ -20,6 +21,7 @@ class CopyGeneratedJenkinsTestPluginDependenciesTaskIntegrationSpec extends Inte
     private final String projectName = TestDataGenerator.generateName()
     private final String taskPath = ':copyGeneratedJenkinsTestPluginDependencies'
     private File build
+    private File settings
     private final engine = new SimpleTemplateEngine()
     @SuppressWarnings('GStringExpressionWithinString')
     private final buildTemplate = '''\
@@ -38,7 +40,7 @@ class CopyGeneratedJenkinsTestPluginDependenciesTaskIntegrationSpec extends Inte
     private final template = engine.createTemplate(buildTemplate)
 
     def setup() {
-        File settings = projectDir.newFile('settings.gradle')
+        settings = projectDir.newFile('settings.gradle')
         settings << """rootProject.name = \"$projectName\""""
         build = projectDir.newFile('build.gradle')
     }
@@ -155,5 +157,74 @@ class CopyGeneratedJenkinsTestPluginDependenciesTaskIntegrationSpec extends Inte
 
         then:
         result.task(taskPath).outcome == SUCCESS
+    }
+
+    def 'should work with project dependencies'() {
+        given:
+        def (dep, consumer) = ['my-dep-plugin-one', 'my-consumer'].collect {
+            def f = new File(projectDir.root, it)
+            f.mkdirs()
+            settings << "\ninclude '$it'"
+            f
+        }
+        def depBuild = template.make([
+                'jenkinsVersion': TestSupport.RECENT_JENKINS_VERSION,
+                'dependencies'  : [],
+        ])
+        new File(dep, 'build.gradle').withWriter { depBuild.writeTo(it) }
+        def consumerBuild = template.make([
+                'jenkinsVersion': TestSupport.RECENT_JENKINS_VERSION,
+                'dependencies'  : [
+                        ['configuration': 'implementation', 'coordinate': "project(':my-dep-plugin-one')"]
+                ],
+        ])
+        new File(consumer, 'build.gradle').withWriter { consumerBuild.writeTo(it) }
+
+        when:
+        gradleRunner()
+                .withArguments("my-consumer:$taskPath")
+                .build()
+
+        then:
+        def actual = new File(consumer, 'build/jpi-plugin/generatedJenkinsTest/test-dependencies/index')
+        actual.exists()
+        actual.readLines() == ['my-dep-plugin-one']
+        new File(consumer, 'build/jpi-plugin/generatedJenkinsTest/test-dependencies/my-dep-plugin-one.jpi').exists()
+    }
+
+    @PendingFeature
+    def 'should work with project dependencies that have transitive plugins'() {
+        given:
+        def (dep, consumer) = ['my-dep-plugin-one', 'my-consumer'].collect {
+            def f = new File(projectDir.root, it)
+            f.mkdirs()
+            settings << "\ninclude '$it'"
+            f
+        }
+        def depBuild = template.make([
+                'jenkinsVersion': TestSupport.RECENT_JENKINS_VERSION,
+                'dependencies'  : [['configuration': 'implementation', 'coordinate': q(ANT_1_11)]],
+        ])
+        new File(dep, 'build.gradle').withWriter { depBuild.writeTo(it) }
+        def consumerBuild = template.make([
+                'jenkinsVersion': TestSupport.RECENT_JENKINS_VERSION,
+                'dependencies'  : [
+                        ['configuration': 'implementation', 'coordinate': "project(':my-dep-plugin-one')"]
+                ],
+        ])
+        new File(consumer, 'build.gradle').withWriter { consumerBuild.writeTo(it) }
+
+        when:
+        gradleRunner()
+                .withArguments("my-consumer:$taskPath")
+                .build()
+
+        then:
+        def actual = new File(consumer, 'build/jpi-plugin/generatedJenkinsTest/test-dependencies/index')
+        actual.exists()
+        actual.readLines().toSorted() == ['ant', 'my-dep-plugin-one', 'structs']
+        actual.eachLine {
+            assert new File(consumer, "build/jpi-plugin/generatedJenkinsTest/test-dependencies/${it}.jpi").exists()
+        }
     }
 }
