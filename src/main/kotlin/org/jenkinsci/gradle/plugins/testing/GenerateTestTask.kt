@@ -48,6 +48,7 @@ open class GenerateTestTask @Inject constructor(private val workerExecutor: Work
         )
         q.submit(GenerateTest::class.java) {
             outputDir.set(this@GenerateTestTask.outputDir)
+            pluginId.set(this@GenerateTestTask.pluginId)
             testName.set(this@GenerateTestTask.testName)
             testParameters.set(params)
         }

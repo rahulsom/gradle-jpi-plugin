@@ -41,7 +41,7 @@ abstract class GenerateTest : WorkAction<GenerateTestParameters> {
                 .build()
 
         val pkg = requestedName.substringBeforeLast('.', "").let {
-            if (it.isNotEmpty()) it else DEFAULT_PKG_NAME
+            if (it.isNotEmpty()) it else "$DEFAULT_PKG_NAME.${parameters.pluginId.get().replace('-', '_')}"
         }
         val file = JavaFile.builder(pkg, test)
                 .skipJavaLangImports(true)

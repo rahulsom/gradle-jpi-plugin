@@ -9,4 +9,5 @@ interface GenerateTestParameters : WorkParameters {
     val outputDir: DirectoryProperty
     val testParameters: MapProperty<String, String>
     val testName: Property<String>
+    val pluginId: Property<String>
 }

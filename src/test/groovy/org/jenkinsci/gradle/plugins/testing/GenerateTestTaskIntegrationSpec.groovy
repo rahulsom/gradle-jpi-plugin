@@ -9,6 +9,7 @@ import spock.lang.PendingFeature
 import spock.lang.Unroll
 
 import java.nio.file.Files
+import java.nio.file.Path
 
 class GenerateTestTaskIntegrationSpec extends IntegrationSpec {
     private final String projectName = TestDataGenerator.generateName()
@@ -81,7 +82,7 @@ class GenerateTestTaskIntegrationSpec extends IntegrationSpec {
                 jenkinsVersion.set('${TestSupport.RECENT_JENKINS_VERSION}')
             }
             """.stripIndent()
-        def expected = new File(projectDir.root, 'build/inject-tests/org/jenkinsci/plugins/generated/InjectedTest.java').toPath()
+        def expected = expectedGeneratedTest()
         def mainOutputResources = new File(projectDir.root, 'build/resources/main').toPath()
 
         when:
@@ -110,7 +111,7 @@ class GenerateTestTaskIntegrationSpec extends IntegrationSpec {
                 $declaration
             }
             """.stripIndent()
-        def expected = new File(projectDir.root, 'build/inject-tests/org/jenkinsci/plugins/generated/InjectedTest.java').toPath()
+        def expected = expectedGeneratedTest()
 
         when:
         gradleRunner()
@@ -133,7 +134,7 @@ class GenerateTestTaskIntegrationSpec extends IntegrationSpec {
     }
 
     @Unroll
-    def 'should populate artifactId from #declaration'(String declaration, String expectedArtifactId) {
+    def 'should populate artifactId from #declaration'(String declaration, String expectedTestPackageName, String expectedArtifactId) {
         given:
         build << """
             jenkinsPlugin {
@@ -142,7 +143,7 @@ class GenerateTestTaskIntegrationSpec extends IntegrationSpec {
                 $declaration
             }
             """.stripIndent()
-        def expected = new File(projectDir.root, 'build/inject-tests/org/jenkinsci/plugins/generated/InjectedTest.java').toPath()
+        def expected = expectedGeneratedTest(expectedTestPackageName)
 
         when:
         gradleRunner()
@@ -154,11 +155,12 @@ class GenerateTestTaskIntegrationSpec extends IntegrationSpec {
         expected.text.contains("""parameters.put("artifactId", "$expectedArtifactId");""")
 
         where:
-        declaration                               | expectedArtifactId
-        """pluginId = 'abc'"""                    | 'abc'
-        """pluginId.set('abc')"""                 | 'abc'
-        """shortName = 'xyz'"""                   | 'xyz'
-        """pluginId = 'abc'; shortName = 'xyz'""" | 'abc'
+        declaration                               | expectedTestPackageName | expectedArtifactId
+        """pluginId = 'abc-def'"""                | 'abc_def'               | 'abc-def'
+        """pluginId = 'abc'"""                    | 'abc'                   | 'abc'
+        """pluginId.set('abc')"""                 | 'abc'                   | 'abc'
+        """shortName = 'xyz'"""                   | 'xyz'                   | 'xyz'
+        """pluginId = 'abc'; shortName = 'xyz'""" | 'abc'                   | 'abc'
     }
 
     @Unroll
@@ -171,7 +173,7 @@ class GenerateTestTaskIntegrationSpec extends IntegrationSpec {
                 $declaration
             }
             """.stripIndent()
-        def expected = new File(projectDir.root, "build/inject-tests/${expectedPath}.java").toPath()
+        def expected = new File(projectDir.root, "build/inject-tests/${expectedPath.replace('%REPLACE%', projectName)}.java").toPath()
 
         when:
         gradleRunner()
@@ -183,8 +185,8 @@ class GenerateTestTaskIntegrationSpec extends IntegrationSpec {
 
         where:
         declaration                                                                    | expectedPath
-        """injectedTestName = 'GenTest'"""                                             | 'org/jenkinsci/plugins/generated/GenTest'
-        """injectedTestName = 'One'; generatedTestClassName = 'Two'"""                 | 'org/jenkinsci/plugins/generated/Two'
+        """injectedTestName = 'GenTest'"""                                             | 'org/jenkinsci/plugins/generated/%REPLACE%/GenTest'
+        """injectedTestName = 'One'; generatedTestClassName = 'Two'"""                 | 'org/jenkinsci/plugins/generated/%REPLACE%/Two'
         """injectedTestName = 'my.package.GenTest'"""                                  | 'my/package/GenTest'
         """generatedTestClassName = 'one.GenTest'"""                                   | 'one/GenTest'
         """generatedTestClassName.set('one.GenTest')"""                                | 'one/GenTest'
@@ -247,5 +249,9 @@ class GenerateTestTaskIntegrationSpec extends IntegrationSpec {
         gradleRunner()
                 .withArguments(taskPath, '--configuration-cache')
                 .build()
+    }
+
+    private Path expectedGeneratedTest(String pluginId = projectName) {
+        new File(projectDir.root, "build/inject-tests/org/jenkinsci/plugins/generated/$pluginId/InjectedTest.java").toPath()
     }
 }
