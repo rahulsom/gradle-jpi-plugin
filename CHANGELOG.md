@@ -10,8 +10,8 @@
     frameworks in the `test` task without negatively impacting the generated tests
   * introduce `generateJenkinsTests` - tested to ensure generated code is warning-free
   * deprecate `insertTest` task - use `generateJenkinsTests`
-  * upgrade dependency `org.jenkins-ci.main:jenkins-test-harness:2.60` -> `2.71`
-  * updated to Gradle 6.8.2
+  * upgrade dependency `org.jenkins-ci.main:jenkins-test-harness:2.60` -> `1484.v51078b2c2b34`
+  * updated to Gradle 6.8.3
 
 ## 0.42.0 (2020-01-23)
 

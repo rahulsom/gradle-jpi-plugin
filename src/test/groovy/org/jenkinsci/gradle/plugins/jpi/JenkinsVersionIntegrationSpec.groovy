@@ -122,24 +122,24 @@ class JenkinsVersionIntegrationSpec extends IntegrationSpec {
         where:
         version   | expectations
         '2.222.3' | [
-                'org.jenkins-ci.main:jenkins-core:2.222.3'     : EVERYWHERE_BUT_RUNTIME,
-                'com.google.code.findbugs:annotations:3.0.0'   : COMPILE_ONLY,
-                'findbugs:annotations:1.0.0'                   : NOWHERE,
-                'javax.servlet:servlet-api:2.4'                : NOWHERE,
-                'javax.servlet:javax.servlet-api:3.1.0'        : COMPILE_ONLY,
-                'org.jenkins-ci.main:jenkins-test-harness:2.71': TEST_IMPLEMENTATION_ONLY,
-                'org.jenkins-ci.main:ui-samples-plugin:2.0'    : TEST_IMPLEMENTATION_ONLY,
-                'junit:junit-dep:4.10'                         : NOWHERE,
+                'org.jenkins-ci.main:jenkins-core:2.222.3'                   : EVERYWHERE_BUT_RUNTIME,
+                'com.google.code.findbugs:annotations:3.0.0'                 : COMPILE_ONLY,
+                'findbugs:annotations:1.0.0'                                 : NOWHERE,
+                'javax.servlet:servlet-api:2.4'                              : NOWHERE,
+                'javax.servlet:javax.servlet-api:3.1.0'                      : COMPILE_ONLY,
+                'org.jenkins-ci.main:jenkins-test-harness:1484.v51078b2c2b34': TEST_IMPLEMENTATION_ONLY,
+                'org.jenkins-ci.main:ui-samples-plugin:2.0'                  : TEST_IMPLEMENTATION_ONLY,
+                'junit:junit-dep:4.10'                                       : NOWHERE,
         ]
         '2.64'    | [
-                'org.jenkins-ci.main:jenkins-core:2.64'        : EVERYWHERE_BUT_RUNTIME,
-                'com.google.code.findbugs:annotations:3.0.0'   : COMPILE_ONLY,
-                'findbugs:annotations:1.0.0'                   : NOWHERE,
-                'javax.servlet:servlet-api:2.4'                : NOWHERE,
-                'javax.servlet:javax.servlet-api:3.1.0'        : COMPILE_ONLY,
-                'org.jenkins-ci.main:jenkins-test-harness:2.71': TEST_IMPLEMENTATION_ONLY,
-                'org.jenkins-ci.main:ui-samples-plugin:2.0'    : TEST_IMPLEMENTATION_ONLY,
-                'junit:junit-dep:4.10'                         : NOWHERE,
+                'org.jenkins-ci.main:jenkins-core:2.64'                      : EVERYWHERE_BUT_RUNTIME,
+                'com.google.code.findbugs:annotations:3.0.0'                 : COMPILE_ONLY,
+                'findbugs:annotations:1.0.0'                                 : NOWHERE,
+                'javax.servlet:servlet-api:2.4'                              : NOWHERE,
+                'javax.servlet:javax.servlet-api:3.1.0'                      : COMPILE_ONLY,
+                'org.jenkins-ci.main:jenkins-test-harness:1484.v51078b2c2b34': TEST_IMPLEMENTATION_ONLY,
+                'org.jenkins-ci.main:ui-samples-plugin:2.0'                  : TEST_IMPLEMENTATION_ONLY,
+                'junit:junit-dep:4.10'                                       : NOWHERE,
         ]
         '2.63'    | [
                 'org.jenkins-ci.main:jenkins-core:2.63'       : EVERYWHERE_BUT_RUNTIME,
