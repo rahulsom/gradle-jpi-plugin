@@ -3,6 +3,8 @@ package org.jenkinsci.gradle.plugins.testing
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.attributes.Usage
+import org.gradle.api.file.Directory
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.testing.Test
 import org.gradle.kotlin.dsl.get
@@ -14,8 +16,20 @@ import org.jenkinsci.gradle.plugins.jpi.internal.JpiExtensionBridge
 import java.io.File
 
 open class JpiTestingPlugin : Plugin<Project> {
+    companion object {
+        fun Test.useJenkinsRule(dir: Provider<Directory>) {
+            doFirst {
+                val war = project.configurations.getByName("declaredJenkinsWar").resolvedConfiguration.resolvedArtifacts.single()
+                systemProperty("jth.jenkins-war.path", war.file.absolutePath)
+                systemProperty("java.awt.headless", "true")
+                // set build directory for Jenkins test harness, JENKINS-26331
+                // this is the directory the war will be exploded to
+                systemProperty("buildDirectory", dir.get().asFile.absolutePath)
+            }
+        }
+    }
     override fun apply(target: Project) {
-        val declaredJenkinsWar = target.configurations.create("declaredJenkinsWar") {
+        target.configurations.create("declaredJenkinsWar") {
             isVisible = false
             isCanBeConsumed = false
             isCanBeResolved = true
@@ -72,18 +86,12 @@ open class JpiTestingPlugin : Plugin<Project> {
             dependsOn(generateJenkinsTests)
         }
         val generatedJenkinsTest = target.tasks.register<Test>("generatedJenkinsTest") {
+            useJenkinsRule(generatedTestTaskDir)
             inputs.files(copyPluginsForGeneratedJenkinsTest)
             group = "Verification"
             description = "Runs tests from org.jvnet.hudson.test.PluginAutomaticTestBuilder"
             testClassesDirs = generatedSourceSet.output.classesDirs
             classpath = project.files(generatedJenkinsPluginsDir.get().asFile.parentFile) + generatedSourceSet.runtimeClasspath
-            doFirst {
-                val war = declaredJenkinsWar.resolvedConfiguration.resolvedArtifacts.single()
-                // set build directory for Jenkins test harness, JENKINS-26331
-                // this is the directory the war will be exploded to
-                systemProperty("buildDirectory", generatedTestTaskDir.get().asFile.absolutePath)
-                systemProperty("jth.jenkins-war.path", war.file.absolutePath)
-            }
         }
         target.tasks.named("check").configure {
             dependsOn(generatedJenkinsTest)
@@ -100,13 +108,9 @@ open class JpiTestingPlugin : Plugin<Project> {
             outputDir.set(testPluginsDir)
         }
         target.tasks.named<Test>("test").configure {
+            useJenkinsRule(testTaskDir)
             inputs.files(copyPluginsForTest)
             classpath += project.files(testPluginsDir.get().asFile.parentFile)
-            doFirst {
-                val war = declaredJenkinsWar.resolvedConfiguration.resolvedArtifacts.single()
-                systemProperty("buildDirectory", testTaskDir.get().asFile.absolutePath)
-                systemProperty("jth.jenkins-war.path", war.file.absolutePath)
-            }
         }
     }
 }

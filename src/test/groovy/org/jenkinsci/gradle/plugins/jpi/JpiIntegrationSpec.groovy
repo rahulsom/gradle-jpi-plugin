@@ -314,6 +314,38 @@ class JpiIntegrationSpec extends IntegrationSpec {
         'generatedJenkinsTest' | 'build/inject-tests' | 'build/jpi-plugin/generatedJenkinsTest'
     }
 
+    @Unroll
+    def 'set headless system property in #task'(String task, String srcDir) {
+        given:
+        build << """\
+            repositories { mavenCentral() }
+            dependencies {
+                testImplementation 'junit:junit:4.12'
+            }
+            jenkinsPlugin {
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+            }
+            """.stripIndent()
+        def actualFile = projectDir.newFile()
+        TestSupport.TEST_THAT_WRITES_SYSTEM_PROPERTIES_TO.apply(actualFile)
+                .writeTo(new File(projectDir.root, srcDir))
+
+        when:
+        gradleRunner()
+                .withArguments(task)
+                .build()
+
+        then:
+        def actual = new Properties()
+        actual.load(new FileReader(actualFile))
+        actual.get('java.awt.headless') == 'true'
+
+        where:
+        task                   | srcDir
+        'test'                 | 'src/test/java'
+        'generatedJenkinsTest' | 'build/inject-tests'
+    }
+
     def 'sources and javadoc jars are created by default'() {
         given:
         build << """\
