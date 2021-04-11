@@ -1,7 +1,5 @@
 package org.jenkinsci.gradle.plugins.jpi.internal
 
-import groovy.xml.QName
-
 class LicenseDataExtractor {
     private final XmlParser parser
 
@@ -16,14 +14,14 @@ class LicenseDataExtractor {
     LicenseData extractFrom(Reader reader) {
         Node pom = parser.parse(reader)
 
-        String name = pom[QName.valueOf('name')].text()
-        String description = pom[QName.valueOf('description')].text()
-        String url = pom[QName.valueOf('url')].text()
-        NodeList licenses = pom[QName.valueOf('licenses')]
+        String name = pom['name'].text()
+        String description = pom['description'].text()
+        String url = pom['url'].text()
+        NodeList licenses = pom['licenses']
 
-        def mapped = licenses[QName.valueOf('license')].collect { Node license ->
-            String licenseUrl = license[QName.valueOf('url')].text()
-            String licenseName = license[QName.valueOf('name')].text()
+        def mapped = licenses['license'].collect { Node license ->
+            String licenseUrl = license['url'].text()
+            String licenseName = license['name'].text()
             new License(licenseName, licenseUrl)
         }.toSet()
         new LicenseData(name, description, url, mapped)
