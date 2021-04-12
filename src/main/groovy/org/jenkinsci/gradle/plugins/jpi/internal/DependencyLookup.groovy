@@ -16,7 +16,7 @@ class DependencyLookup {
         if (version < GradleVersion.version('2.0')) {
             servlet = 'javax.servlet:servlet-api:2.4'
         }
-        String testHarness = 'org.jenkins-ci.main:jenkins-test-harness:1484.v51078b2c2b34'
+        String testHarness = 'org.jenkins-ci.main:jenkins-test-harness:1529.v4fd5bafdcd33'
         if (version < GradleVersion.version('2.64')) {
             testHarness = 'org.jenkins-ci.main:jenkins-test-harness:2.0'
         }

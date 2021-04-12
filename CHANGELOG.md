@@ -10,7 +10,7 @@
     frameworks in the `test` task without negatively impacting the generated tests
   * introduce `generateJenkinsTests` - tested to ensure generated code is warning-free
   * deprecate `insertTest` task - use `generateJenkinsTests`
-  * upgrade dependency `org.jenkins-ci.main:jenkins-test-harness:2.60` -> `1484.v51078b2c2b34`
+  * upgrade dependency `org.jenkins-ci.main:jenkins-test-harness:2.60` -> `1529.v4fd5bafdcd33`
   * set `java.awt.headless` on `test` and `generatedJenkinsTest` tasks
   * deprecate `JpiExtension#getDisabledTestInjection()` - use `generateTests` property
   * deprecate `JpiExtension#setDisabledTestInjection(boolean)` - use `generateTests` property
