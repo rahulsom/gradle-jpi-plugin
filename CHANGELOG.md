@@ -1,3 +1,5 @@
+## 0.44.0 (unreleased)
+
 ## 0.43.0 (2021-04-12)
 
   * introduce separate unpacked war directories for `test` and `generatedJenkinsTest` so they can use different plugins
