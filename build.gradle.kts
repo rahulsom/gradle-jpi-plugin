@@ -13,6 +13,7 @@ plugins {
     `java-gradle-plugin`
     id("com.github.sghill.distribution-sha") version "0.4.0"
 }
+plugins.apply(internal.DependenciesComparisonPlugin::class.java)
 
 repositories {
     maven {
@@ -41,7 +42,7 @@ dependencies {
     compileOnly("com.squareup:javapoet:1.13.0") {
         because("used for GenerateTestTask")
     }
-    compileOnly("org.jenkins-ci.main:jenkins-test-harness:1484.v51078b2c2b34") {
+    compileOnly("org.jenkins-ci.main:jenkins-test-harness:${stringProp("deps.jenkinsTestHarness")}") {
         because("used for GenerateTestTask")
         isTransitive = false
     }
