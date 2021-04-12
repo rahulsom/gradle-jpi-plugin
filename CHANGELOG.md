@@ -12,6 +12,12 @@
   * deprecate `insertTest` task - use `generateJenkinsTests`
   * upgrade dependency `org.jenkins-ci.main:jenkins-test-harness:2.60` -> `1484.v51078b2c2b34`
   * set `java.awt.headless` on `test` and `generatedJenkinsTest` tasks
+  * deprecate `JpiExtension#getDisabledTestInjection()` - use `generateTests` property
+  * deprecate `JpiExtension#setDisabledTestInjection(boolean)` - use `generateTests` property
+  * deprecate `JpiExtension#getInjectedTestName()` - use `generatedTestClassName` property
+  * deprecate `JpiExtension#setInjectedTestName(String)` - use `generatedTestClassName` property
+  * deprecate `JpiExtension#getRequirePI()` - use `requireEscapeByDefaultInJelly` property
+  * deprecate `JpiExtension#setRequirePI(boolean)` - use `requireEscapeByDefaultInJelly` property
   * updated to Gradle 6.8.3
 
 ## 0.42.0 (2020-01-23)

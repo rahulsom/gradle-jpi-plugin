@@ -53,9 +53,14 @@ class JpiExtension implements JpiExtensionBridge {
      */
     final Property<Boolean> generateTests
     /**
-     * If true, verify that all the jelly scripts have the Jelly XSS PI in them.
+     * Verify that all the jelly scripts have the Jelly XSS PI in them.
+     * Has no effect unless {@code generateTests} is also {@code true}
      */
     final Property<Boolean> requireEscapeByDefaultInJelly
+    /**
+     * Name of test class to generate.
+     * Has no effect unless {@code generateTests} is also {@code true}.
+     */
     final Property<String> generatedTestClassName
     private final Property<String> pluginId
     private final Property<String> humanReadableName
@@ -296,26 +301,70 @@ class JpiExtension implements JpiExtensionBridge {
         ConfigureUtil.configure(closure, licenses)
     }
 
+    /**
+     * Replaced by inverse flag property {@code generateTests}
+     * @deprecated To be removed in 1.0.0
+     * @return true if tests will not be generated
+     */
+    @Deprecated
+    @ReplacedBy('generateTests')
     boolean getDisabledTestInjection() {
         !generateTests.get()
     }
 
+    /**
+     * Replaced by inverse flag property {@code generateTests}
+     * @deprecated To be removed in 1.0.0
+     */
+    @Deprecated
     void setDisabledTestInjection(boolean disable) {
         generateTests.convention(!disable)
     }
 
+    /**
+     * Replaced by property {@code generatedTestClassName}. Test name to
+     * generate if {@code generateTests} is set to {@code true}.
+     *
+     * @deprecated To be removed in 1.0.0
+     * @return name of test to be generated
+     */
+    @Deprecated
+    @ReplacedBy('generatedTestClassName')
     String getInjectedTestName() {
         generatedTestClassName.get()
     }
 
+    /**
+     * Replaced by property {@code generatedTestClassName}. Test name to
+     * generate if {@code generateTests} is set to {@code true}.
+     *
+     * @deprecated To be removed in 1.0.0
+     */
+    @Deprecated
     void setInjectedTestName(String name) {
         generatedTestClassName.convention(name)
     }
 
+    /**
+     * Replaced by property {@code requireEscapeByDefaultInJelly}. Enables
+     * additional tests if {@code generateTests} is set to {@code true}.
+     *
+     * @deprecated To be removed in 1.0.0
+     * @return true if escape by default is required
+     */
+    @Deprecated
+    @ReplacedBy('generatedTestClassName')
     boolean getRequirePI() {
         requireEscapeByDefaultInJelly.get()
     }
 
+    /**
+     * Replaced by property {@code requireEscapeByDefaultInJelly}. Enables
+     * additional tests if {@code generateTests} is set to {@code true}.
+     *
+     * @deprecated To be removed in 1.0.0
+     */
+    @Deprecated
     void setRequirePI(boolean require) {
         requireEscapeByDefaultInJelly.convention(require)
     }
