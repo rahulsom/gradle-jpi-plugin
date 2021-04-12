@@ -61,6 +61,11 @@ dependencies {
     testImplementation("org.jenkins-ci.main:jenkins-core:2.263.3") {
         exclude(module = "groovy-all")
     }
+    testImplementation(platform("org.junit:junit-bom:5.7.1"))
+    testImplementation("org.junit.jupiter:junit-jupiter-api")
+    testImplementation("org.assertj:assertj-core:3.18.1")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+    testRuntimeOnly("org.junit.vintage:junit-vintage-engine")
 }
 
 publishing {
@@ -133,6 +138,7 @@ tasks.addRule("Pattern: testGradle<ID>") {
 }
 
 tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
     testLogging {
         exceptionFormat = FULL
     }
