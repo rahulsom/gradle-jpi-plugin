@@ -20,7 +20,7 @@
   * deprecate `JpiExtension#setRequirePI(boolean)` - use `requireEscapeByDefaultInJelly` property
   * updated to Gradle 6.8.3
 
-## 0.42.0 (2020-01-23)
+## 0.42.0 (2021-01-23)
 
   * improves task avoidance by properly modeling manifest generation inputs [#179][179] [JENKINS-58205][58205]
   * introduce `generateJenkinsManifest` task for creating the jar and jpi manifest
