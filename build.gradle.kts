@@ -53,7 +53,7 @@ dependencies {
     testImplementation("org.spockframework:spock-core:1.3-groovy-2.5") {
         exclude(module = "groovy-all") // use the version that is distributed with Gradle
     }
-    testImplementation("org.xmlunit:xmlunit-core:2.6.3")
+    testImplementation("org.xmlunit:xmlunit-core:2.8.3")
     testImplementation("org.apache.commons:commons-text:1.8")
     testImplementation("com.squareup:javapoet:1.13.0")
     testImplementation("org.kohsuke:access-modifier-checker:1.21")
