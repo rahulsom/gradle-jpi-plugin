@@ -56,14 +56,13 @@ dependencies {
     testImplementation("org.xmlunit:xmlunit-core:2.6.3")
     testImplementation("org.apache.commons:commons-text:1.8")
     testImplementation("com.squareup:javapoet:1.13.0")
-    testImplementation("org.assertj:assertj-core:3.19.0")
     testImplementation("org.kohsuke:access-modifier-checker:1.21")
     testImplementation("org.jenkins-ci.main:jenkins-core:2.263.3") {
         exclude(module = "groovy-all")
     }
     testImplementation(platform("org.junit:junit-bom:5.8.1"))
     testImplementation("org.junit.jupiter:junit-jupiter-api")
-    testImplementation("org.assertj:assertj-core:3.18.1")
+    testImplementation("org.assertj:assertj-core:3.21.0")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
     testRuntimeOnly("org.junit.vintage:junit-vintage-engine")
 }
