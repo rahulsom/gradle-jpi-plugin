@@ -95,15 +95,17 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
 
         dependencyAnalysis = new DependencyAnalysis(gradleProject)
 
+        def ext = gradleProject.extensions.create('jenkinsPlugin', JpiExtension, gradleProject)
+
         gradleProject.plugins.apply(JavaLibraryPlugin)
         gradleProject.plugins.apply(GroovyPlugin)
         gradleProject.plugins.apply(kotlinPlugin('org.jenkinsci.gradle.plugins.accmod.AccessModifierPlugin'))
         gradleProject.plugins.apply(kotlinPlugin('org.jenkinsci.gradle.plugins.manifest.JenkinsManifestPlugin'))
         gradleProject.plugins.apply(kotlinPlugin('org.jenkinsci.gradle.plugins.testing.JpiTestingPlugin'))
 
-        def ext = gradleProject.extensions.create('jenkinsPlugin', JpiExtension, gradleProject)
         gradleProject.plugins.apply(LegacyWorkaroundsPlugin)
 
+        configureConfigurations(gradleProject)
         def overlap = gradleProject.tasks.register(CheckOverlappingSourcesTask.TASK_NAME,
                 CheckOverlappingSourcesTask) { CheckOverlappingSourcesTask t ->
             t.group = LifecycleBasePlugin.VERIFICATION_GROUP
@@ -125,7 +127,7 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
             def main = project.extensions.getByType(SourceSetContainer)['main']
             def mainResources = main.resources.srcDirs
             def mainOutput = main.output
-            def libraries = project.plugins.getPlugin(JpiPlugin).dependencyAnalysis.allLibraryDependencies
+            def libraries = dependencyAnalysis.allLibraryDependencies
             t.fileName.set(ext.shortName + '.hpl')
             t.hplDir.set(project.layout.buildDirectory.dir('hpl'))
             t.resourcePath.set(project.file(WEB_APP_DIR))
@@ -200,7 +202,6 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
         }
         configureRepositories(gradleProject)
         configureJpi(gradleProject)
-        configureConfigurations(gradleProject)
         configureManifest(gradleProject)
         configureLicenseInfo(gradleProject)
         configureTestDependencies(gradleProject)
@@ -514,7 +515,7 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
         }
     }
 
-    private static configureTestHpl(Project project) {
+    private configureTestHpl(Project project) {
         // generate test hpl manifest for the current plugin, to be used during unit test
         def outputDir = project.layout.buildDirectory.dir('generated-resources/test')
 
@@ -523,7 +524,7 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
             def main = project.extensions.getByType(SourceSetContainer)['main']
             def mainResources = main.resources.srcDirs
             def mainOutput = main.output
-            def libraries = project.plugins.getPlugin(JpiPlugin).dependencyAnalysis.allLibraryDependencies
+            def libraries = dependencyAnalysis.allLibraryDependencies
             it.fileName.set('the.hpl')
             it.hplDir.set(outputDir)
             it.resourcePath.set(project.file(WEB_APP_DIR))
