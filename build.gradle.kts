@@ -1,4 +1,3 @@
-import org.gradle.api.JavaVersion.VERSION_1_8
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
 import org.gradle.util.GradleVersion.current
 import org.gradle.util.GradleVersion.version
@@ -22,8 +21,9 @@ repositories {
 }
 
 java {
-    sourceCompatibility = VERSION_1_8
-    targetCompatibility = VERSION_1_8
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(8))
+    }
 }
 
 kotlinDslPluginOptions {
