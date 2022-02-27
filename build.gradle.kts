@@ -50,9 +50,8 @@ dependencies {
     implementation(sezpoz)
     implementation(localGroovy())
     testAnnotationProcessor(sezpoz)
-    testImplementation("org.spockframework:spock-core:1.3-groovy-2.5") {
-        exclude(module = "groovy-all") // use the version that is distributed with Gradle
-    }
+    testImplementation("org.spockframework:spock-core:2.1-groovy-2.5")
+    testImplementation("org.spockframework:spock-junit4:2.1-groovy-2.5")
     testImplementation("org.xmlunit:xmlunit-core:2.8.3")
     testImplementation("org.apache.commons:commons-text:1.9")
     testImplementation("com.squareup:javapoet:1.13.0")
