@@ -2,7 +2,6 @@ package org.jenkinsci.gradle.plugins.jpi.server
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
@@ -30,7 +29,7 @@ class InstallJenkinsServerPluginsTask extends DefaultTask {
         it.resolvedConfiguration
                 .resolvedArtifacts
                 .findAll { ['hpi', 'jpi'].contains(it.extension) }
-                .collectEntries { [(it.file.name): withoutVersion(it)] } as Map<String, String>
+                .collectEntries { [(it.file.name): "${it.name}.jpi"] } as Map<String, String>
     }
 
     @OutputDirectory
@@ -52,9 +51,5 @@ class InstallJenkinsServerPluginsTask extends DefaultTask {
                 from(hpl)
             }
         }
-    }
-
-    private static String withoutVersion(ResolvedArtifact artifact) {
-        artifact.name + '.jpi'
     }
 }
