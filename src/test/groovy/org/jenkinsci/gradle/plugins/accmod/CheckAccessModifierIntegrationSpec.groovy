@@ -299,7 +299,7 @@ class CheckAccessModifierIntegrationSpec extends IntegrationSpec {
 
     @Unroll
     @PendingFeature
-    def 'should fail if package #restrictionType.simpleName internally'(String restrictionType, String expected) {
+    def 'should fail if package #restrictionType internally'(String restrictionType, String expected) {
         given:
         ohNoFile.writeTo(srcMainJava)
         consumerFile.writeTo(srcMainJava)

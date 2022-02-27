@@ -98,7 +98,7 @@ class GeneratePluginDependenciesManifestTaskIntegrationSpec extends IntegrationS
     @Issue('https://github.com/gradle/gradle/issues/13278')
     @SuppressWarnings('UnnecessaryGetter')
     @IgnoreIf({ getGradleVersionForTest() < GradleVersion.version('6.7') })
-    def 'should rerun only if #config plugin dependencies change 6.7+'(String before, String after, TaskOutcome secondRun) {
+    def 'should rerun only if config plugin dependencies change 6.7+'(String before, String after, TaskOutcome secondRun) {
         given:
         build.text = """\
             $BUILD_FILE
