@@ -32,7 +32,7 @@ class CheckAccessModifierIgnoreFailuresIntegrationSpec extends IntegrationSpec {
                 implementation 'org.jenkins-ci.plugins:mercurial:2.10'
             }
             """.stripIndent()
-        srcMainJava = new File(projectDir.root, 'src/main/java').toPath()
+        srcMainJava = inProjectDir('src/main/java').toPath()
         JavaFile.builder('org.example', TypeSpec.classBuilder('Consumer')
                 .addModifiers(Modifier.PUBLIC)
                 .addMethod(MethodSpec.methodBuilder('callDoNotUse')

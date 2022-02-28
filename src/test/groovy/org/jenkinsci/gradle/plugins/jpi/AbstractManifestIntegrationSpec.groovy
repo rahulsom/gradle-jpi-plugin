@@ -595,7 +595,7 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
             }
         }
         def producedJar = "build/libs/${fileName}"
-        new JarInputStream(new File(projectDir.root, producedJar).newInputStream())
+        new JarInputStream(inProjectDir(producedJar).newInputStream())
                 .manifest
                 .mainAttributes
                 .collectEntries { [(it.key.toString()): it.value.toString()] } as Map<String, String>

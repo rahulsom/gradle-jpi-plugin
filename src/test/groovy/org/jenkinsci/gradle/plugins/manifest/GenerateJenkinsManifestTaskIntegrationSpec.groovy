@@ -33,7 +33,7 @@ class GenerateJenkinsManifestTaskIntegrationSpec extends IntegrationSpec {
         build = touchInProjectDir('build.gradle')
         def props = new Properties()
         props.setProperty('version', '1.0.0')
-        new File(projectDir.root, 'gradle.properties').withOutputStream {
+        inProjectDir('gradle.properties').withOutputStream {
             props.store(it, 'generated')
         }
     }

@@ -150,7 +150,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
             }
             """.stripIndent()
 
-        TestSupport.CALCULATOR.writeTo(new File(projectDir.root, 'src/main/java'))
+        TestSupport.CALCULATOR.writeTo(inProjectDir('src/main/java'))
 
         when:
         def run = gradleRunner()
@@ -160,7 +160,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
         then:
         run.task(':jpi').outcome == TaskOutcome.SUCCESS
 
-        def generatedHpi = new File(projectDir.root, "build/libs/${projectName}.hpi")
+        def generatedHpi = inProjectDir("build/libs/${projectName}.hpi")
         def hpiFile = new ZipFile(generatedHpi)
         def hpiEntries = hpiFile.entries()*.name
 
@@ -169,7 +169,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
         hpiEntries.contains('WEB-INF/lib/junit-4.12.jar')
         !hpiEntries.contains('WEB-INF/lib/credentials-1.9.4.jar')
 
-        def generatedJar = new File(projectDir.root, "${projectName}-${projectVersion}.jar")
+        def generatedJar = inProjectDir("${projectName}-${projectVersion}.jar")
         Files.copy(hpiFile.getInputStream(hpiFile.getEntry(jarPathInHpi)), generatedJar.toPath())
         def jarFile = new ZipFile(generatedJar)
         def jarEntries = jarFile.entries()*.name
@@ -295,7 +295,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
             """.stripIndent()
         def actualFile = touchInProjectDir('some-file')
         TestSupport.TEST_THAT_WRITES_SYSTEM_PROPERTIES_TO.apply(actualFile)
-                .writeTo(new File(projectDir.root, srcDir))
+                .writeTo(inProjectDir(srcDir))
 
         when:
         gradleRunner()
@@ -305,7 +305,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
         then:
         def actual = new Properties()
         actual.load(new FileReader(actualFile))
-        def expected = new File(projectDir.root, expectedDir).toPath().toRealPath().toString()
+        def expected = inProjectDir(expectedDir).toPath().toRealPath().toString()
         actual.get('buildDirectory') == expected
 
         where:
@@ -328,7 +328,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
             """.stripIndent()
         def actualFile = touchInProjectDir('some-file')
         TestSupport.TEST_THAT_WRITES_SYSTEM_PROPERTIES_TO.apply(actualFile)
-                .writeTo(new File(projectDir.root, srcDir))
+                .writeTo(inProjectDir(srcDir))
 
         when:
         gradleRunner()

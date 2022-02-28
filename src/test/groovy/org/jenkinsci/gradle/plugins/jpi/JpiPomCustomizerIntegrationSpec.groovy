@@ -1,7 +1,6 @@
 package org.jenkinsci.gradle.plugins.jpi
 
 import groovy.json.JsonSlurper
-import org.junit.rules.TemporaryFolder
 import org.xmlunit.builder.DiffBuilder
 import org.xmlunit.builder.Input
 
@@ -38,8 +37,8 @@ class JpiPomCustomizerIntegrationSpec extends IntegrationSpec {
         generatePom()
 
         then:
-        compareXml('minimal-pom.xml', actualPomIn(projectDir))
-        compareJson('minimal-module.json', actualModuleIn(projectDir))
+        compareXml('minimal-pom.xml', actualPom())
+        compareJson('minimal-module.json', actualModule())
     }
 
     def 'minimal POM with other publication logic setting the name'() {
@@ -60,8 +59,8 @@ class JpiPomCustomizerIntegrationSpec extends IntegrationSpec {
         generatePom()
 
         then:
-        compareXml('minimal-pom.xml', actualPomIn(projectDir))
-        compareJson('minimal-module.json', actualModuleIn(projectDir))
+        compareXml('minimal-pom.xml', actualPom())
+        compareJson('minimal-module.json', actualModule())
     }
 
     def 'POM with other publication logic setting the description'() {
@@ -82,8 +81,8 @@ class JpiPomCustomizerIntegrationSpec extends IntegrationSpec {
         when:
         generatePom()
         then:
-        compareXml('minimal-pom-with-description.xml', actualPomIn(projectDir))
-        compareJson('minimal-module.json', actualModuleIn(projectDir))
+        compareXml('minimal-pom-with-description.xml', actualPom())
+        compareJson('minimal-module.json', actualModule())
     }
 
     def 'POM with all metadata'() {
@@ -122,8 +121,8 @@ class JpiPomCustomizerIntegrationSpec extends IntegrationSpec {
         generatePom()
 
         then:
-        compareXml('complex-pom.xml', actualPomIn(projectDir))
-        compareJson('minimal-module.json', actualModuleIn(projectDir))
+        compareXml('complex-pom.xml', actualPom())
+        compareJson('minimal-module.json', actualModule())
     }
 
     def 'gitHubUrl not pointing to GitHub'() {
@@ -139,8 +138,8 @@ class JpiPomCustomizerIntegrationSpec extends IntegrationSpec {
         generatePom()
 
         then:
-        compareXml('bitbucket-pom.xml', actualPomIn(projectDir))
-        compareJson('minimal-module.json', actualModuleIn(projectDir))
+        compareXml('bitbucket-pom.xml', actualPom())
+        compareJson('minimal-module.json', actualModule())
     }
 
     def 'mavenLocal is ignored'() {
@@ -158,8 +157,8 @@ class JpiPomCustomizerIntegrationSpec extends IntegrationSpec {
         generatePom()
 
         then:
-        compareXml('minimal-pom.xml', actualPomIn(projectDir))
-        compareJson('minimal-module.json', actualModuleIn(projectDir))
+        compareXml('minimal-pom.xml', actualPom())
+        compareJson('minimal-module.json', actualModule())
     }
 
     def 'mavenCentral is ignored'() {
@@ -177,8 +176,8 @@ class JpiPomCustomizerIntegrationSpec extends IntegrationSpec {
         generatePom()
 
         then:
-        compareXml('minimal-pom.xml', actualPomIn(projectDir))
-        compareJson('minimal-module.json', actualModuleIn(projectDir))
+        compareXml('minimal-pom.xml', actualPom())
+        compareJson('minimal-module.json', actualModule())
     }
 
     def 'plugin dependencies'() {
@@ -196,8 +195,8 @@ class JpiPomCustomizerIntegrationSpec extends IntegrationSpec {
         generatePom()
 
         then:
-        compareXml('plugin-dependencies-pom.xml', actualPomIn(projectDir))
-        compareJson('plugin-dependencies-module.json', actualModuleIn(projectDir))
+        compareXml('plugin-dependencies-pom.xml', actualPom())
+        compareJson('plugin-dependencies-module.json', actualModule())
     }
 
     def 'plugin with dynamic dependency - 1.9.+'() {
@@ -231,8 +230,8 @@ class JpiPomCustomizerIntegrationSpec extends IntegrationSpec {
         generatePom()
 
         then:
-        compareXml('plugin-dependencies-pom.xml', actualPomIn(projectDir))
-        compareJson('plugin-dependencies-module.json', actualModuleIn(projectDir))
+        compareXml('plugin-dependencies-pom.xml', actualPom())
+        compareJson('plugin-dependencies-module.json', actualModule())
     }
 
     def 'plugin with dynamic dependency - latest.release'() {
@@ -265,8 +264,8 @@ class JpiPomCustomizerIntegrationSpec extends IntegrationSpec {
         generatePom()
 
         then:
-        !actualPomIn(projectDir).text.contains('<version>RELEASE</version>')
-        !actualModuleIn(projectDir).text.contains('latest.release')
+        !actualPom().text.contains('<version>RELEASE</version>')
+        !actualModule().text.contains('latest.release')
     }
 
     def 'optional plugin dependencies'() {
@@ -289,8 +288,8 @@ class JpiPomCustomizerIntegrationSpec extends IntegrationSpec {
         generatePom()
 
         then:
-        compareXml('optional-plugin-dependencies-pom.xml', actualPomIn(projectDir))
-        compareJson('optional-plugin-dependencies-module.json', actualModuleIn(projectDir))
+        compareXml('optional-plugin-dependencies-pom.xml', actualPom())
+        compareJson('optional-plugin-dependencies-module.json', actualModule())
     }
 
     def 'compile dependencies'() {
@@ -308,8 +307,8 @@ class JpiPomCustomizerIntegrationSpec extends IntegrationSpec {
         generatePom()
 
         then:
-        compareXml('compile-dependencies-pom.xml', actualPomIn(projectDir))
-        compareJson('compile-dependencies-module.json', actualModuleIn(projectDir))
+        compareXml('compile-dependencies-pom.xml', actualPom())
+        compareJson('compile-dependencies-module.json', actualModule())
     }
 
     def 'compile dependencies with excludes'() {
@@ -329,8 +328,8 @@ class JpiPomCustomizerIntegrationSpec extends IntegrationSpec {
         generatePom()
 
         then:
-        compareXml('compile-dependencies-with-excludes-pom.xml', actualPomIn(projectDir))
-        compareJson('compile-dependencies-with-excludes-module.json', actualModuleIn(projectDir))
+        compareXml('compile-dependencies-with-excludes-pom.xml', actualPom())
+        compareJson('compile-dependencies-with-excludes-module.json', actualModule())
     }
 
     private static boolean compareXml(String fileName, File actual) {
@@ -376,11 +375,11 @@ class JpiPomCustomizerIntegrationSpec extends IntegrationSpec {
                 .build()
     }
 
-    static File actualPomIn(TemporaryFolder projectDir) {
-        new File(projectDir.root, 'build/publications/mavenJpi/pom-default.xml')
+    File actualPom() {
+        inProjectDir('build/publications/mavenJpi/pom-default.xml')
     }
 
-    static File actualModuleIn(TemporaryFolder projectDir) {
-        new File(projectDir.root, 'build/publications/mavenJpi/module.json')
+    File actualModule() {
+        inProjectDir('build/publications/mavenJpi/module.json')
     }
 }

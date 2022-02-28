@@ -75,7 +75,7 @@ class GenerateTestTaskIntegrationSpec extends IntegrationSpec {
     def 'should generate source with defaults'() {
         given:
         // ensure this is present so we can call realpath for Windows compatiblity
-        new File(projectDir.root, 'build/resources/main').mkdirs()
+        inProjectDir('build/resources/main').mkdirs()
         build << """
             jenkinsPlugin {
                 generateTests.set(true)
@@ -83,7 +83,7 @@ class GenerateTestTaskIntegrationSpec extends IntegrationSpec {
             }
             """.stripIndent()
         def expected = expectedGeneratedTest()
-        def mainOutputResources = new File(projectDir.root, 'build/resources/main').toPath()
+        def mainOutputResources = inProjectDir('build/resources/main').toPath()
 
         when:
         gradleRunner()
@@ -173,7 +173,7 @@ class GenerateTestTaskIntegrationSpec extends IntegrationSpec {
                 $declaration
             }
             """.stripIndent()
-        def expected = new File(projectDir.root, "build/inject-tests/${expectedPath.replace('%REPLACE%', projectName)}.java").toPath()
+        def expected = inProjectDir("build/inject-tests/${expectedPath.replace('%REPLACE%', projectName)}.java").toPath()
 
         when:
         gradleRunner()
@@ -252,6 +252,6 @@ class GenerateTestTaskIntegrationSpec extends IntegrationSpec {
     }
 
     private Path expectedGeneratedTest(String pluginId = projectName) {
-        new File(projectDir.root, "build/inject-tests/org/jenkinsci/plugins/generated/$pluginId/InjectedTest.java").toPath()
+        inProjectDir("build/inject-tests/org/jenkinsci/plugins/generated/$pluginId/InjectedTest.java").toPath()
     }
 }

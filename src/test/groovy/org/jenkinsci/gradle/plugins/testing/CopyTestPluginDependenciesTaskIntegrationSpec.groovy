@@ -81,11 +81,11 @@ class CopyTestPluginDependenciesTaskIntegrationSpec extends IntegrationSpec {
         then:
         rerunResult.task(taskPath).outcome == rerunOutcome
         def index = 'build/jpi-plugin/test/test-dependencies/index'
-        def actual = new File(projectDir.root, index)
+        def actual = inProjectDir(index)
         if (existsRelativeToProjectDir(index)) {
             actual.readLines().toSorted() == lines.toSorted()
             actual.eachLine {
-                assert new File(projectDir.root, "build/jpi-plugin/test/test-dependencies/${it}.jpi")
+                assert inProjectDir("build/jpi-plugin/test/test-dependencies/${it}.jpi")
             }
         }
 
@@ -163,7 +163,7 @@ class CopyTestPluginDependenciesTaskIntegrationSpec extends IntegrationSpec {
     def 'should work with project dependencies'() {
         given:
         def (dep, consumer) = ['my-dep-plugin-one', 'my-consumer'].collect {
-            def f = new File(projectDir.root, it)
+            def f = inProjectDir(it)
             f.mkdirs()
             settings << "\ninclude '$it'"
             f
@@ -197,7 +197,7 @@ class CopyTestPluginDependenciesTaskIntegrationSpec extends IntegrationSpec {
     def 'should work with project dependencies that have transitive plugins'() {
         given:
         def (dep, consumer) = ['my-dep-plugin-one', 'my-consumer'].collect {
-            def f = new File(projectDir.root, it)
+            def f = inProjectDir(it)
             f.mkdirs()
             settings << "\ninclude '$it'"
             f

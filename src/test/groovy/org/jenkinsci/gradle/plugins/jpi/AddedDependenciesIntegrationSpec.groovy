@@ -45,7 +45,7 @@ class AddedDependenciesIntegrationSpec extends IntegrationSpec {
         then:
         result.task(':copyTestPluginDependencies').outcome == TaskOutcome.SUCCESS
         def dependenciesPath = 'build/jpi-plugin/test/test-dependencies'
-        File dir = new File(projectDir.root, dependenciesPath)
+        File dir = inProjectDir(dependenciesPath)
         new File(dir, 'index').text == [
                 'config-file-provider', 'structs', 'cloudbees-folder',
                 'ui-samples-plugin', 'token-macro', 'credentials', '',
@@ -97,7 +97,7 @@ class AddedDependenciesIntegrationSpec extends IntegrationSpec {
         gradleRunner()
                 .withArguments('writeAllResolvedDependencies', '-s')
                 .build()
-        def resolutionJson = new File(projectDir.root, 'build/resolved-dependencies.json')
+        def resolutionJson = inProjectDir('build/resolved-dependencies.json')
         def resolvedDependencies = new JsonSlurper().parse(resolutionJson)
 
         then:

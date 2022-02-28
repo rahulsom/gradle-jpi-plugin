@@ -58,7 +58,7 @@ class CheckAccessModifierCachingIntegrationSpec extends IntegrationSpec {
                 'ignoreFailures': false,
         ])
         build.withWriter { made.writeTo(it) }
-        srcMainJava = new File(projectDir.root, 'src/main/java').toPath()
+        srcMainJava = inProjectDir('src/main/java').toPath()
         ok = TypeSpec.classBuilder('Ok')
                 .addModifiers(Modifier.PUBLIC)
                 .addMethod(MethodSpec.methodBuilder('run')

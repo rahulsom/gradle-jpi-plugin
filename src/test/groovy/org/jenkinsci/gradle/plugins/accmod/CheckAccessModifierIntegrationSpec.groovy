@@ -54,8 +54,8 @@ class CheckAccessModifierIntegrationSpec extends IntegrationSpec {
                 ignoreFailures.set(false)
             }
             """.stripIndent()
-        srcMainJava = new File(projectDir.root, 'src/main/java').toPath()
-        srcMainGroovy = new File(projectDir.root, 'src/main/groovy').toPath()
+        srcMainJava = inProjectDir('src/main/java').toPath()
+        srcMainGroovy = inProjectDir('src/main/groovy').toPath()
         ohNo = TypeSpec.classBuilder('OhNo')
                 .addModifiers(Modifier.PUBLIC)
                 .addMethod(MethodSpec.methodBuilder('add')

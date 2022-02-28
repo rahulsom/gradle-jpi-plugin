@@ -30,12 +30,12 @@ class JpiLocalizerTaskIntegrationSpec extends IntegrationSpec {
         then:
         result.task(':localizer').outcome == TaskOutcome.SUCCESS
         def orgExampleMessagesPath = "$expected/org/example/Messages.java"
-        def orgExampleMessages = new File(projectDir.root, orgExampleMessagesPath)
+        def orgExampleMessages = inProjectDir(orgExampleMessagesPath)
         existsRelativeToProjectDir(orgExampleMessagesPath)
         orgExampleMessages.text.contains('public static String key1()')
         orgExampleMessages.text.contains('public static String key2()')
         def messagesPath = "$expected/Messages.java"
-        def messages = new File(projectDir.root, messagesPath)
+        def messages = inProjectDir(messagesPath)
         existsRelativeToProjectDir(messagesPath)
         messages.text.contains('public static String key3()')
         messages.text.contains('public static String key4()')
@@ -90,7 +90,7 @@ class JpiLocalizerTaskIntegrationSpec extends IntegrationSpec {
 
         then:
         result.task(':plugin:localizer').outcome == TaskOutcome.SUCCESS
-        def generatedJavaFile = new File(projectDir.root, 'plugin/build/generated-src/localizer/Messages.java')
+        def generatedJavaFile = inProjectDir('plugin/build/generated-src/localizer/Messages.java')
         generatedJavaFile.exists()
         generatedJavaFile.text.contains('public static String key3()')
         generatedJavaFile.text.contains('public static String key4()')

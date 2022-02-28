@@ -70,7 +70,7 @@ abstract class GenerateHplTaskSpec extends IntegrationSpec {
 
         then:
         def hplLocation = expectedRelativeHplLocation()
-        def file = new File(projectDir.root, hplLocation)
+        def file = inProjectDir(hplLocation)
         existsRelativeToProjectDir(hplLocation)
         new Manifest(file.newInputStream()) == toManifest(minimalAttributes)
 
@@ -116,9 +116,9 @@ abstract class GenerateHplTaskSpec extends IntegrationSpec {
 
     def 'should load libraries and plugin-dependencies'() {
         given:
-        Path srcMainJava = new File(projectDir.root, 'src/main/java').toPath()
+        Path srcMainJava = inProjectDir('src/main/java').toPath()
         TestSupport.CALCULATOR.writeTo(srcMainJava)
-        Path srcMainResources = new File(projectDir.root, 'src/main/resources').toPath()
+        Path srcMainResources = inProjectDir('src/main/resources').toPath()
         Files.createDirectories(srcMainResources)
         Files.createFile(srcMainResources.resolve('some.properties'))
         build << """
@@ -169,14 +169,14 @@ abstract class GenerateHplTaskSpec extends IntegrationSpec {
 
         then:
         def hplLocation = expectedRelativeHplLocation()
-        def file = new File(projectDir.root, hplLocation)
+        def file = inProjectDir(hplLocation)
         existsRelativeToProjectDir(hplLocation)
         new Manifest(file.newInputStream()) == toManifest(minimalAttributes)
     }
 
     def 'should load classes in Libraries if present'() {
         given:
-        Path srcMainJava = new File(projectDir.root, 'src/main/java').toPath()
+        Path srcMainJava = inProjectDir('src/main/java').toPath()
         TestSupport.CALCULATOR.writeTo(srcMainJava)
         build << """
             jenkinsPlugin {
@@ -204,14 +204,14 @@ abstract class GenerateHplTaskSpec extends IntegrationSpec {
 
         then:
         def hplLocation = expectedRelativeHplLocation()
-        def file = new File(projectDir.root, hplLocation)
+        def file = inProjectDir(hplLocation)
         existsRelativeToProjectDir(hplLocation)
         new Manifest(file.newInputStream()) == toManifest(minimalAttributes)
     }
 
     def 'should load resources in Libraries if present'() {
         given:
-        Path srcMainResources = new File(projectDir.root, 'src/main/resources').toPath()
+        Path srcMainResources = inProjectDir('src/main/resources').toPath()
         Files.createDirectories(srcMainResources)
         Files.createFile(srcMainResources.resolve('some.properties'))
         build << """
@@ -244,7 +244,7 @@ abstract class GenerateHplTaskSpec extends IntegrationSpec {
 
         then:
         def hplLocation = expectedRelativeHplLocation()
-        def file = new File(projectDir.root, hplLocation)
+        def file = inProjectDir(hplLocation)
         existsRelativeToProjectDir(hplLocation)
         new Manifest(file.newInputStream()) == toManifest(minimalAttributes)
     }

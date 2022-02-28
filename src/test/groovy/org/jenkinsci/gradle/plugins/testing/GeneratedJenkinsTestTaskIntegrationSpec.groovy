@@ -111,7 +111,7 @@ class GeneratedJenkinsTestTaskIntegrationSpec extends IntegrationSpec {
                         .build())
                 .build()
         JavaFile.builder('org.example', decisionHandler).build()
-                .writeTo(new File(projectDir.root, 'src/main/java'))
+                .writeTo(inProjectDir('src/main/java'))
 
         when:
         def result = gradleRunner()
@@ -150,7 +150,7 @@ class GeneratedJenkinsTestTaskIntegrationSpec extends IntegrationSpec {
                         .build())
                 .build()
         JavaFile.builder('org.example', decisionHandler).build()
-                .writeTo(new File(projectDir.root, 'src/main/java'))
+                .writeTo(inProjectDir('src/main/java'))
 
         when:
         def result = gradleRunner()
@@ -179,7 +179,7 @@ class GeneratedJenkinsTestTaskIntegrationSpec extends IntegrationSpec {
                         .returns(String)
                         .build())
                 .build()
-        def srcMainJava = new File(projectDir.root, 'src/main/java')
+        def srcMainJava = inProjectDir('src/main/java')
         def interfaceFile = JavaFile.builder('org.example.components', myInterface).build()
         interfaceFile.writeTo(srcMainJava)
         def decisionHandler = TypeSpec.classBuilder('NeverBuild')

@@ -37,8 +37,8 @@ class GenerateSupportDynamicLoadingManifestTaskIntegrationSpec extends Integrati
                 jenkinsVersion.set('${TestSupport.RECENT_JENKINS_VERSION}')
             }
             """.stripIndent()
-        srcMainJava = new File(projectDir.root, 'src/main/java').toPath()
-        srcMainGroovy = new File(projectDir.root, 'src/main/groovy').toPath()
+        srcMainJava = inProjectDir('src/main/java').toPath()
+        srcMainGroovy = inProjectDir('src/main/groovy').toPath()
     }
 
     @Unroll
@@ -196,6 +196,6 @@ class GenerateSupportDynamicLoadingManifestTaskIntegrationSpec extends Integrati
     }
 
     def actualManifest() {
-        new Manifest(new File(projectDir.root, 'build/jenkins-manifests/support-dynamic-loading.mf').newInputStream())
+        new Manifest(inProjectDir('build/jenkins-manifests/support-dynamic-loading.mf').newInputStream())
     }
 }

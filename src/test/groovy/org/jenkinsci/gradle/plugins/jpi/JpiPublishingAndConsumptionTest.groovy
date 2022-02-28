@@ -318,7 +318,7 @@ class JpiPublishingAndConsumptionTest extends IntegrationSpec {
     }
 
     private File jpi(String name) {
-        def buildRoot = new File(projectDir.root, name)
+        def buildRoot = inProjectDir(name)
         def jpi = new File(buildRoot, "build/libs/${name}.hpi")
         if (!existsRelativeToProjectDir("${name}/build/libs/${name}.hpi")) {
             gradleRunner().withProjectDir(buildRoot).forwardOutput().

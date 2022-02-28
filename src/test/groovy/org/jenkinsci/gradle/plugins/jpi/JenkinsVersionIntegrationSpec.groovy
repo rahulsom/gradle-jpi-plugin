@@ -49,7 +49,7 @@ class JenkinsVersionIntegrationSpec extends IntegrationSpec {
                 jenkinsVersion = '${version}'
             }
             """.stripIndent()
-        TestSupport.PASSING_TEST.writeTo(new File(projectDir.root, 'src/test/java'))
+        TestSupport.PASSING_TEST.writeTo(inProjectDir('src/test/java'))
 
         expect:
         def result = gradleRunner()
@@ -75,7 +75,7 @@ class JenkinsVersionIntegrationSpec extends IntegrationSpec {
                 jenkinsVersion = '${version}'
             }
             """.stripIndent()
-        def target = new File(projectDir.root, 'target')
+        def target = inProjectDir('target')
         target.mkdirs()
         assert existsRelativeToProjectDir('target')
 

@@ -28,9 +28,9 @@ class JpiTaskRegistrationIntegrationSpec extends IntegrationSpec {
             }
             '''.stripIndent()
 
-        new File(projectDir.root, 'submodule').mkdirs()
+        inProjectDir('submodule').mkdirs()
 
-        File submoduleBuildFile = new File(projectDir.root, 'submodule/build.gradle')
+        File submoduleBuildFile = inProjectDir('submodule/build.gradle')
         submoduleBuildFile.text = '''
             plugins {
                 id 'org.jenkins-ci.jpi'
@@ -41,8 +41,8 @@ class JpiTaskRegistrationIntegrationSpec extends IntegrationSpec {
             include 'submodule'
         '''
 
-        new File(projectDir.root, 'buildSrc/src/main/groovy/jenkinsci').mkdirs()
-        File conflictPlugin = new File(projectDir.root, 'buildSrc/src/main/groovy/jenkinsci/ConflictPlugin.groovy')
+        inProjectDir('buildSrc/src/main/groovy/jenkinsci').mkdirs()
+        File conflictPlugin = inProjectDir('buildSrc/src/main/groovy/jenkinsci/ConflictPlugin.groovy')
         conflictPlugin.text = '''
             package jenkinsci
 
@@ -60,7 +60,7 @@ class JpiTaskRegistrationIntegrationSpec extends IntegrationSpec {
             }
         '''
 
-        File buildSrcFile = new File(projectDir.root, 'buildSrc/build.groovy')
+        File buildSrcFile = inProjectDir('buildSrc/build.groovy')
         buildSrcFile.text = '''
             plugins {
                 id 'groovy'

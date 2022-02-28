@@ -73,8 +73,8 @@ class TestTaskIntegrationSpec extends IntegrationSpec {
                 options.compilerArgs = ['-Xlint:all', '-Xlint:-processing', '-Werror']
             }
             """.stripIndent()
-        def srcMainJava = new File(projectDir.root, 'src/main/java')
-        def srcTestJava = new File(projectDir.root, 'src/test/java')
+        def srcMainJava = inProjectDir('src/main/java')
+        def srcTestJava = inProjectDir('src/test/java')
         def decisionHandler = TypeSpec.classBuilder('NeverBuild')
                 .addAnnotation(Extension)
                 .addModifiers(Modifier.PUBLIC)
@@ -139,7 +139,7 @@ class TestTaskIntegrationSpec extends IntegrationSpec {
                 implementation 'org.jenkins-ci.plugins:junit:1.20'
             }
             """.stripIndent()
-        def srcTestJava = new File(projectDir.root, 'src/test/java')
+        def srcTestJava = inProjectDir('src/test/java')
         def jenkinsRule = ClassName.get('org.jvnet.hudson.test', 'JenkinsRule')
         def test = TypeSpec.classBuilder('HplPresentTest')
                 .addModifiers(Modifier.PUBLIC)

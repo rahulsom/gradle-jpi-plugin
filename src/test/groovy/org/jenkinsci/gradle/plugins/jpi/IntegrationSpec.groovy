@@ -15,7 +15,7 @@ class IntegrationSpec extends Specification {
     protected final TemporaryFolder projectDir = new TemporaryFolder()
 
     protected GradleRunner gradleRunner() {
-        def gradleProperties = new File(projectDir.root, 'gradle.properties')
+        def gradleProperties = inProjectDir('gradle.properties')
         if (!existsRelativeToProjectDir('gradle.properties')) {
             def props = new Properties()
             props.setProperty('org.gradle.warning.mode', 'fail')
@@ -46,7 +46,11 @@ class IntegrationSpec extends Specification {
     }
 
     boolean existsRelativeToProjectDir(String path) {
-        new File(projectDir.root, path).exists()
+        inProjectDir(path).exists()
+    }
+
+    File inProjectDir(String path) {
+        new File(projectDir.root, path)
     }
 
     File mkDirInProjectDir(String path) {

@@ -33,8 +33,8 @@ class GeneratePluginClassManifestTaskIntegrationSpec extends IntegrationSpec {
                 jenkinsVersion.set('${TestSupport.RECENT_JENKINS_VERSION}')
             }
             """.stripIndent()
-        srcMainJava = new File(projectDir.root, 'src/main/java').toPath()
-        srcMainGroovy = new File(projectDir.root, 'src/main/groovy').toPath()
+        srcMainJava = inProjectDir('src/main/java').toPath()
+        srcMainGroovy = inProjectDir('src/main/groovy').toPath()
     }
 
     def 'should list legacy hudson.Plugin implementation'() {
@@ -156,6 +156,6 @@ class GeneratePluginClassManifestTaskIntegrationSpec extends IntegrationSpec {
     }
 
     def actualManifest() {
-        new Manifest(new File(projectDir.root, 'build/jenkins-manifests/plugin-class.mf').newInputStream())
+        new Manifest(inProjectDir('build/jenkins-manifests/plugin-class.mf').newInputStream())
     }
 }
