@@ -28,7 +28,7 @@ abstract class GenerateHplTaskSpec extends IntegrationSpec {
                 id 'org.jenkins-ci.jpi'
             }
             '''.stripIndent()
-        realProjectDir = projectDir.root.toPath().toRealPath()
+        realProjectDir = projectDir.toPath().toRealPath()
         minimalAttributes = [
                 'Long-Name'              : 'strawberry',
                 'Minimum-Java-Version'   : '1.8',

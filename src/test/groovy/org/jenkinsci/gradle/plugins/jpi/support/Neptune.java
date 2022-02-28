@@ -1,9 +1,9 @@
 package org.jenkinsci.gradle.plugins.jpi.support;
 
-import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -26,8 +26,8 @@ public class Neptune {
         this.indenter = indenter;
     }
 
-    public void writeTo(TemporaryFolder directory) {
-        writeTo(directory.getRoot().toPath());
+    public void writeTo(File directory) {
+        writeTo(directory.toPath());
     }
 
     public void writeTo(Path directory) {

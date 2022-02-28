@@ -3,16 +3,17 @@ package org.jenkinsci.gradle.plugins.jpi
 import groovy.transform.CompileStatic
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.util.GradleVersion
-import org.junit.Rule
 import org.junit.experimental.categories.Category
-import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
+import spock.lang.TempDir
+
+import java.nio.file.Files
 
 @CompileStatic
 @Category(UsesGradleTestKit)
 class IntegrationSpec extends Specification {
-    @Rule
-    protected final TemporaryFolder projectDir = new TemporaryFolder()
+    @TempDir
+    protected File projectDir
 
     protected GradleRunner gradleRunner() {
         def gradleProperties = inProjectDir('gradle.properties')
@@ -25,7 +26,7 @@ class IntegrationSpec extends Specification {
         }
         def runner = GradleRunner.create()
                 .withPluginClasspath()
-                .withProjectDir(projectDir.root)
+                .withProjectDir(projectDir)
         def gradleVersion = gradleVersionForTest
         if (gradleVersion != GradleVersion.current()) {
             return runner.withGradleVersion(gradleVersion.version)
@@ -50,14 +51,14 @@ class IntegrationSpec extends Specification {
     }
 
     File inProjectDir(String path) {
-        new File(projectDir.root, path)
+        new File(projectDir, path)
     }
 
     File mkDirInProjectDir(String path) {
-        projectDir.newFolder(path)
+        Files.createDirectories(projectDir.toPath().resolve(path)).toFile()
     }
 
     File touchInProjectDir(String path) {
-        projectDir.newFile(path)
+        Files.createFile(projectDir.toPath().resolve(path)).toFile()
     }
 }

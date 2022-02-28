@@ -289,7 +289,7 @@ class InstallJenkinsServerPluginsTaskSpec extends IntegrationSpec {
     }
 
     private Set<String> actualPluginsDir(String dir = 'work') {
-        Files.list(projectDir.root.toPath().resolve(dir).resolve('plugins'))
+        Files.list(projectDir.toPath().resolve(dir).resolve('plugins'))
                 .collect { it.fileName.toString() }
                 .toSet()
     }
