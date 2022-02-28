@@ -28,9 +28,9 @@ class GenerateJenkinsManifestTaskIntegrationSpec extends IntegrationSpec {
     private File build
 
     def setup() {
-        File settings = projectDir.newFile('settings.gradle')
+        File settings = touchInProjectDir('settings.gradle')
         settings << """rootProject.name = \"$projectName\""""
-        build = projectDir.newFile('build.gradle')
+        build = touchInProjectDir('build.gradle')
         def props = new Properties()
         props.setProperty('version', '1.0.0')
         new File(projectDir.root, 'gradle.properties').withOutputStream {

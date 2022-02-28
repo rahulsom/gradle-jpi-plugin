@@ -15,9 +15,9 @@ class JenkinsVersionIntegrationSpec extends IntegrationSpec {
     private File build
 
     def setup() {
-        settings = projectDir.newFile('settings.gradle')
+        settings = touchInProjectDir('settings.gradle')
         settings << """rootProject.name = \"$projectName\""""
-        build = projectDir.newFile('build.gradle')
+        build = touchInProjectDir('build.gradle')
         build << '''\
             plugins {
                 id 'org.jenkins-ci.jpi'

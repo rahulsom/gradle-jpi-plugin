@@ -18,9 +18,9 @@ class JpiIntegrationSpec extends IntegrationSpec {
     private File build
 
     def setup() {
-        settings = projectDir.newFile('settings.gradle')
+        settings = touchInProjectDir('settings.gradle')
         settings << """rootProject.name = \"$projectName\""""
-        build = projectDir.newFile('build.gradle')
+        build = touchInProjectDir('build.gradle')
         build << '''\
             plugins {
                 id 'org.jenkins-ci.jpi'
@@ -293,7 +293,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
                 jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
-        def actualFile = projectDir.newFile()
+        def actualFile = touchInProjectDir('some-file')
         TestSupport.TEST_THAT_WRITES_SYSTEM_PROPERTIES_TO.apply(actualFile)
                 .writeTo(new File(projectDir.root, srcDir))
 
@@ -326,7 +326,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
                 jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
-        def actualFile = projectDir.newFile()
+        def actualFile = touchInProjectDir('some-file')
         TestSupport.TEST_THAT_WRITES_SYSTEM_PROPERTIES_TO.apply(actualFile)
                 .writeTo(new File(projectDir.root, srcDir))
 

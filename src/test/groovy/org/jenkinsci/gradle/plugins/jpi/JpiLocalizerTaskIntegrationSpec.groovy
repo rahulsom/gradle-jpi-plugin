@@ -9,7 +9,7 @@ class JpiLocalizerTaskIntegrationSpec extends IntegrationSpec {
     @Unroll
     def 'single-module project should be able to run LocalizerTask (#dir)'(String dir, String expected) {
         given:
-        projectDir.newFile('build.gradle') << """\
+        touchInProjectDir('build.gradle') << """\
             plugins {
                 id 'org.jenkins-ci.jpi'
             }
@@ -19,8 +19,8 @@ class JpiLocalizerTaskIntegrationSpec extends IntegrationSpec {
             }
             """.stripIndent()
         mkDirInProjectDir('src/main/resources/org/example')
-        projectDir.newFile('src/main/resources/org/example/Messages.properties') << 'key1=value1\nkey2=value2'
-        projectDir.newFile('src/main/resources/Messages.properties') << 'key3=value1\nkey4=value2'
+        touchInProjectDir('src/main/resources/org/example/Messages.properties') << 'key1=value1\nkey2=value2'
+        touchInProjectDir('src/main/resources/Messages.properties') << 'key3=value1\nkey4=value2'
 
         when:
         def result = gradleRunner()
@@ -50,7 +50,7 @@ class JpiLocalizerTaskIntegrationSpec extends IntegrationSpec {
     @IgnoreIf({ isBeforeConfigurationCache() })
     def 'should support configuration cache'() {
         given:
-        projectDir.newFile('build.gradle') << """\
+        touchInProjectDir('build.gradle') << """\
             plugins {
                 id 'org.jenkins-ci.jpi'
             }
@@ -59,7 +59,7 @@ class JpiLocalizerTaskIntegrationSpec extends IntegrationSpec {
             }
             """.stripIndent()
         mkDirInProjectDir('src/main/resources/org/example')
-        projectDir.newFile('src/main/resources/org/example/Messages.properties') << 'key1=value1\nkey2=value2'
+        touchInProjectDir('src/main/resources/org/example/Messages.properties') << 'key1=value1\nkey2=value2'
 
         when:
         def result = gradleRunner()
@@ -72,16 +72,16 @@ class JpiLocalizerTaskIntegrationSpec extends IntegrationSpec {
 
     def 'multi-module project should be able to run LocalizerTask'() {
         given:
-        projectDir.newFile('build.gradle') << ''
-        projectDir.newFile('settings.gradle') << 'include ":plugin"'
+        touchInProjectDir('build.gradle') << ''
+        touchInProjectDir('settings.gradle') << 'include ":plugin"'
         mkDirInProjectDir('plugin/src/main/resources')
-        projectDir.newFile('plugin/build.gradle') << """\
+        touchInProjectDir('plugin/build.gradle') << """\
             plugins { id 'org.jenkins-ci.jpi' }
             jenkinsPlugin {
                 jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
-        projectDir.newFile('plugin/src/main/resources/Messages.properties') << 'key3=value3\nkey4=value4'
+        touchInProjectDir('plugin/src/main/resources/Messages.properties') << 'key3=value3\nkey4=value4'
 
         when:
         def result = gradleRunner()

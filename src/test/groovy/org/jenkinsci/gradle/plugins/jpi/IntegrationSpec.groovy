@@ -52,4 +52,8 @@ class IntegrationSpec extends Specification {
     File mkDirInProjectDir(String path) {
         projectDir.newFolder(path)
     }
+
+    File touchInProjectDir(String path) {
+        projectDir.newFile(path)
+    }
 }

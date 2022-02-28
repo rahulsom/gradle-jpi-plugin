@@ -19,9 +19,9 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
     abstract String generatedFileName(String base = "${projectName}-${projectVersion}")
 
     def setup() {
-        settings = projectDir.newFile('settings.gradle')
+        settings = touchInProjectDir('settings.gradle')
         settings << """rootProject.name = \"$projectName\""""
-        build = projectDir.newFile('build.gradle')
+        build = touchInProjectDir('build.gradle')
         build << """\
             plugins {
                 id 'org.jenkins-ci.jpi'
@@ -159,7 +159,7 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
             }
             """.stripIndent()
         mkDirInProjectDir('src/main/java/my/example')
-        projectDir.newFile('src/main/java/my/example/TestPlugin.java') << """\
+        touchInProjectDir('src/main/java/my/example/TestPlugin.java') << """\
             package $pkg;
 
             class $name extends hudson.Plugin {
@@ -464,7 +464,7 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
             }
             """.stripIndent()
         mkDirInProjectDir('src/main/java/my/example')
-        projectDir.newFile('src/main/java/my/example/TestPlugin.java') << """\
+        touchInProjectDir('src/main/java/my/example/TestPlugin.java') << """\
             package my.example;
 
             @hudson.Extension(dynamicLoadable = jenkins.YesNoMaybe.$value)

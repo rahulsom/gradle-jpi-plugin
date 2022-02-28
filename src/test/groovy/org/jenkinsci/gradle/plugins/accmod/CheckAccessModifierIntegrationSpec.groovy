@@ -40,9 +40,9 @@ class CheckAccessModifierIntegrationSpec extends IntegrationSpec {
     ]
 
     def setup() {
-        File settings = projectDir.newFile('settings.gradle')
+        File settings = touchInProjectDir('settings.gradle')
         settings << """rootProject.name = \"$projectName\""""
-        build = projectDir.newFile('build.gradle')
+        build = touchInProjectDir('build.gradle')
         build << """\
             plugins {
                 id 'org.jenkins-ci.jpi'
@@ -303,7 +303,7 @@ class CheckAccessModifierIntegrationSpec extends IntegrationSpec {
         given:
         ohNoFile.writeTo(srcMainJava)
         consumerFile.writeTo(srcMainJava)
-        projectDir.newFile('src/main/java/org/example/restricted/package-info.java') << """\
+        touchInProjectDir('src/main/java/org/example/restricted/package-info.java') << """\
             @Restricted(${restrictionType}.class)
             package org.example.restricted;
 

@@ -11,10 +11,10 @@ class JpiPublishingAndConsumptionTest extends IntegrationSpec {
         mkDirInProjectDir('producer')
         mkDirInProjectDir('consumer')
         def repo = mkDirInProjectDir('repo')
-        projectDir.newFile('producer/settings.gradle') << 'rootProject.name = "producer"'
-        projectDir.newFile('consumer/settings.gradle') << 'rootProject.name = "consumer"'
-        producerBuild = projectDir.newFile('producer/build.gradle')
-        consumerBuild = projectDir.newFile('consumer/build.gradle')
+        touchInProjectDir('producer/settings.gradle') << 'rootProject.name = "producer"'
+        touchInProjectDir('consumer/settings.gradle') << 'rootProject.name = "consumer"'
+        producerBuild = touchInProjectDir('producer/build.gradle')
+        consumerBuild = touchInProjectDir('consumer/build.gradle')
         producerBuild << """\
             plugins {
                 id 'org.jenkins-ci.jpi'

@@ -49,9 +49,9 @@ class CheckAccessModifierCachingIntegrationSpec extends IntegrationSpec {
     private final template = engine.createTemplate(buildTemplate)
 
     def setup() {
-        File settings = projectDir.newFile('settings.gradle')
+        File settings = touchInProjectDir('settings.gradle')
         settings << """rootProject.name = \"$projectName\""""
-        build = projectDir.newFile('build.gradle')
+        build = touchInProjectDir('build.gradle')
         def made = template.make([
                 'jenkinsVersion': TestSupport.RECENT_JENKINS_VERSION,
                 'dependencies'  : [],

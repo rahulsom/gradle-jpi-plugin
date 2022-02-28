@@ -10,11 +10,11 @@ class JenkinsServerTaskSpec extends IntegrationSpec {
     @Unroll
     def 'server task is working - Jenkins #jenkinsVersion'() {
         given:
-        projectDir.newFile('settings.gradle') << """\
+        touchInProjectDir('settings.gradle') << """\
             rootProject.name = "test-project"
             includeBuild('${path(new File(''))}')
         """
-        def build = projectDir.newFile('build.gradle')
+        def build = touchInProjectDir('build.gradle')
         build << """\
             plugins {
                 $additionalPlugin

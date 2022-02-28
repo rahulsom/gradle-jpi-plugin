@@ -18,9 +18,9 @@ class CheckAccessModifierIgnoreFailuresIntegrationSpec extends IntegrationSpec {
     private Path srcMainJava
 
     def setup() {
-        File settings = projectDir.newFile('settings.gradle')
+        File settings = touchInProjectDir('settings.gradle')
         settings << """rootProject.name = \"$projectName\""""
-        build = projectDir.newFile('build.gradle')
+        build = touchInProjectDir('build.gradle')
         build << """\
             plugins {
                 id 'org.jenkins-ci.jpi'

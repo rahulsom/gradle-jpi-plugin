@@ -12,9 +12,9 @@ class CheckOverlappingSourcesTaskIntegrationSpec extends IntegrationSpec {
     private File build
 
     def setup() {
-        settings = projectDir.newFile('settings.gradle')
+        settings = touchInProjectDir('settings.gradle')
         settings << """rootProject.name = \"$projectName\""""
-        build = projectDir.newFile('build.gradle')
+        build = touchInProjectDir('build.gradle')
         build << '''\
             plugins {
                 id 'org.jenkins-ci.jpi'
@@ -58,7 +58,7 @@ class CheckOverlappingSourcesTaskIntegrationSpec extends IntegrationSpec {
             }
             """.stripIndent()
         mkDirInProjectDir("src/main/${dir}/my/example")
-        projectDir.newFile("src/main/${dir}/my/example/TestPlugin.${language}") << """\
+        touchInProjectDir("src/main/${dir}/my/example/TestPlugin.${language}") << """\
             package $pkg;
 
             public class $name extends hudson.Plugin {
@@ -91,7 +91,7 @@ class CheckOverlappingSourcesTaskIntegrationSpec extends IntegrationSpec {
             """.stripIndent()
         ['java', 'groovy'].eachWithIndex { dir, idx ->
             mkDirInProjectDir("src/main/${dir}/my/example")
-            projectDir.newFile("src/main/${dir}/my/example/TestPlugin${idx}.java") << """\
+            touchInProjectDir("src/main/${dir}/my/example/TestPlugin${idx}.java") << """\
             package $pkg;
 
             public class ${name}${idx} extends hudson.Plugin {
@@ -120,14 +120,14 @@ class CheckOverlappingSourcesTaskIntegrationSpec extends IntegrationSpec {
             }
             """.stripIndent()
         mkDirInProjectDir("src/main/${dir}/my/example")
-        projectDir.newFile("src/main/${dir}/my/example/TestPlugin.${language}") << """\
+        touchInProjectDir("src/main/${dir}/my/example/TestPlugin.${language}") << """\
             package $pkg;
 
             @hudson.Extension
             public class $name {
             }
             """.stripIndent()
-        projectDir.newFile("src/main/${dir}/my/example/OtherTestPlugin.java") << """\
+        touchInProjectDir("src/main/${dir}/my/example/OtherTestPlugin.java") << """\
             package $pkg;
 
             @hudson.Extension
@@ -161,7 +161,7 @@ class CheckOverlappingSourcesTaskIntegrationSpec extends IntegrationSpec {
             """.stripIndent()
         ['java', 'groovy'].eachWithIndex { dir, idx ->
             mkDirInProjectDir("src/main/${dir}/my/example")
-            projectDir.newFile("src/main/${dir}/my/example/TestPlugin${idx}.java") << """\
+            touchInProjectDir("src/main/${dir}/my/example/TestPlugin${idx}.java") << """\
             package $pkg;
 
             @hudson.Extension
