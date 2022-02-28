@@ -80,8 +80,9 @@ class CopyTestPluginDependenciesTaskIntegrationSpec extends IntegrationSpec {
 
         then:
         rerunResult.task(taskPath).outcome == rerunOutcome
-        def actual = new File(projectDir.root, 'build/jpi-plugin/test/test-dependencies/index')
-        if (actual.exists()) {
+        def index = 'build/jpi-plugin/test/test-dependencies/index'
+        def actual = new File(projectDir.root, index)
+        if (existsRelativeToProjectDir(index)) {
             actual.readLines().toSorted() == lines.toSorted()
             actual.eachLine {
                 assert new File(projectDir.root, "build/jpi-plugin/test/test-dependencies/${it}.jpi")

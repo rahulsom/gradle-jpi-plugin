@@ -42,7 +42,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
                 .build()
 
         then:
-        new File(projectDir.root, "build/libs/${projectName}.hpi").exists()
+        existsRelativeToProjectDir("build/libs/${projectName}.hpi")
     }
 
     @Unroll
@@ -61,7 +61,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
                 .build()
 
         then:
-        new File(projectDir.root, "build/libs/${projectName}.${expected}").exists()
+        existsRelativeToProjectDir("build/libs/${projectName}.${expected}")
 
         where:
         declaration             | expected
@@ -87,7 +87,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
                 .build()
 
         then:
-        new File(projectDir.root, "build/libs/${projectName}.hpi").exists()
+        existsRelativeToProjectDir("build/libs/${projectName}.hpi")
     }
 
     def 'uses project name with trimmed -plugin as shortName by default'() {
@@ -106,7 +106,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
                 .build()
 
         then:
-        new File(projectDir.root, "build/libs/${expected}.hpi").exists()
+        existsRelativeToProjectDir("build/libs/${expected}.hpi")
     }
 
     @Unroll
@@ -125,7 +125,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
                 .build()
 
         then:
-        new File(projectDir.root, "build/libs/${expected}.hpi").exists()
+        existsRelativeToProjectDir("build/libs/${expected}.hpi")
 
         where:
         shortName                     | expected
@@ -360,10 +360,10 @@ class JpiIntegrationSpec extends IntegrationSpec {
                 .build()
 
         then:
-        new File(projectDir.root, "build/libs/${projectName}.hpi").exists()
-        new File(projectDir.root, "build/libs/${projectName}.jar").exists()
-        new File(projectDir.root, "build/libs/${projectName}-sources.jar").exists()
-        new File(projectDir.root, "build/libs/${projectName}-javadoc.jar").exists()
+        existsRelativeToProjectDir("build/libs/${projectName}.hpi")
+        existsRelativeToProjectDir("build/libs/${projectName}.jar")
+        existsRelativeToProjectDir("build/libs/${projectName}-sources.jar")
+        existsRelativeToProjectDir("build/libs/${projectName}-javadoc.jar")
     }
 
     def 'handles dependencies coming from ivy repository and do not fail with variants'() {

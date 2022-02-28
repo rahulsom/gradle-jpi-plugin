@@ -56,7 +56,7 @@ class JenkinsVersionIntegrationSpec extends IntegrationSpec {
                 .withArguments('test', '-s')
                 .build()
         result.task(':test').outcome == TaskOutcome.SUCCESS
-        new File(projectDir.root, 'target').exists() == targetShouldExist
+        existsRelativeToProjectDir('target') == targetShouldExist
 
         where:
         version | targetShouldExist
@@ -77,14 +77,14 @@ class JenkinsVersionIntegrationSpec extends IntegrationSpec {
             """.stripIndent()
         def target = new File(projectDir.root, 'target')
         target.mkdirs()
-        assert target.exists()
+        assert existsRelativeToProjectDir('target')
 
         expect:
         def result = gradleRunner()
                 .withArguments('clean', '-s')
                 .build()
         result.task(':clean').outcome == expected
-        target.exists() != targetShouldBeCleaned
+        existsRelativeToProjectDir('target') != targetShouldBeCleaned
 
         where:
         version | targetShouldBeCleaned | expected

@@ -66,10 +66,10 @@ class ConfigurePublishingIntegrationSpec extends IntegrationSpec {
                 .build()
 
         then:
-        new File(projectDir.root, "build/libs/${projectName}.hpi").exists()
-        new File(projectDir.root, "build/libs/${projectName}.jar").exists()
-        !new File(projectDir.root, "build/libs/${projectName}-sources.jar").exists()
-        !new File(projectDir.root, "build/libs/${projectName}-javadoc.jar").exists()
+        existsRelativeToProjectDir("build/libs/${projectName}.hpi")
+        existsRelativeToProjectDir("build/libs/${projectName}.jar")
+        !existsRelativeToProjectDir("build/libs/${projectName}-sources.jar")
+        !existsRelativeToProjectDir("build/libs/${projectName}-javadoc.jar")
     }
 
     def 'javadoc jar can be created if configurePublishing is disabled but other plugin does it'() {
@@ -92,9 +92,9 @@ class ConfigurePublishingIntegrationSpec extends IntegrationSpec {
                 .build()
 
         then:
-        new File(projectDir.root, "build/libs/${projectName}.hpi").exists()
-        new File(projectDir.root, "build/libs/${projectName}.jar").exists()
-        new File(projectDir.root, "build/libs/${projectName}-javadoc.jar").exists()
+        existsRelativeToProjectDir("build/libs/${projectName}.hpi")
+        existsRelativeToProjectDir("build/libs/${projectName}.jar")
+        existsRelativeToProjectDir("build/libs/${projectName}-javadoc.jar")
     }
 
     def 'javadoc and source jar can be created if configurePublishing is disabled but plugin consumer configures publication'() {
@@ -139,8 +139,8 @@ class ConfigurePublishingIntegrationSpec extends IntegrationSpec {
                 .build()
 
         then:
-        new File(projectDir.root, "build/testRepo/org/jenkinsci/sample/${projectName}/1.0/${projectName}-1.0-javadoc.jar").exists()
-        new File(projectDir.root, "build/testRepo/org/jenkinsci/sample/${projectName}/1.0/${projectName}-1.0-sources.jar").exists()
+        existsRelativeToProjectDir("build/testRepo/org/jenkinsci/sample/${projectName}/1.0/${projectName}-1.0-javadoc.jar")
+        existsRelativeToProjectDir("build/testRepo/org/jenkinsci/sample/${projectName}/1.0/${projectName}-1.0-sources.jar")
     }
 
     @Unroll

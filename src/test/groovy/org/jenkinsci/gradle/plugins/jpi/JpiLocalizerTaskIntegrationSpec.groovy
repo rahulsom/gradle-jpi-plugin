@@ -29,12 +29,14 @@ class JpiLocalizerTaskIntegrationSpec extends IntegrationSpec {
 
         then:
         result.task(':localizer').outcome == TaskOutcome.SUCCESS
-        def orgExampleMessages = new File(projectDir.root, "$expected/org/example/Messages.java")
-        orgExampleMessages.exists()
+        def orgExampleMessagesPath = "$expected/org/example/Messages.java"
+        def orgExampleMessages = new File(projectDir.root, orgExampleMessagesPath)
+        existsRelativeToProjectDir(orgExampleMessagesPath)
         orgExampleMessages.text.contains('public static String key1()')
         orgExampleMessages.text.contains('public static String key2()')
-        def messages = new File(projectDir.root, "$expected/Messages.java")
-        messages.exists()
+        def messagesPath = "$expected/Messages.java"
+        def messages = new File(projectDir.root, messagesPath)
+        existsRelativeToProjectDir(messagesPath)
         messages.text.contains('public static String key3()')
         messages.text.contains('public static String key4()')
 

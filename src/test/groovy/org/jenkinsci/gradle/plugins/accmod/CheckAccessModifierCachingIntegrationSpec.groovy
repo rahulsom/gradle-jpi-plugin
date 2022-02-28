@@ -92,8 +92,8 @@ class CheckAccessModifierCachingIntegrationSpec extends IntegrationSpec {
 
         then:
         result.task(taskPath).outcome == TaskOutcome.SUCCESS
-        new File(projectDir.root, 'build/access-modifier/main-java.txt').exists()
-        new File(projectDir.root, 'build/access-modifier/main-groovy.txt').exists()
+        existsRelativeToProjectDir('build/access-modifier/main-java.txt')
+        existsRelativeToProjectDir('build/access-modifier/main-groovy.txt')
 
         when:
         def remade = this.template.make([

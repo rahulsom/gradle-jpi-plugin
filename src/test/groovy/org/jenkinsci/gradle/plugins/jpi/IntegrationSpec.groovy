@@ -16,7 +16,7 @@ class IntegrationSpec extends Specification {
 
     protected GradleRunner gradleRunner() {
         def gradleProperties = new File(projectDir.root, 'gradle.properties')
-        if (!gradleProperties.exists()) {
+        if (!existsRelativeToProjectDir('gradle.properties')) {
             def props = new Properties()
             props.setProperty('org.gradle.warning.mode', 'fail')
             gradleProperties.withOutputStream {
@@ -43,5 +43,9 @@ class IntegrationSpec extends Specification {
 
     static boolean isWindows() {
         System.getProperty('os.name').toLowerCase().contains('windows')
+    }
+
+    boolean existsRelativeToProjectDir(String path) {
+        new File(projectDir.root, path).exists()
     }
 }

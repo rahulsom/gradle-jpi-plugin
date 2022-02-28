@@ -44,16 +44,17 @@ class AddedDependenciesIntegrationSpec extends IntegrationSpec {
 
         then:
         result.task(':copyTestPluginDependencies').outcome == TaskOutcome.SUCCESS
-        File dir = new File(projectDir.root, 'build/jpi-plugin/test/test-dependencies')
+        def dependenciesPath = 'build/jpi-plugin/test/test-dependencies'
+        File dir = new File(projectDir.root, dependenciesPath)
         new File(dir, 'index').text == [
                 'config-file-provider', 'structs', 'cloudbees-folder',
                 'ui-samples-plugin', 'token-macro', 'credentials', '',
         ].join('\n')
-        new File(dir, 'structs.jpi').exists()
-        new File(dir, 'config-file-provider.jpi').exists()
-        new File(dir, 'cloudbees-folder.jpi').exists()
-        new File(dir, 'token-macro.jpi').exists()
-        new File(dir, 'credentials.jpi').exists()
+        existsRelativeToProjectDir("${dependenciesPath}/structs.jpi")
+        existsRelativeToProjectDir("${dependenciesPath}/config-file-provider.jpi")
+        existsRelativeToProjectDir("${dependenciesPath}/cloudbees-folder.jpi")
+        existsRelativeToProjectDir("${dependenciesPath}/token-macro.jpi")
+        existsRelativeToProjectDir("${dependenciesPath}/credentials.jpi")
     }
 
     def 'testCompileClasspath configuration contains plugin JAR dependencies'() {

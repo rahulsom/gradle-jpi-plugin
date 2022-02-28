@@ -23,8 +23,9 @@ class LicenseTaskSpec extends IntegrationSpec {
 
         then:
         result.task(':generateLicenseInfo').outcome == TaskOutcome.SUCCESS
-        File licensesFile = new File(projectFolder, 'build/licenses/licenses.xml')
-        licensesFile.exists()
+        def licenses = 'build/licenses/licenses.xml'
+        File licensesFile = new File(projectFolder, licenses)
+        existsRelativeToProjectDir('bar/' + licenses)
         compareXml(licensesFile.text, getClass().getResource(expectedLicensesFile).text)
 
         where:

@@ -69,8 +69,9 @@ abstract class GenerateHplTaskSpec extends IntegrationSpec {
                 .build()
 
         then:
-        def file = new File(projectDir.root, expectedRelativeHplLocation())
-        file.exists()
+        def hplLocation = expectedRelativeHplLocation()
+        def file = new File(projectDir.root, hplLocation)
+        existsRelativeToProjectDir(hplLocation)
         new Manifest(file.newInputStream()) == toManifest(minimalAttributes)
 
         where:
@@ -167,8 +168,9 @@ abstract class GenerateHplTaskSpec extends IntegrationSpec {
                 .build()
 
         then:
-        def file = new File(projectDir.root, expectedRelativeHplLocation())
-        file.exists()
+        def hplLocation = expectedRelativeHplLocation()
+        def file = new File(projectDir.root, hplLocation)
+        existsRelativeToProjectDir(hplLocation)
         new Manifest(file.newInputStream()) == toManifest(minimalAttributes)
     }
 
@@ -201,8 +203,9 @@ abstract class GenerateHplTaskSpec extends IntegrationSpec {
                 .build()
 
         then:
-        def file = new File(projectDir.root, expectedRelativeHplLocation())
-        file.exists()
+        def hplLocation = expectedRelativeHplLocation()
+        def file = new File(projectDir.root, hplLocation)
+        existsRelativeToProjectDir(hplLocation)
         new Manifest(file.newInputStream()) == toManifest(minimalAttributes)
     }
 
@@ -240,8 +243,9 @@ abstract class GenerateHplTaskSpec extends IntegrationSpec {
                 .build()
 
         then:
-        def file = new File(projectDir.root, expectedRelativeHplLocation())
-        file.exists()
+        def hplLocation = expectedRelativeHplLocation()
+        def file = new File(projectDir.root, hplLocation)
+        existsRelativeToProjectDir(hplLocation)
         new Manifest(file.newInputStream()) == toManifest(minimalAttributes)
     }
 

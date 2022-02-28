@@ -133,7 +133,7 @@ class GeneratePluginClassManifestTaskIntegrationSpec extends IntegrationSpec {
                 .buildAndFail()
 
         then:
-        !new File(projectDir.root, 'build/hudson/plugins.txt').exists()
+        !existsRelativeToProjectDir('build/hudson/plugins.txt')
         result.output.contains('Must not have more than 1 legacy hudson.Plugin subclass')
     }
 
