@@ -1,12 +1,14 @@
 package org.jenkinsci.gradle.plugins.jpi.support
 
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
+import spock.lang.TempDir
+
+import java.nio.file.Files
+import java.nio.file.Path
 
 class NeptuneSpec extends Specification {
-    @Rule
-    protected final TemporaryFolder projectDir = new TemporaryFolder()
+    @TempDir
+    protected Path projectDir
 
     def 'should create build and settings'() {
         given:
@@ -20,8 +22,8 @@ class NeptuneSpec extends Specification {
         neptune.writeTo(projectDir)
 
         then:
-        new File(projectDir.root, 'build.gradle').exists()
-        new File(projectDir.root, 'settings.gradle').exists()
+        Files.exists(projectDir.resolve('build.gradle'))
+        Files.exists(projectDir.resolve('settings.gradle'))
     }
 
     def 'should create subprojects'() {
@@ -36,12 +38,12 @@ class NeptuneSpec extends Specification {
         neptune.writeTo(projectDir)
 
         then:
-        new File(projectDir.root, 'build.gradle').exists()
-        new File(projectDir.root, 'a/build.gradle').exists()
-        new File(projectDir.root, 'b/build.gradle').exists()
-        new File(projectDir.root, 'settings.gradle').text == '''\
-            include 'a'
-            include 'b'
-            '''.stripIndent()
+        Files.exists(projectDir.resolve('build.gradle'))
+        Files.exists(projectDir.resolve('a/build.gradle'))
+        Files.exists(projectDir.resolve('b/build.gradle'))
+        Files.readAllLines(projectDir.resolve('settings.gradle')) == [
+                "include 'a'",
+                "include 'b'",
+        ]
     }
 }
