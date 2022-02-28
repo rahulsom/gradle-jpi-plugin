@@ -8,9 +8,9 @@ class JpiPublishingAndConsumptionTest extends IntegrationSpec {
     private File consumerBuild
 
     def setup() {
-        projectDir.newFolder('producer')
-        projectDir.newFolder('consumer')
-        def repo = projectDir.newFolder('repo')
+        mkDirInProjectDir('producer')
+        mkDirInProjectDir('consumer')
+        def repo = mkDirInProjectDir('repo')
         projectDir.newFile('producer/settings.gradle') << 'rootProject.name = "producer"'
         projectDir.newFile('consumer/settings.gradle') << 'rootProject.name = "consumer"'
         producerBuild = projectDir.newFile('producer/build.gradle')

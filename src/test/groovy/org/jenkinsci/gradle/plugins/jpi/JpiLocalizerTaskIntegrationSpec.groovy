@@ -18,7 +18,7 @@ class JpiLocalizerTaskIntegrationSpec extends IntegrationSpec {
                 jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
-        projectDir.newFolder('src', 'main', 'resources', 'org', 'example')
+        mkDirInProjectDir('src/main/resources/org/example')
         projectDir.newFile('src/main/resources/org/example/Messages.properties') << 'key1=value1\nkey2=value2'
         projectDir.newFile('src/main/resources/Messages.properties') << 'key3=value1\nkey4=value2'
 
@@ -58,7 +58,7 @@ class JpiLocalizerTaskIntegrationSpec extends IntegrationSpec {
                 jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
-        projectDir.newFolder('src', 'main', 'resources', 'org', 'example')
+        mkDirInProjectDir('src/main/resources/org/example')
         projectDir.newFile('src/main/resources/org/example/Messages.properties') << 'key1=value1\nkey2=value2'
 
         when:
@@ -74,7 +74,7 @@ class JpiLocalizerTaskIntegrationSpec extends IntegrationSpec {
         given:
         projectDir.newFile('build.gradle') << ''
         projectDir.newFile('settings.gradle') << 'include ":plugin"'
-        projectDir.newFolder('plugin', 'src', 'main', 'resources')
+        mkDirInProjectDir('plugin/src/main/resources')
         projectDir.newFile('plugin/build.gradle') << """\
             plugins { id 'org.jenkins-ci.jpi' }
             jenkinsPlugin {

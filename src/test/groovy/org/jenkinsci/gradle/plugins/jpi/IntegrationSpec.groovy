@@ -48,4 +48,8 @@ class IntegrationSpec extends Specification {
     boolean existsRelativeToProjectDir(String path) {
         new File(projectDir.root, path).exists()
     }
+
+    File mkDirInProjectDir(String path) {
+        projectDir.newFolder(path)
+    }
 }

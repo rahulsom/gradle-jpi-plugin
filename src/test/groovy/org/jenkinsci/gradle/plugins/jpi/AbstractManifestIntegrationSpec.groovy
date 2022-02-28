@@ -158,7 +158,7 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
                 jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
-        projectDir.newFolder('src', 'main', 'java', 'my', 'example')
+        mkDirInProjectDir('src/main/java/my/example')
         projectDir.newFile('src/main/java/my/example/TestPlugin.java') << """\
             package $pkg;
 
@@ -463,7 +463,7 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
                 jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
-        projectDir.newFolder('src', 'main', 'java', 'my', 'example')
+        mkDirInProjectDir('src/main/java/my/example')
         projectDir.newFile('src/main/java/my/example/TestPlugin.java') << """\
             package my.example;
 

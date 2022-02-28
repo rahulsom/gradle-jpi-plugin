@@ -57,7 +57,7 @@ class CheckOverlappingSourcesTaskIntegrationSpec extends IntegrationSpec {
                 jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
-        projectDir.newFolder('src', 'main', dir, 'my', 'example')
+        mkDirInProjectDir("src/main/${dir}/my/example")
         projectDir.newFile("src/main/${dir}/my/example/TestPlugin.${language}") << """\
             package $pkg;
 
@@ -90,7 +90,7 @@ class CheckOverlappingSourcesTaskIntegrationSpec extends IntegrationSpec {
             }
             """.stripIndent()
         ['java', 'groovy'].eachWithIndex { dir, idx ->
-            projectDir.newFolder('src', 'main', dir, 'my', 'example')
+            mkDirInProjectDir("src/main/${dir}/my/example")
             projectDir.newFile("src/main/${dir}/my/example/TestPlugin${idx}.java") << """\
             package $pkg;
 
@@ -119,7 +119,7 @@ class CheckOverlappingSourcesTaskIntegrationSpec extends IntegrationSpec {
                 jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
             """.stripIndent()
-        projectDir.newFolder('src', 'main', dir, 'my', 'example')
+        mkDirInProjectDir("src/main/${dir}/my/example")
         projectDir.newFile("src/main/${dir}/my/example/TestPlugin.${language}") << """\
             package $pkg;
 
@@ -160,7 +160,7 @@ class CheckOverlappingSourcesTaskIntegrationSpec extends IntegrationSpec {
             }
             """.stripIndent()
         ['java', 'groovy'].eachWithIndex { dir, idx ->
-            projectDir.newFolder('src', 'main', dir, 'my', 'example')
+            mkDirInProjectDir("src/main/${dir}/my/example")
             projectDir.newFile("src/main/${dir}/my/example/TestPlugin${idx}.java") << """\
             package $pkg;
 

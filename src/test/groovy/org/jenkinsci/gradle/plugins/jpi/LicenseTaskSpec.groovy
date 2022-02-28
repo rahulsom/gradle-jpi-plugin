@@ -12,7 +12,7 @@ class LicenseTaskSpec extends IntegrationSpec {
     @Unroll
     def 'compute license information - #buildFile'(String buildFile, String expectedLicensesFile) {
         given:
-        File projectFolder = projectDir.newFolder('bar')
+        File projectFolder = mkDirInProjectDir('bar')
         new File(projectFolder, 'build.gradle') << getClass().getResource(buildFile).text
 
         when:
@@ -38,7 +38,7 @@ class LicenseTaskSpec extends IntegrationSpec {
     @IgnoreIf({ isBeforeConfigurationCache() })
     def 'support configuration cache'() {
         given:
-        File projectFolder = projectDir.newFolder('bar')
+        File projectFolder = mkDirInProjectDir('bar')
         new File(projectFolder, 'build.gradle') << getClass().getResource('licenseInfo.gradle').text
 
         when:

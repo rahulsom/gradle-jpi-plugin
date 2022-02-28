@@ -59,7 +59,7 @@ class AddedDependenciesIntegrationSpec extends IntegrationSpec {
 
     def 'testCompileClasspath configuration contains plugin JAR dependencies'() {
         given:
-        projectDir.newFolder('build')
+        mkDirInProjectDir('build')
         build << '''\
             jenkinsPlugin {
                 jenkinsVersion = '1.554.2'
