@@ -3,14 +3,12 @@ package org.jenkinsci.gradle.plugins.jpi
 import groovy.transform.CompileStatic
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.util.GradleVersion
-import org.junit.experimental.categories.Category
 import spock.lang.Specification
 import spock.lang.TempDir
 
 import java.nio.file.Files
 
 @CompileStatic
-@Category(UsesGradleTestKit)
 class IntegrationSpec extends Specification {
     @TempDir
     protected File projectDir
