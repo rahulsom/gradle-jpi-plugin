@@ -119,10 +119,19 @@ signing {
 tasks.addRule("Pattern: testGradle<ID>") {
     val taskName = this
     if (!taskName.startsWith("testGradle")) return@addRule
-    tasks.register<Test>(taskName) {
-        val gradleVersion = taskName.substringAfter("testGradle")
-        systemProperty("gradle.under.test", gradleVersion)
-        setTestNameIncludePatterns(listOf("*IntegrationSpec"))
+    val task = tasks.register(taskName)
+    for (javaVersion in listOf(8, 11)) {
+        val javaSpecificTask = tasks.register<Test>("${taskName}onJava${javaVersion}") {
+            val gradleVersion = taskName.substringAfter("testGradle")
+            systemProperty("gradle.under.test", gradleVersion)
+            setTestNameIncludePatterns(listOf("*IntegrationSpec"))
+            javaLauncher.set(javaToolchains.launcherFor {
+                languageVersion.set(JavaLanguageVersion.of(javaVersion))
+            })
+        }
+        task.configure {
+            dependsOn(javaSpecificTask)
+        }
     }
 }
 
