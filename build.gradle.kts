@@ -1,6 +1,4 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
-import org.gradle.util.GradleVersion.current
-import org.gradle.util.GradleVersion.version
 
 plugins {
     groovy
@@ -23,13 +21,6 @@ repositories {
 java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(8))
-    }
-}
-
-kotlinDslPluginOptions {
-    // this warns on Gradle 7.0 snapshots, but only from JenkinsServerTaskSpec
-    if (current().baseVersion < version("7.0")) {
-        experimentalWarning.set(false)
     }
 }
 
