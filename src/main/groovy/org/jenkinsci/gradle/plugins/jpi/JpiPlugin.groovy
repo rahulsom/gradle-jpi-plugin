@@ -405,6 +405,10 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
                                 project.objects.named(LibraryElements, JPI))
                     }
 
+                    project.tasks.named('generateJenkinsPluginDependenciesManifest').configure {
+                        pluginConfigurations.from(runtimeClasspathJenkins)
+                    }
+
                     component.addVariantsFromConfiguration(runtimeElementsJenkins) {
                         if (runtimeElements.name != JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME) {
                             it.mapToOptional()

@@ -2,13 +2,10 @@ package org.jenkinsci.gradle.plugins.manifest
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.attributes.LibraryElements
-import org.gradle.api.attributes.LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE
 import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.getByType
-import org.gradle.kotlin.dsl.named
 import org.gradle.kotlin.dsl.register
 import org.jenkinsci.gradle.plugins.jpi.internal.JpiExtensionBridge
 
@@ -33,13 +30,6 @@ open class JenkinsManifestPlugin : Plugin<Project> {
         val pluginDependencies = target.tasks.register<GeneratePluginDependenciesManifestTask>(GeneratePluginDependenciesManifestTask.NAME) {
             group = "Build"
             description = "Finds optional and required plugin dependencies"
-            val jpi = project.objects.named<LibraryElements>("jpi")
-            project.configurations
-                    .filter { it.isCanBeResolved }
-                    .filter { it.attributes.getAttribute(LIBRARY_ELEMENTS_ATTRIBUTE) == jpi }
-                    .filterNot { it.name.startsWith("serverRuntime") } // these dependencies should not be a part
-                    .filterNot { it.name.startsWith("testRuntime") }   // of the plugin dependency calculation
-                    .forEach { pluginConfigurations.from(it) }
             outputFile.set(project.layout.buildDirectory.file("jenkins-manifests/plugin-dependencies.mf"))
         }
 
