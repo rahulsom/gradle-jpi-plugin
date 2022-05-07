@@ -11,8 +11,8 @@ import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.named
 import org.gradle.kotlin.dsl.register
-import org.jenkinsci.gradle.plugins.core.VersionlessPluginLookup
 import org.jenkinsci.gradle.plugins.jpi.internal.JpiExtensionBridge
+import org.jenkinsci.gradle.plugins.jpi.deployment.CreateVersionlessLookupTask
 import java.io.File
 
 open class JpiTestingPlugin : Plugin<Project> {
@@ -75,10 +75,24 @@ open class JpiTestingPlugin : Plugin<Project> {
         }
         val generatedTestTaskDir = target.layout.buildDirectory.dir("jpi-plugin/generatedJenkinsTest")
         val generatedJenkinsPluginsDir = generatedTestTaskDir.map { it.dir("test-dependencies") }
+
+        val versionlessLookupTask = target.tasks.register<CreateVersionlessLookupTask>("createVersionlessLookup") {
+            group = "Build"
+            description = "Creates plugin lookup without versions in filenames"
+            val jpiAllPlugins = project.configurations.getByName("jpiAllPlugins")
+            allResolvedPlugins.from(jpiAllPlugins)
+            moduleVersionToModule.set(project.provider {
+                jpiAllPlugins.resolvedConfiguration.resolvedArtifacts.associate {
+                    it.file.name to "${it.name}.jpi"
+                }
+            })
+            lookupDestination.set(project.layout.buildDirectory.file("jpi-plugin/versionless.tsv"))
+        }
+        val versionlessOutput = versionlessLookupTask.flatMap { it.lookupDestination }
         val copyPluginsForGeneratedJenkinsTest = target.tasks.register<CopyTestPluginDependenciesTask>("copyGeneratedJenkinsTestPluginDependencies") {
             group = "Verification"
             description = "Copies plugins on runtimeClasspath into directory for jenkins-test-harness to load in generatedJenkinsTest"
-            versionlessPluginLookup.set(project.provider(VersionlessPluginLookup(project.configurations)))
+            versionlessLookupFile.set(versionlessOutput)
             files.from(project.configurations.findByName("runtimeClasspathJenkins"))
             outputDir.set(generatedJenkinsPluginsDir)
         }
@@ -104,7 +118,7 @@ open class JpiTestingPlugin : Plugin<Project> {
             group = "Verification"
             description = "Copies plugins on testRuntimeClasspath into directory for jenkins-test-harness to load in test"
             files.from(project.configurations.findByName("testRuntimeClasspathJenkins"))
-            versionlessPluginLookup.set(project.provider(VersionlessPluginLookup(project.configurations)))
+            versionlessLookupFile.set(versionlessOutput)
             outputDir.set(testPluginsDir)
         }
         target.tasks.named<Test>("test").configure {

@@ -3,6 +3,7 @@ package org.jenkinsci.gradle.plugins.core
 import org.gradle.api.artifacts.Configuration
 import java.util.concurrent.Callable
 
+@Deprecated("replaced by CreateVersionlessLookupTask")
 open class VersionlessPluginLookup(private val configurations: Iterable<Configuration>) : Callable<Map<String, String>> {
     companion object {
         val DEPRECATED: Set<String> = setOf(

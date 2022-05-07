@@ -6,8 +6,10 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.RegularFile
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Provider
+import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputDirectory
@@ -23,7 +25,11 @@ open class CopyTestPluginDependenciesTask @Inject constructor(private val fileSy
     val plugins: FileCollection = files.filter { it.path.endsWith(".hpi") || it.path.endsWith(".jpi") }
 
     @Internal
+    @Deprecated("replaced by dedicated task")
     val versionlessPluginLookup: MapProperty<String, String> = project.objects.mapProperty()
+
+    @InputFile
+    val versionlessLookupFile: RegularFileProperty = project.objects.fileProperty()
 
     @OutputDirectory
     val outputDir: DirectoryProperty = project.objects.directoryProperty()
@@ -33,7 +39,10 @@ open class CopyTestPluginDependenciesTask @Inject constructor(private val fileSy
 
     @TaskAction
     fun go() {
-        val lookup = versionlessPluginLookup.get()
+        val lookup: Map<String, String> = versionlessLookupFile.asFile.get().readLines().associate {
+            val (version, versionless) = it.split("\t".toRegex(), 2)
+            version to versionless
+        }
         fileSystemOperations.copy {
             from(plugins)
             into(outputDir)

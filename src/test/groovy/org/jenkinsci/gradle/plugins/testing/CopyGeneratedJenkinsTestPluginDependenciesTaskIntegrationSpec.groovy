@@ -126,18 +126,18 @@ class CopyGeneratedJenkinsTestPluginDependenciesTaskIntegrationSpec extends Inte
         'testImplementation' | []                 | [LOG4J_API_2_13_0] | 'added library'   | UP_TO_DATE   | []
         'testImplementation' | [LOG4J_API_2_13_0] | [LOG4J_API_2_14_0] | 'changed library' | UP_TO_DATE   | []
         'testImplementation' | [LOG4J_API_2_13_0] | []                 | 'removed library' | UP_TO_DATE   | []
-        // test dependencies are not carried over
-        'testImplementation' | []                 | [ANT_1_11]         | 'added plugin'    | UP_TO_DATE   | []
-        'testImplementation' | [ANT_1_10]         | [ANT_1_11]         | 'changed plugin'  | UP_TO_DATE   | []
-        'testImplementation' | [ANT_1_10]         | []                 | 'removed plugin'  | UP_TO_DATE   | []
+
+        'testImplementation' | []                 | [ANT_1_11]         | 'added plugin'    | SUCCESS      | ['ant', 'structs']
+        'testImplementation' | [ANT_1_10]         | [ANT_1_11]         | 'changed plugin'  | SUCCESS      | ['ant', 'structs']
+        'testImplementation' | [ANT_1_10]         | []                 | 'removed plugin'  | SUCCESS      | []
 
         'testRuntimeOnly'    | []                 | [LOG4J_API_2_13_0] | 'added library'   | UP_TO_DATE   | []
         'testRuntimeOnly'    | [LOG4J_API_2_13_0] | [LOG4J_API_2_14_0] | 'changed library' | UP_TO_DATE   | []
         'testRuntimeOnly'    | [LOG4J_API_2_13_0] | []                 | 'removed library' | UP_TO_DATE   | []
 
-        'testRuntimeOnly'    | []                 | [ANT_1_11]         | 'added plugin'    | UP_TO_DATE   | []
-        'testRuntimeOnly'    | [ANT_1_10]         | [ANT_1_11]         | 'changed plugin'  | UP_TO_DATE   | []
-        'testRuntimeOnly'    | [ANT_1_10]         | []                 | 'removed plugin'  | UP_TO_DATE   | []
+        'testRuntimeOnly'    | []                 | [ANT_1_11]         | 'added plugin'    | SUCCESS      | ['ant', 'structs']
+        'testRuntimeOnly'    | [ANT_1_10]         | [ANT_1_11]         | 'changed plugin'  | SUCCESS      | ['ant', 'structs']
+        'testRuntimeOnly'    | [ANT_1_10]         | []                 | 'removed plugin'  | SUCCESS      | []
     }
 
     @IgnoreIf({ isBeforeConfigurationCache() })

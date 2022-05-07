@@ -15,7 +15,9 @@
  */
 package org.jenkinsci.gradle.plugins.jpi
 
+import org.gradle.api.Action
 import org.gradle.api.GradleException
+import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
@@ -97,6 +99,21 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
 
         def ext = gradleProject.extensions.create('jenkinsPlugin', JpiExtension, gradleProject)
 
+        def objects = gradleProject.objects
+        def jpiAllPlugins = gradleProject.configurations.register('jpiAllPlugins', new Action<Configuration>() {
+            @Override
+            void execute(Configuration conf) {
+                conf.visible = false
+                conf.canBeResolved = true
+                conf.canBeConsumed = false
+                conf.attributes {
+                    it.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+                    it.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
+                    it.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, JPI))
+                }
+            }
+        })
+
         gradleProject.plugins.apply(JavaLibraryPlugin)
         gradleProject.plugins.apply(GroovyPlugin)
         gradleProject.plugins.apply(kotlinPlugin('org.jenkinsci.gradle.plugins.accmod.AccessModifierPlugin'))
@@ -105,7 +122,7 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
 
         gradleProject.plugins.apply(LegacyWorkaroundsPlugin)
 
-        configureConfigurations(gradleProject)
+        configureConfigurations(gradleProject, jpiAllPlugins)
         def overlap = gradleProject.tasks.register(CheckOverlappingSourcesTask.TASK_NAME,
                 CheckOverlappingSourcesTask) { CheckOverlappingSourcesTask t ->
             t.group = LifecycleBasePlugin.VERIFICATION_GROUP
@@ -341,7 +358,7 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
         }
     }
 
-    private configureConfigurations(Project project) {
+    private configureConfigurations(Project project, NamedDomainObjectProvider<Configuration> jpiAllPlugins) {
         def libraryElementsStrategy =
                 project.dependencies.attributesSchema.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE)
         libraryElementsStrategy.compatibilityRules.add(JPILibraryElementsCompatibilityRule)
@@ -359,10 +376,17 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
         jenkinsServer.canBeConsumed = false
         jenkinsServer.canBeResolved = false
 
-        setupTestRuntimeClasspath(project, TEST_JENKINS_RUNTIME_CLASSPATH_CONFIGURATION_NAME,
+        def testJenkinsConfig = setupTestRuntimeClasspath(project, TEST_JENKINS_RUNTIME_CLASSPATH_CONFIGURATION_NAME,
                 [JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME])
-        setupTestRuntimeClasspath(project, SERVER_JENKINS_RUNTIME_CLASSPATH_CONFIGURATION_NAME,
+        def serverConfig = setupTestRuntimeClasspath(project, SERVER_JENKINS_RUNTIME_CLASSPATH_CONFIGURATION_NAME,
                 [JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME, JENKINS_SERVER_DEPENDENCY_CONFIGURATION_NAME])
+
+        jpiAllPlugins.configure(new Action<Configuration>() {
+            @Override
+            void execute(Configuration conf) {
+                conf.extendsFrom(testJenkinsConfig, serverConfig)
+            }
+        })
 
         project.afterEvaluate {
             // to make sure all optional feature configurations have been setup completely
@@ -408,6 +432,9 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
                     project.tasks.named('generateJenkinsPluginDependenciesManifest').configure {
                         pluginConfigurations.from(runtimeClasspathJenkins)
                     }
+                    jpiAllPlugins.configure {
+                        it.extendsFrom(runtimeClasspathJenkins)
+                    }
 
                     component.addVariantsFromConfiguration(runtimeElementsJenkins) {
                         if (runtimeElements.name != JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME) {
@@ -424,7 +451,7 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
         }
     }
 
-    private static void setupTestRuntimeClasspath(Project project, String name, List<String> extendsFrom) {
+    private static Configuration setupTestRuntimeClasspath(Project project, String name, List<String> extendsFrom) {
         Configuration testRuntimeClasspathJenkins =
                 project.configurations.create(name)
         testRuntimeClasspathJenkins.visible = false
@@ -439,6 +466,7 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
         extendsFrom.each {
             testRuntimeClasspathJenkins.extendsFrom(project.configurations[it])
         }
+        testRuntimeClasspathJenkins
     }
 
     private static boolean isRuntimeVariant(Configuration variant) {
