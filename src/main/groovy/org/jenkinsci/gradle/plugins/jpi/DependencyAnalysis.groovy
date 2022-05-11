@@ -61,6 +61,11 @@ class DependencyAnalysis {
                                    Configuration consumablePlugins,
                                    Configuration resolvablePlugins) {
         jpiConfigurations.add(new JpiConfigurations(consumableLibraries, consumablePlugins, resolvablePlugins))
+        if (resolvablePlugins.name == JpiPlugin.JENKINS_RUNTIME_ELEMENTS_CONFIGURATION_NAME) {
+            resolvablePlugins.withDependencies {
+                analyse()
+            }
+        }
     }
 
     DependencyAnalysisResult analyse() {
