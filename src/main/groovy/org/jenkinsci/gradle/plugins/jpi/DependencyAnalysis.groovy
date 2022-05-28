@@ -1,7 +1,6 @@
 package org.jenkinsci.gradle.plugins.jpi
 
 import groovy.transform.CompileStatic
-import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ModuleDependency
@@ -43,18 +42,13 @@ class DependencyAnalysis {
     private DependencyAnalysisResult analysisResult
 
     DependencyAnalysis(Project project) {
-        def name = 'jpiAllLibraryDependencies'
-        def javaRuntime = project.objects.named(Usage, Usage.JAVA_RUNTIME)
-        this.allLibraryDependencies = project.configurations.create(name, new Action<Configuration>() {
-            @Override
-            void execute(Configuration conf) {
-                conf.visible = false
-                conf.attributes.attribute(Usage.USAGE_ATTRIBUTE, javaRuntime)
-                conf.withDependencies {
-                    analyse()
-                }
-            }
-        })
+        this.allLibraryDependencies = project.configurations.detachedConfiguration()
+        this.allLibraryDependencies.attributes.attribute(Usage.USAGE_ATTRIBUTE,
+                project.objects.named(Usage, Usage.JAVA_RUNTIME))
+        this.allLibraryDependencies.withDependencies {
+            // do the analysis when this configuration is resolved
+            analyse()
+        }
     }
 
     void registerJpiConfigurations(Configuration consumableLibraries,
