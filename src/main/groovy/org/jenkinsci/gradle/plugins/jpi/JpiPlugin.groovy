@@ -556,7 +556,7 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
             def main = project.extensions.getByType(SourceSetContainer)['main']
             def mainResources = main.resources.srcDirs
             def mainOutput = main.output
-            def libraries = dependencyAnalysis.allLibraryDependencies
+            def libraries = project.plugins.getPlugin(JpiPlugin).dependencyAnalysis.allLibraryDependencies
             it.fileName.set('the.hpl')
             it.hplDir.set(outputDir)
             it.resourcePath.set(project.file(WEB_APP_DIR))
