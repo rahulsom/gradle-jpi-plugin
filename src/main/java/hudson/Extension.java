@@ -33,5 +33,7 @@ import static jenkins.YesNoMaybe.MAYBE;
  * @author Kohsuke Kawaguchi
  */
 public @interface Extension {
+    double ordinal() default 0;
+    boolean optional() default false;
     YesNoMaybe dynamicLoadable() default MAYBE;
 }
