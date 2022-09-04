@@ -4,6 +4,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
@@ -20,14 +21,28 @@ public class LocalizationPlugin implements Plugin<Project> {
         SourceDirectorySet mainResources = main.getResources();
         TaskContainer tasks = target.getTasks();
         
-        TaskProvider<LocalizationTask> localizeMessages = tasks.register("localizeMessages", LocalizationTask.class, new Action<LocalizationTask>() {
-            @Override
-            public void execute(LocalizationTask t) {
-                t.setSource(mainResources);
-            }
-        });
+        TaskProvider<LocalizationTask> localizeMessages = tasks.register("localizeMessages", 
+                LocalizationTask.class, 
+                new RegistrationActions(mainResources));
 
-        tasks.named(main.getCompileJavaTaskName(), JavaCompile.class).configure(new IncludeAdditionalSource(localizeMessages));
+        tasks.named(main.getCompileJavaTaskName(), JavaCompile.class)
+                .configure(new IncludeAdditionalSource(localizeMessages));
+    }
+    
+    private static class RegistrationActions implements Action<LocalizationTask> {
+        private static final String DESCRIPTION = "Generates Java source files for **/Messages.properties";
+        private final SourceDirectorySet source;
+
+        private RegistrationActions(SourceDirectorySet source) {
+            this.source = source;
+        }
+
+        @Override
+        public void execute(LocalizationTask t) {
+            t.setDescription(DESCRIPTION);
+            t.setGroup(BasePlugin.BUILD_GROUP);
+            t.setSource(source);
+        }
     }
     
     private static class IncludeAdditionalSource implements Action<JavaCompile> {
