@@ -54,10 +54,14 @@ import org.gradle.util.GradleVersion
 import org.jenkinsci.gradle.plugins.jpi.internal.DependencyLookup
 import org.jenkinsci.gradle.plugins.jpi.internal.PluginDependencyProvider
 import org.jenkinsci.gradle.plugins.jpi.legacy.LegacyWorkaroundsPlugin
+import org.jenkinsci.gradle.plugins.jpi.localization.LocalizationPlugin
+import org.jenkinsci.gradle.plugins.jpi.localization.LocalizationTask
 import org.jenkinsci.gradle.plugins.jpi.server.GenerateHplTask
 import org.jenkinsci.gradle.plugins.jpi.server.InstallJenkinsServerPluginsTask
 import org.jenkinsci.gradle.plugins.jpi.server.JenkinsServerTask
 import org.jenkinsci.gradle.plugins.jpi.verification.CheckOverlappingSourcesTask
+
+import java.util.concurrent.Callable
 
 import static org.gradle.api.logging.LogLevel.INFO
 import static org.gradle.api.tasks.SourceSet.MAIN_SOURCE_SET_NAME
@@ -121,6 +125,16 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
         gradleProject.plugins.apply(kotlinPlugin('org.jenkinsci.gradle.plugins.testing.JpiTestingPlugin'))
 
         gradleProject.plugins.apply(LegacyWorkaroundsPlugin)
+        gradleProject.plugins.apply(LocalizationPlugin)
+        def localizeMessagesOutputDir = gradleProject.providers.provider(new Callable<File>() {
+            @Override
+            File call() throws Exception {
+                ext.localizerOutputDir
+            }
+        })
+        gradleProject.tasks.named('localizeMessages', LocalizationTask).configure {
+            outputDir.convention(localizeMessagesOutputDir)
+        }
 
         configureConfigurations(gradleProject, jpiAllPlugins)
         def overlap = gradleProject.tasks.register(CheckOverlappingSourcesTask.TASK_NAME,
