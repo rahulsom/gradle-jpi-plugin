@@ -9,6 +9,32 @@ import spock.lang.Unroll
 class LocalizationTaskIntegrationSpec extends IntegrationSpec {
     static final String TASK_NAME = 'localizeMessages'
 
+    def 'compile should run LocalizationTask'() {
+        given:
+        touchInProjectDir('build.gradle') << """\
+            plugins {
+                id 'org.jenkins-ci.jpi'
+            }
+            jenkinsPlugin {
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+            }
+            """.stripIndent()
+        mkDirInProjectDir('src/main/java/org/example')
+        touchInProjectDir('src/main/java/org/example/Calculator.java') << 'package org.example;\n\nclass Calculator {}'
+        mkDirInProjectDir('src/main/resources/org/example')
+        touchInProjectDir('src/main/resources/org/example/Messages.properties') << 'key1=value1\nkey2=value2'
+        touchInProjectDir('src/main/resources/Messages.properties') << 'key3=value1\nkey4=value2'
+
+        when:
+        def result = gradleRunner()
+                .withArguments('classes')
+                .build()
+
+        then:
+        result.task(':' + TASK_NAME).outcome == TaskOutcome.SUCCESS
+        result.task(':classes').outcome == TaskOutcome.SUCCESS
+    }
+
     @Unroll
     def 'single-module project should be able to run LocalizationTask (#dir)'(String dir, String expected) {
         given:

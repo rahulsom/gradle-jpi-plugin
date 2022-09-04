@@ -7,6 +7,9 @@ import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
+import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.tasks.TaskProvider;
+import org.gradle.api.tasks.compile.JavaCompile;
 
 public class LocalizationPlugin implements Plugin<Project> {
     @Override
@@ -15,12 +18,28 @@ public class LocalizationPlugin implements Plugin<Project> {
         SourceSetContainer sourceSets = javaConvention.getSourceSets();
         SourceSet main = sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME);
         SourceDirectorySet mainResources = main.getResources();
-
-        target.getTasks().register("localizeMessages", LocalizationTask.class, new Action<LocalizationTask>() {
+        TaskContainer tasks = target.getTasks();
+        
+        TaskProvider<LocalizationTask> localizeMessages = tasks.register("localizeMessages", LocalizationTask.class, new Action<LocalizationTask>() {
             @Override
             public void execute(LocalizationTask t) {
                 t.setSource(mainResources);
             }
         });
+
+        tasks.named(main.getCompileJavaTaskName(), JavaCompile.class).configure(new IncludeAdditionalSource(localizeMessages));
+    }
+    
+    private static class IncludeAdditionalSource implements Action<JavaCompile> {
+        private final TaskProvider<?> provider;
+
+        private IncludeAdditionalSource(TaskProvider<?> provider) {
+            this.provider = provider;
+        }
+
+        @Override
+        public void execute(JavaCompile javaCompile) {
+            javaCompile.source(provider);
+        }
     }
 }
