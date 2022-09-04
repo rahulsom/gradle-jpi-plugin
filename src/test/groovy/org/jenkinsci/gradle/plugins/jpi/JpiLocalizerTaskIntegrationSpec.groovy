@@ -5,6 +5,8 @@ import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
 class JpiLocalizerTaskIntegrationSpec extends IntegrationSpec {
+    static final LEGACY_TASK = 'localizer'
+    static final LEGACY_TASK_PATH = ':' + LEGACY_TASK
 
     @Unroll
     def 'single-module project should be able to run LocalizerTask (#dir)'(String dir, String expected) {
@@ -24,11 +26,11 @@ class JpiLocalizerTaskIntegrationSpec extends IntegrationSpec {
 
         when:
         def result = gradleRunner()
-                .withArguments('localizer')
+                .withArguments(LEGACY_TASK)
                 .build()
 
         then:
-        result.task(':localizer').outcome == TaskOutcome.SUCCESS
+        result.task(LEGACY_TASK_PATH).outcome == TaskOutcome.SUCCESS
         def orgExampleMessagesPath = "$expected/org/example/Messages.java"
         def orgExampleMessages = inProjectDir(orgExampleMessagesPath)
         existsRelativeToProjectDir(orgExampleMessagesPath)
@@ -63,11 +65,11 @@ class JpiLocalizerTaskIntegrationSpec extends IntegrationSpec {
 
         when:
         def result = gradleRunner()
-                .withArguments('--configuration-cache', 'localizer', '-i')
+                .withArguments('--configuration-cache', LEGACY_TASK, '-i')
                 .build()
 
         then:
-        result.task(':localizer').outcome == TaskOutcome.SUCCESS
+        result.task(LEGACY_TASK_PATH).outcome == TaskOutcome.SUCCESS
     }
 
     def 'multi-module project should be able to run LocalizerTask'() {
@@ -82,14 +84,15 @@ class JpiLocalizerTaskIntegrationSpec extends IntegrationSpec {
             }
             """.stripIndent()
         touchInProjectDir('plugin/src/main/resources/Messages.properties') << 'key3=value3\nkey4=value4'
+        String namespacedLegacyTask = ':plugin' + LEGACY_TASK_PATH
 
         when:
         def result = gradleRunner()
-                .withArguments(':plugin:localizer')
+                .withArguments(namespacedLegacyTask)
                 .build()
 
         then:
-        result.task(':plugin:localizer').outcome == TaskOutcome.SUCCESS
+        result.task(namespacedLegacyTask).outcome == TaskOutcome.SUCCESS
         def generatedJavaFile = inProjectDir('plugin/build/generated-src/localizer/Messages.java')
         generatedJavaFile.exists()
         generatedJavaFile.text.contains('public static String key3()')
