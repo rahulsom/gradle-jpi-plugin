@@ -226,18 +226,31 @@ class JpiExtension implements JpiExtensionBridge {
         }
     }
 
+    @Deprecated
     private Object localizerOutputDir
 
     /**
      * Sets the localizer output directory
+     *
+     * Favor setting <code>outputDir</code> on the 'localizeMessages' task directly.
+     * <pre>
+     * tasks.named('localizeMessages', org.jenkinsci.gradle.plugins.jpi.localization.LocalizationTask).configure {
+     *   outputDir.set(myPreferredDirectory)
+     * }
+     * </pre>
+     * @deprecated To be removed in 1.0.0
      */
+    @Deprecated
     void setLocalizerOutputDir(Object localizerOutputDir) {
         this.localizerOutputDir = localizerOutputDir
     }
 
     /**
      * Returns the localizer output directory.
+     *
+     * @deprecated To be removed in 1.0.0
      */
+    @Deprecated
     File getLocalizerOutputDir() {
         project.file(localizerOutputDir ?: "${project.buildDir}/generated-src/localizer")
     }
