@@ -4,9 +4,15 @@ import org.gradle.testkit.runner.TaskOutcome
 import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
+/**
+ * Tests for backwards-compatibility.
+ * @deprecated To be removed in 1.0.0
+ */
+@Deprecated
 class JpiLocalizerTaskIntegrationSpec extends IntegrationSpec {
     static final LEGACY_TASK = 'localizer'
     static final LEGACY_TASK_PATH = ':' + LEGACY_TASK
+    static final REPLACEMENT_TASK_PATH = ':localizeMessages'
 
     @Unroll
     def 'single-module project should be able to run LocalizerTask (#dir)'(String dir, String expected) {
@@ -30,7 +36,8 @@ class JpiLocalizerTaskIntegrationSpec extends IntegrationSpec {
                 .build()
 
         then:
-        result.task(LEGACY_TASK_PATH).outcome == TaskOutcome.SUCCESS
+        result.task(LEGACY_TASK_PATH).outcome == TaskOutcome.SKIPPED
+        result.task(REPLACEMENT_TASK_PATH).outcome == TaskOutcome.SUCCESS
         def orgExampleMessagesPath = "$expected/org/example/Messages.java"
         def orgExampleMessages = inProjectDir(orgExampleMessagesPath)
         existsRelativeToProjectDir(orgExampleMessagesPath)
@@ -69,7 +76,8 @@ class JpiLocalizerTaskIntegrationSpec extends IntegrationSpec {
                 .build()
 
         then:
-        result.task(LEGACY_TASK_PATH).outcome == TaskOutcome.SUCCESS
+        result.task(LEGACY_TASK_PATH).outcome == TaskOutcome.SKIPPED
+        result.task(REPLACEMENT_TASK_PATH).outcome == TaskOutcome.SUCCESS
     }
 
     def 'multi-module project should be able to run LocalizerTask'() {
@@ -92,7 +100,8 @@ class JpiLocalizerTaskIntegrationSpec extends IntegrationSpec {
                 .build()
 
         then:
-        result.task(namespacedLegacyTask).outcome == TaskOutcome.SUCCESS
+        result.task(namespacedLegacyTask).outcome == TaskOutcome.SKIPPED
+        result.task(':plugin' + REPLACEMENT_TASK_PATH).outcome == TaskOutcome.SUCCESS
         def generatedJavaFile = inProjectDir('plugin/build/generated-src/localizer/Messages.java')
         generatedJavaFile.exists()
         generatedJavaFile.text.contains('public static String key3()')

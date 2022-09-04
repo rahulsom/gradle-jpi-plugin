@@ -202,7 +202,13 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
             }
         }
 
-        configureLocalizer(gradleProject)
+        def localizeMessages = gradleProject.tasks.named('localizeMessages')
+        gradleProject.tasks.register(LocalizerTask.TASK_NAME, LocalizerTask) {
+            it.description = '[deprecated] See localizeMessages. Generates the Java source for the localizer.'
+            it.group = BasePlugin.BUILD_GROUP
+            it.dependsOn(localizeMessages)
+            it.enabled = false
+        }
         configureInjectedTest(gradleProject)
 
         if (!gradleProject.logger.isEnabled(INFO)) {
@@ -309,24 +315,6 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
                 logger.warn('Task is deprecated and will be removed in 1.0.0.')
                 logger.warn('Please depend on {} instead', replacementName)
             }
-        }
-    }
-
-    private static configureLocalizer(Project project) {
-        JavaPluginConvention javaConvention = project.convention.getPlugin(JavaPluginConvention)
-        JpiExtension jpiExtension = project.extensions.getByType(JpiExtension)
-
-        def localizer = project.tasks.register(LocalizerTask.TASK_NAME, LocalizerTask) {
-            it.description = 'Generates the Java source for the localizer.'
-            it.group = BasePlugin.BUILD_GROUP
-            it.sourceDirs = javaConvention.sourceSets.main.resources.srcDirs
-            it.conventionMapping.map('destinationDir') {
-                jpiExtension.localizerOutputDir
-            }
-        }
-        javaConvention.sourceSets.main.java.srcDir { localizer.get().destinationDir }
-        project.tasks.named(javaConvention.sourceSets.main.compileJavaTaskName).configure {
-            it.dependsOn(localizer)
         }
     }
 

@@ -25,7 +25,10 @@ import org.jvnet.localizer.GeneratorTask
  * Generates Java source based on localization properties files.
  *
  * @author Andrew Bayer
+ * @deprecated To be removed in 1.0.0
+ * @see org.jenkinsci.gradle.plugins.jpi.localization.LocalizationTask
  */
+@Deprecated
 class LocalizerTask extends ConventionTask {
     public static final String TASK_NAME = 'localizer'
 

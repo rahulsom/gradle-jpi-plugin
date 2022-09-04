@@ -9,8 +9,10 @@ import spock.lang.Unroll
 class LocalizationTaskIntegrationSpec extends IntegrationSpec {
     static final String TASK_NAME = 'localizeMessages'
 
-    def 'compile should run LocalizationTask'() {
+    @Unroll
+    def '#task should run LocalizationTask'(String task) {
         given:
+        String path = ':' + task
         touchInProjectDir('build.gradle') << """\
             plugins {
                 id 'org.jenkins-ci.jpi'
@@ -27,12 +29,15 @@ class LocalizationTaskIntegrationSpec extends IntegrationSpec {
 
         when:
         def result = gradleRunner()
-                .withArguments('classes')
+                .withArguments(task)
                 .build()
 
         then:
         result.task(':' + TASK_NAME).outcome == TaskOutcome.SUCCESS
-        result.task(':classes').outcome == TaskOutcome.SUCCESS
+        result.task(path).outcome == TaskOutcome.SUCCESS
+
+        where:
+        task << ['classes', 'sourcesJar']
     }
 
     @Unroll
