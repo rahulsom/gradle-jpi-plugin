@@ -1,6 +1,5 @@
 package org.jenkinsci.gradle.plugins.jpi.localization;
 
-import org.apache.tools.ant.util.StringUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.provider.Property;
@@ -16,8 +15,6 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
-
-import static org.apache.tools.ant.util.StringUtils.removePrefix;
 
 public abstract class LocalizationTask extends SourceTask {
     public LocalizationTask() {
@@ -43,8 +40,8 @@ public abstract class LocalizationTask extends SourceTask {
 
         Set<String> roots = new HashSet<>();
         for (File root : getSourceRoots().get()) {
-            String absolutePath = StringUtils.removeSuffix(root.getAbsolutePath(), "/");
-            roots.add(absolutePath + "/");
+            String absolutePath = root.getAbsolutePath();
+            roots.add(absolutePath.endsWith(File.separator) ? absolutePath : absolutePath + File.separator);
         }
 
         for (File file : getSource()) {
@@ -52,7 +49,7 @@ public abstract class LocalizationTask extends SourceTask {
             String candidate = "";
             for (String root : roots) {
                 if (absolutePath.startsWith(root)) {
-                    candidate = removePrefix(absolutePath, root);
+                    candidate = absolutePath.substring(root.length());
                     break;
                 }
             }
