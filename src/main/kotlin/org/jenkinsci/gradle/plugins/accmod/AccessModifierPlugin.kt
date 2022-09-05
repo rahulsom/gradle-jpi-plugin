@@ -16,6 +16,9 @@ open class AccessModifierPlugin : Plugin<Project> {
         with(target) {
             apply<JavaLibraryPlugin>()
             val library = dependencies.create("org.kohsuke:access-modifier-checker:1.21")
+            val mavenLog = dependencies.create("org.apache.maven:maven-plugin-api:2.0.1").apply {
+                because("Requires org.apache.maven.plugin.logging.Log but missing dependency")
+            }
             val jenkinsAccessModifier = configurations.create("jenkinsAccessModifier") {
                 attributes {
                     attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
@@ -25,6 +28,7 @@ open class AccessModifierPlugin : Plugin<Project> {
                 isCanBeResolved = true
                 withDependencies {
                     add(library)
+                    add(mavenLog)
                 }
             }
 
