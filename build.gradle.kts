@@ -37,7 +37,7 @@ dependencies {
         because("used for GenerateTestTask")
         isTransitive = false
     }
-    implementation("org.jvnet.localizer:maven-localizer-plugin:1.24")
+    compileOnly("org.jvnet.localizer:maven-localizer-plugin:1.24")
     implementation(sezpoz)
     implementation(localGroovy())
     testAnnotationProcessor(sezpoz)

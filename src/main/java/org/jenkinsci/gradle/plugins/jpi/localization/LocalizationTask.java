@@ -2,6 +2,7 @@ package org.jenkinsci.gradle.plugins.jpi.localization;
 
 import org.apache.tools.ant.util.StringUtils;
 import org.gradle.api.GradleException;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.InputFiles;
@@ -24,6 +25,9 @@ public abstract class LocalizationTask extends SourceTask {
     }
 
     @InputFiles
+    abstract public ConfigurableFileCollection getLocalizerClasspath();
+
+    @InputFiles
     public abstract SetProperty<File> getSourceRoots();
 
     @OutputDirectory
@@ -34,7 +38,8 @@ public abstract class LocalizationTask extends SourceTask {
 
     @TaskAction
     void generate() {
-        WorkQueue workQueue = getWorkerExecutor().noIsolation();
+        WorkQueue workQueue = getWorkerExecutor().classLoaderIsolation(spec ->
+                spec.getClasspath().from(getLocalizerClasspath()));
 
         Set<String> roots = new HashSet<>();
         for (File root : getSourceRoots().get()) {
