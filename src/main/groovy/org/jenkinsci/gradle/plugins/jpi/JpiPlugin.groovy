@@ -145,6 +145,7 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
             def javaPluginConvention = project.convention.getPlugin(JavaPluginConvention)
             def classDirs = javaPluginConvention.sourceSets.getByName(MAIN_SOURCE_SET_NAME).output.classesDirs
             t.classesDirs.set(classDirs)
+            t.outputFile.set(project.layout.buildDirectory.file('check-overlap/discovered.txt'))
             t.dependsOn(gradleProject.tasks.getByName('classes'))
         }
 
