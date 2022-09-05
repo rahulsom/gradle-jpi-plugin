@@ -8,5 +8,8 @@ import java.io.File;
 
 public interface LocalizationParameters extends WorkParameters {
     RegularFileProperty getSourceFile();
+
     Property<File> getOutputDir();
+
+    Property<String> getRelativePath();
 }

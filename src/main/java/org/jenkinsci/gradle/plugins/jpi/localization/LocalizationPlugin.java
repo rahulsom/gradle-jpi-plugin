@@ -42,6 +42,7 @@ public class LocalizationPlugin implements Plugin<Project> {
             t.setDescription(DESCRIPTION);
             t.setGroup(BasePlugin.BUILD_GROUP);
             t.setSource(source);
+            t.getSourceRoots().set(source.getSrcDirs());
         }
     }
     
