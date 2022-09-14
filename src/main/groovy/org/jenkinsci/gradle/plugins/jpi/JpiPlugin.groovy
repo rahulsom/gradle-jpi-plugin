@@ -212,10 +212,10 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
         configureInjectedTest(gradleProject)
 
         if (!gradleProject.logger.isEnabled(INFO)) {
-            gradleProject.tasks.withType(JavaCompile).configureEach {
+            gradleProject.tasks.named('compileJava', JavaCompile).configure {
                 options.compilerArgs << '-Asezpoz.quiet=true'
             }
-            gradleProject.tasks.withType(GroovyCompile).configureEach {
+            gradleProject.tasks.named('compileGroovy', GroovyCompile).configure {
                 options.compilerArgs << '-Asezpoz.quiet=true'
             }
         }
