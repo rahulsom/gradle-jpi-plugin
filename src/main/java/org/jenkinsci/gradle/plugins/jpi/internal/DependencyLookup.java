@@ -19,7 +19,7 @@ public class DependencyLookup {
         if (version.compareTo(GradleVersion.version("2.0")) < 0) {
             servlet = "javax.servlet:servlet-api:2.4";
         }
-        String testHarness = "org.jenkins-ci.main:jenkins-test-harness:1529.v4fd5bafdcd33";
+        String testHarness = "org.jenkins-ci.main:jenkins-test-harness:1837.vb_6efb_1790942";
         if (version.compareTo(GradleVersion.version("2.64")) < 0) {
             testHarness = "org.jenkins-ci.main:jenkins-test-harness:2.0";
         }

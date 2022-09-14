@@ -127,7 +127,7 @@ class JenkinsVersionIntegrationSpec extends IntegrationSpec {
                 'findbugs:annotations:1.0.0'                                 : NOWHERE,
                 'javax.servlet:servlet-api:2.4'                              : NOWHERE,
                 'javax.servlet:javax.servlet-api:3.1.0'                      : COMPILE_ONLY,
-                'org.jenkins-ci.main:jenkins-test-harness:1529.v4fd5bafdcd33': TEST_IMPLEMENTATION_ONLY,
+                'org.jenkins-ci.main:jenkins-test-harness:1837.vb_6efb_1790942': TEST_IMPLEMENTATION_ONLY,
                 'org.jenkins-ci.main:ui-samples-plugin:2.0'                  : TEST_IMPLEMENTATION_ONLY,
                 'junit:junit-dep:4.10'                                       : NOWHERE,
         ]
@@ -137,7 +137,7 @@ class JenkinsVersionIntegrationSpec extends IntegrationSpec {
                 'findbugs:annotations:1.0.0'                                 : NOWHERE,
                 'javax.servlet:servlet-api:2.4'                              : NOWHERE,
                 'javax.servlet:javax.servlet-api:3.1.0'                      : COMPILE_ONLY,
-                'org.jenkins-ci.main:jenkins-test-harness:1529.v4fd5bafdcd33': TEST_IMPLEMENTATION_ONLY,
+                'org.jenkins-ci.main:jenkins-test-harness:1837.vb_6efb_1790942': TEST_IMPLEMENTATION_ONLY,
                 'org.jenkins-ci.main:ui-samples-plugin:2.0'                  : TEST_IMPLEMENTATION_ONLY,
                 'junit:junit-dep:4.10'                                       : NOWHERE,
         ]
