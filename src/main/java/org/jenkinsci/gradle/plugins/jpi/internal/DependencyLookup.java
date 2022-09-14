@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class DependencyLookup {
-    
+
     public Set<String> find(String configuration, String jenkinsVersion) {
         Set<String> deps = new HashSet<>();
         String core = "org.jenkins-ci.main:jenkins-core:" + jenkinsVersion;
@@ -40,9 +40,6 @@ public class DependencyLookup {
                 deps.add(findbugs);
                 deps.add(servlet);
                 return deps;
-            case "testAnnotationProcessor":
-                deps.add("net.java.sezpoz:sezpoz:1.13");
-                return deps;
             case "testImplementation":
                 deps.add(core);
                 deps.add(testHarness);
@@ -65,15 +62,15 @@ public class DependencyLookup {
         }
         return deps;
     }
-    
+
     public Set<String> configurations() {
         Set<String> configurations = new HashSet<>();
-                configurations.add("annotationProcessor");
-                configurations.add("compileOnly");
-                configurations.add("declaredJenkinsWar");
-                configurations.add("testCompileOnly");
-                configurations.add("testImplementation");
-                configurations.add("generatedJenkinsTestImplementation");
-                return configurations;
+        configurations.add("annotationProcessor");
+        configurations.add("compileOnly");
+        configurations.add("declaredJenkinsWar");
+        configurations.add("testCompileOnly");
+        configurations.add("testImplementation");
+        configurations.add("generatedJenkinsTestImplementation");
+        return configurations;
     }
 }
