@@ -123,6 +123,17 @@ class JenkinsVersionIntegrationSpec extends IntegrationSpec {
         version   | expectations
         '2.222.3' | [
                 'org.jenkins-ci.main:jenkins-core:2.222.3'                   : EVERYWHERE_BUT_RUNTIME,
+                'com.github.spotbugs:spotbugs-annotations'                   : COMPILE_ONLY,
+                'com.google.code.findbugs:annotations:3.0.0'                 : NOWHERE,
+                'findbugs:annotations:1.0.0'                                 : NOWHERE,
+                'javax.servlet:servlet-api:2.4'                              : NOWHERE,
+                'javax.servlet:javax.servlet-api:3.1.0'                      : COMPILE_ONLY,
+                'org.jenkins-ci.main:jenkins-test-harness:1837.vb_6efb_1790942': TEST_IMPLEMENTATION_ONLY,
+                'org.jenkins-ci.main:ui-samples-plugin:2.0'                  : TEST_IMPLEMENTATION_ONLY,
+                'junit:junit-dep:4.10'                                       : NOWHERE,
+        ]
+        '2.150.3' | [
+                'org.jenkins-ci.main:jenkins-core:2.150.3'                   : EVERYWHERE_BUT_RUNTIME,
                 'com.google.code.findbugs:annotations:3.0.0'                 : COMPILE_ONLY,
                 'findbugs:annotations:1.0.0'                                 : NOWHERE,
                 'javax.servlet:servlet-api:2.4'                              : NOWHERE,

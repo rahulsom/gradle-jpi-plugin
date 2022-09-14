@@ -8,12 +8,15 @@ import java.util.Set;
 public class DependencyLookup {
 
     public Set<String> find(String configuration, String jenkinsVersion) {
+        GradleVersion version = GradleVersion.version(jenkinsVersion);
+        boolean beforeBomExists = JenkinsVersions.beforeBomExists(jenkinsVersion);
         Set<String> deps = new HashSet<>();
         String core = "org.jenkins-ci.main:jenkins-core:" + jenkinsVersion;
-        String findbugs = "com.google.code.findbugs:annotations:3.0.0";
-        GradleVersion version = GradleVersion.version(jenkinsVersion);
+        String findbugs = "com.github.spotbugs:spotbugs-annotations";
         if (version.compareTo(GradleVersion.version("1.618")) < 0) {
             findbugs = "findbugs:annotations:1.0.0";
+        } else if (beforeBomExists) {
+            findbugs = "com.google.code.findbugs:annotations:3.0.0";
         }
         String servlet = "javax.servlet:javax.servlet-api:3.1.0";
         if (version.compareTo(GradleVersion.version("2.0")) < 0) {

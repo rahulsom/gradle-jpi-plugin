@@ -26,10 +26,11 @@ class DependencyLookupSpec extends Specification {
         actual == expected
 
         where:
-        version | expected
-        '1.617' | ['org.jenkins-ci.main:jenkins-core:1.617', 'findbugs:annotations:1.0.0', 'javax.servlet:servlet-api:2.4'] as Set
-        '1.618' | ['org.jenkins-ci.main:jenkins-core:1.618', 'com.google.code.findbugs:annotations:3.0.0', 'javax.servlet:servlet-api:2.4'] as Set
-        '2.0'   | ['org.jenkins-ci.main:jenkins-core:2.0', 'com.google.code.findbugs:annotations:3.0.0', 'javax.servlet:javax.servlet-api:3.1.0'] as Set
+        version   | expected
+        '1.617'   | ['org.jenkins-ci.main:jenkins-core:1.617', 'findbugs:annotations:1.0.0', 'javax.servlet:servlet-api:2.4'] as Set
+        '1.618'   | ['org.jenkins-ci.main:jenkins-core:1.618', 'com.google.code.findbugs:annotations:3.0.0', 'javax.servlet:servlet-api:2.4'] as Set
+        '2.0'     | ['org.jenkins-ci.main:jenkins-core:2.0', 'com.google.code.findbugs:annotations:3.0.0', 'javax.servlet:javax.servlet-api:3.1.0'] as Set
+        '2.222.3' | ['org.jenkins-ci.main:jenkins-core:2.222.3', 'com.github.spotbugs:spotbugs-annotations', 'javax.servlet:javax.servlet-api:3.1.0'] as Set
     }
 
     @Unroll
@@ -60,7 +61,8 @@ class DependencyLookupSpec extends Specification {
         where:
         version   | expected
         '1.617'   | ['findbugs:annotations:1.0.0', 'net.jcip:jcip-annotations:1.0'] as Set
-        '2.222.3' | ['com.google.code.findbugs:annotations:3.0.0', 'net.jcip:jcip-annotations:1.0'] as Set
+        '2.150.3' | ['com.google.code.findbugs:annotations:3.0.0', 'net.jcip:jcip-annotations:1.0'] as Set
+        '2.222.3' | ['com.github.spotbugs:spotbugs-annotations', 'net.jcip:jcip-annotations:1.0'] as Set
     }
 
     def 'should get declaredJenkinsWar dependencies for version'() {
