@@ -3,6 +3,8 @@ package org.jenkinsci.gradle.plugins.jpi
 import groovy.json.JsonSlurper
 import org.gradle.testkit.runner.TaskOutcome
 
+import java.nio.file.Files
+
 class AddedDependenciesIntegrationSpec extends IntegrationSpec {
     private final String projectName = TestDataGenerator.generateName()
     private File settings
@@ -46,10 +48,11 @@ class AddedDependenciesIntegrationSpec extends IntegrationSpec {
         result.task(':copyTestPluginDependencies').outcome == TaskOutcome.SUCCESS
         def dependenciesPath = 'build/jpi-plugin/test/test-dependencies'
         File dir = inProjectDir(dependenciesPath)
-        new File(dir, 'index').text == [
+        def lines = Files.readAllLines(new File(dir, 'index').toPath())
+        lines.toSet() == [
                 'config-file-provider', 'structs', 'cloudbees-folder',
-                'ui-samples-plugin', 'token-macro', 'credentials', '',
-        ].join('\n')
+                'ui-samples-plugin', 'token-macro', 'credentials',
+        ].toSet()
         existsRelativeToProjectDir("${dependenciesPath}/structs.jpi")
         existsRelativeToProjectDir("${dependenciesPath}/config-file-provider.jpi")
         existsRelativeToProjectDir("${dependenciesPath}/cloudbees-folder.jpi")

@@ -4,21 +4,31 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class DependencyLookupSpec extends Specification {
+    private static final MavenDependency JCIP_ANNOTATIONS = new MavenDependency('net.jcip:jcip-annotations:1.0')
+    private static final MavenDependency SERVLET_3_1 = new MavenDependency('javax.servlet:javax.servlet-api:3.1.0')
+    private static final MavenDependency SERVLET_2_4 = new MavenDependency('javax.servlet:servlet-api:2.4')
+    private static final MavenDependency GOOGLE_FINDBUGS = new MavenDependency('com.google.code.findbugs:annotations:3.0.0')
+    private static final MavenDependency FINDBUGS_1 = new MavenDependency('findbugs:annotations:1.0.0')
+    private static final MavenDependency SPOTBUGS = new MavenDependency('com.github.spotbugs:spotbugs-annotations')
+    private static final MavenDependency JENKINS_TEST_HARNESS = jenkinsTestHarness('1837.vb_6efb_1790942')
     private final DependencyLookup lookup = new DependencyLookup()
 
-    def 'should get annotationProcessor dependencies by version'() {
+    @Unroll
+    def 'should get annotationProcessor dependencies for #version'(String version, Set<DependencyFactory> expected) {
         when:
-        def actual = this.lookup.find('annotationProcessor', '2.0')
+        def actual = this.lookup.find('annotationProcessor', version)
 
         then:
-        actual == [
-                'org.jenkins-ci.main:jenkins-core:2.0',
-                'javax.servlet:javax.servlet-api:3.1.0',
-        ] as Set
+        actual == expected
+
+        where:
+        version   | expected
+        '2.0'     | [jenkinsCore('2.0'), SERVLET_3_1] as Set
+        '2.222.3' | [jenkinsBom('2.222.3'), jenkinsCore('2.222.3'), SERVLET_3_1] as Set
     }
 
     @Unroll
-    def 'should get compileOnly dependencies for #version'(String version, Set<String> expected) {
+    def 'should get compileOnly dependencies for #version'(String version, Set<DependencyFactory> expected) {
         when:
         def actual = lookup.find('compileOnly', version)
 
@@ -27,14 +37,14 @@ class DependencyLookupSpec extends Specification {
 
         where:
         version   | expected
-        '1.617'   | ['org.jenkins-ci.main:jenkins-core:1.617', 'findbugs:annotations:1.0.0', 'javax.servlet:servlet-api:2.4'] as Set
-        '1.618'   | ['org.jenkins-ci.main:jenkins-core:1.618', 'com.google.code.findbugs:annotations:3.0.0', 'javax.servlet:servlet-api:2.4'] as Set
-        '2.0'     | ['org.jenkins-ci.main:jenkins-core:2.0', 'com.google.code.findbugs:annotations:3.0.0', 'javax.servlet:javax.servlet-api:3.1.0'] as Set
-        '2.222.3' | ['org.jenkins-ci.main:jenkins-core:2.222.3', 'com.github.spotbugs:spotbugs-annotations', 'javax.servlet:javax.servlet-api:3.1.0'] as Set
+        '1.617'   | [jenkinsCore('1.617'), FINDBUGS_1, SERVLET_2_4] as Set
+        '1.618'   | [jenkinsCore('1.618'), GOOGLE_FINDBUGS, SERVLET_2_4] as Set
+        '2.0'     | [jenkinsCore('2.0'), GOOGLE_FINDBUGS, SERVLET_3_1] as Set
+        '2.222.3' | [jenkinsBom('2.222.3'), jenkinsCore('2.222.3'), SPOTBUGS, SERVLET_3_1] as Set
     }
 
     @Unroll
-    def 'should get testImplementation dependencies for #version'(String version, Set<String> expected) {
+    def 'should get testImplementation dependencies for #version'(String version, Set<DependencyFactory> expected) {
         when:
         def actual = lookup.find('testImplementation', version)
 
@@ -42,16 +52,17 @@ class DependencyLookupSpec extends Specification {
         actual == expected
 
         where:
-        version | expected
-        '1.504' | ['org.jenkins-ci.main:jenkins-core:1.504', 'org.jenkins-ci.main:jenkins-test-harness:1.504', 'org.jenkins-ci.main:ui-samples-plugin:1.504', 'junit:junit-dep:4.10'] as Set
-        '1.532' | ['org.jenkins-ci.main:jenkins-core:1.532', 'org.jenkins-ci.main:jenkins-test-harness:1.532', 'org.jenkins-ci.main:ui-samples-plugin:1.532'] as Set
-        '1.644' | ['org.jenkins-ci.main:jenkins-core:1.644', 'org.jenkins-ci.main:jenkins-test-harness:1.644', 'org.jenkins-ci.main:ui-samples-plugin:2.0'] as Set
-        '1.645' | ['org.jenkins-ci.main:jenkins-core:1.645', 'org.jenkins-ci.main:jenkins-test-harness:2.0', 'org.jenkins-ci.main:ui-samples-plugin:2.0'] as Set
-        '2.64'  | ['org.jenkins-ci.main:jenkins-core:2.64', 'org.jenkins-ci.main:jenkins-test-harness:1837.vb_6efb_1790942', 'org.jenkins-ci.main:ui-samples-plugin:2.0'] as Set
+        version   | expected
+        '1.504'   | [jenkinsCore('1.504'), jenkinsTestHarness('1.504'), uiSamples('1.504'), new MavenDependency('junit:junit-dep:4.10')] as Set
+        '1.532'   | [jenkinsCore('1.532'), jenkinsTestHarness('1.532'), uiSamples('1.532')] as Set
+        '1.644'   | [jenkinsCore('1.644'), jenkinsTestHarness('1.644'), uiSamples('2.0')] as Set
+        '1.645'   | [jenkinsCore('1.645'), jenkinsTestHarness('2.0'), uiSamples('2.0')] as Set
+        '2.64'    | [jenkinsCore('2.64'), JENKINS_TEST_HARNESS, uiSamples('2.0')] as Set
+        '2.222.3' | [jenkinsBom('2.222.3'), jenkinsCore('2.222.3'), JENKINS_TEST_HARNESS, uiSamples('2.0')] as Set
     }
 
     @Unroll
-    def 'should get testCompileOnly dependencies for #version'(String version, Set<String> expected) {
+    def 'should get testCompileOnly dependencies for #version'(String version, Set<DependencyFactory> expected) {
         when:
         def actual = lookup.find('testCompileOnly', version)
 
@@ -60,9 +71,9 @@ class DependencyLookupSpec extends Specification {
 
         where:
         version   | expected
-        '1.617'   | ['findbugs:annotations:1.0.0', 'net.jcip:jcip-annotations:1.0'] as Set
-        '2.150.3' | ['com.google.code.findbugs:annotations:3.0.0', 'net.jcip:jcip-annotations:1.0'] as Set
-        '2.222.3' | ['com.github.spotbugs:spotbugs-annotations', 'net.jcip:jcip-annotations:1.0'] as Set
+        '1.617'   | [FINDBUGS_1, JCIP_ANNOTATIONS] as Set
+        '2.150.3' | [GOOGLE_FINDBUGS, JCIP_ANNOTATIONS] as Set
+        '2.222.3' | [SPOTBUGS, JCIP_ANNOTATIONS] as Set
     }
 
     def 'should get declaredJenkinsWar dependencies for version'() {
@@ -70,19 +81,38 @@ class DependencyLookupSpec extends Specification {
         def actual = lookup.find('declaredJenkinsWar', '2.222.3')
 
         then:
-        actual == [
-                'org.jenkins-ci.main:jenkins-war:2.222.3@war',
-        ] as Set<String>
+        actual == ([
+                new MavenDependency('org.jenkins-ci.main:jenkins-war:2.222.3@war'),
+        ] as Set)
     }
 
-    def 'should get generatedJenkinsTestImplementation dependencies for version'() {
+    @Unroll
+    def 'should get generatedJenkinsTestImplementation dependencies for #version'(String version, Set<DependencyFactory> expected) {
         when:
-        def actual = lookup.find('generatedJenkinsTestImplementation', '2.222.3')
+        def actual = lookup.find('generatedJenkinsTestImplementation', version)
 
         then:
-        actual == [
-                'org.jenkins-ci.main:jenkins-core:2.222.3',
-                'org.jenkins-ci.main:jenkins-test-harness:1837.vb_6efb_1790942',
-        ] as Set<String>
+        actual == expected
+
+        where:
+        version   | expected
+        '2.150.3' | [jenkinsCore('2.150.3'), JENKINS_TEST_HARNESS] as Set
+        '2.222.3' | [jenkinsCore('2.222.3'), jenkinsBom('2.222.3'), JENKINS_TEST_HARNESS] as Set
+    }
+
+    private static MavenDependency uiSamples(String version) {
+        new MavenDependency('org.jenkins-ci.main:ui-samples-plugin:' + version)
+    }
+
+    private static BomDependency jenkinsBom(String version) {
+        new BomDependency('org.jenkins-ci.main:jenkins-bom:' + version)
+    }
+
+    private static MavenDependency jenkinsCore(String version) {
+        new MavenDependency('org.jenkins-ci.main:jenkins-core:' + version)
+    }
+
+    private static MavenDependency jenkinsTestHarness(String version) {
+        new MavenDependency('org.jenkins-ci.main:jenkins-test-harness:' + version)
     }
 }

@@ -10,7 +10,7 @@ import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.provider.Provider;
 
-import java.util.function.Function;
+import java.util.Set;
 
 public class DependenciesPlugin implements Plugin<Project> {
     @Override
@@ -33,14 +33,11 @@ public class DependenciesPlugin implements Plugin<Project> {
                         @Override
                         public void execute(DependencySet deps) {
                             String jenkinsVersion = jenkinsCoreVersion.get();
-                            lookup.find(c.getName(), jenkinsVersion).stream().map(new Function<String, Dependency>() {
-                                @Override
-                                public Dependency apply(String s) {
-                                    Dependency dependency = project.getDependencies().create(s);
-                                    dependency.because("Added by org.jenkins-ci.jpi plugin");
-                                    return dependency;
-                                }
-                            }).forEach(deps::add);
+                            Set<DependencyFactory> factories = lookup.find(c.getName(), jenkinsVersion);
+                            for (DependencyFactory factory : factories) {
+                                Dependency dependency = factory.create(project.getDependencies());
+                                deps.add(dependency);
+                            }
                         }
                     });
                 }
