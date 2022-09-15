@@ -1,6 +1,6 @@
 package org.jenkinsci.gradle.plugins.jpi.internal;
 
-import org.gradle.util.GradleVersion;
+import hudson.util.VersionNumber;
 
 class JenkinsVersions {
     static final String FIRST_BOM_VERSION = "2.195";
@@ -9,6 +9,6 @@ class JenkinsVersions {
     }
 
     static boolean beforeBomExists(String jenkinsVersion) {
-        return GradleVersion.version(jenkinsVersion).compareTo(GradleVersion.version(FIRST_BOM_VERSION)) < 0;
+        return new VersionNumber(jenkinsVersion).compareTo(new VersionNumber(FIRST_BOM_VERSION)) < 0;
     }
 }

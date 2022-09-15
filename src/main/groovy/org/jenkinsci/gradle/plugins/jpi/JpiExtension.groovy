@@ -16,6 +16,7 @@
 package org.jenkinsci.gradle.plugins.jpi
 
 import groovy.transform.CompileStatic
+import hudson.util.VersionNumber
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.model.ReplacedBy
@@ -26,7 +27,6 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.SourceSet
 import org.gradle.util.ConfigureUtil
-import org.gradle.util.GradleVersion
 import org.jenkinsci.gradle.plugins.jpi.core.PluginDeveloper
 import org.jenkinsci.gradle.plugins.jpi.core.PluginDeveloperSpec
 import org.jenkinsci.gradle.plugins.jpi.internal.BackwardsCompatiblePluginDevelopers
@@ -77,7 +77,7 @@ class JpiExtension implements JpiExtensionBridge {
         this.jenkinsVersion = project.objects.property(String)
         this.validatedJenkinsVersion = jenkinsVersion.map {
             def resolved = it ?: coreVersion
-            if (GradleVersion.version(resolved) < GradleVersion.version('1.420')) {
+            if (new VersionNumber(resolved) < new VersionNumber('1.420')) {
                 throw new IllegalArgumentException('The gradle-jpi-plugin requires Jenkins 1.420 or later')
             }
             resolved

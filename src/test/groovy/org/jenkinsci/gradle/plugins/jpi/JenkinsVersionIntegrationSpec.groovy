@@ -48,6 +48,9 @@ class JenkinsVersionIntegrationSpec extends IntegrationSpec {
             jenkinsPlugin {
                 jenkinsVersion = '${version}'
             }
+            repositories {
+                maven { url 'https://repo.jenkins-ci.org/incrementals' }
+            }
             """.stripIndent()
         TestSupport.PASSING_TEST.writeTo(inProjectDir('src/test/java'))
 
@@ -59,11 +62,13 @@ class JenkinsVersionIntegrationSpec extends IntegrationSpec {
         existsRelativeToProjectDir('target') == targetShouldExist
 
         where:
-        version | targetShouldExist
-        '1.544' | false
-        '1.545' | true
-        '1.591' | true
-        '1.592' | false
+        version                         | targetShouldExist
+        '1.544'                         | false
+        '1.545'                         | true
+        '1.591'                         | true
+        '1.592'                         | false
+        '2.361.2-rc32710.c1a_5e8c179f6' | false
+        '2.369-rc32854.076293e36922'    | false
     }
 
     @Unroll
@@ -73,6 +78,9 @@ class JenkinsVersionIntegrationSpec extends IntegrationSpec {
         build << """
             jenkinsPlugin {
                 jenkinsVersion = '${version}'
+            }
+            repositories {
+                maven { url 'https://repo.jenkins-ci.org/incrementals' }
             }
             """.stripIndent()
         def target = inProjectDir('target')
@@ -87,9 +95,11 @@ class JenkinsVersionIntegrationSpec extends IntegrationSpec {
         existsRelativeToProjectDir('target') != targetShouldBeCleaned
 
         where:
-        version | targetShouldBeCleaned | expected
-        '1.597' | true                  | TaskOutcome.SUCCESS
-        '1.598' | false                 | TaskOutcome.UP_TO_DATE
+        version                         | targetShouldBeCleaned | expected
+        '1.597'                         | true                  | TaskOutcome.SUCCESS
+        '1.598'                         | false                 | TaskOutcome.UP_TO_DATE
+        '2.361.2-rc32710.c1a_5e8c179f6' | false                 | TaskOutcome.UP_TO_DATE
+        '2.369-rc32854.076293e36922'    | false                 | TaskOutcome.UP_TO_DATE
     }
 
     @Unroll

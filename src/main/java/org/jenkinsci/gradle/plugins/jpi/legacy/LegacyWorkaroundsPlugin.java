@@ -1,5 +1,6 @@
 package org.jenkinsci.gradle.plugins.jpi.legacy;
 
+import hudson.util.VersionNumber;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -7,7 +8,6 @@ import org.gradle.api.Task;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Delete;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.util.GradleVersion;
 import org.jenkinsci.gradle.plugins.jpi.internal.JpiExtensionBridge;
 
 public class LegacyWorkaroundsPlugin implements Plugin<Project> {
@@ -48,14 +48,14 @@ public class LegacyWorkaroundsPlugin implements Plugin<Project> {
     }
 
     private static boolean isBetween(String subject, String lowerBoundInclusive, String upperExclusive) {
-        GradleVersion current = GradleVersion.version(subject);
-        GradleVersion lower = GradleVersion.version(lowerBoundInclusive);
-        return current.compareTo(lower) >= 0 && isOlderThan(subject, upperExclusive);
+        VersionNumber current = new VersionNumber(subject);
+        VersionNumber lower = new VersionNumber(lowerBoundInclusive);
+        return current.isNewerThanOrEqualTo(lower) && current.isOlderThan(new VersionNumber(upperExclusive));
     }
 
     private static boolean isOlderThan(String subject, String upperExclusive) {
-        GradleVersion current = GradleVersion.version(subject);
-        GradleVersion upper = GradleVersion.version(upperExclusive);
-        return current.compareTo(upper) < 0;
+        VersionNumber current = new VersionNumber(subject);
+        VersionNumber upper = new VersionNumber(upperExclusive);
+        return current.isOlderThan(upper);
     }
 }

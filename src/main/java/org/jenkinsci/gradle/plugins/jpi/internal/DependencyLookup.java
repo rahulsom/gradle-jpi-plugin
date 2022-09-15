@@ -1,7 +1,6 @@
 package org.jenkinsci.gradle.plugins.jpi.internal;
 
-import org.apache.tools.ant.taskdefs.optional.depend.Depend;
-import org.gradle.util.GradleVersion;
+import hudson.util.VersionNumber;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -9,7 +8,7 @@ import java.util.Set;
 public class DependencyLookup {
 
     public Set<DependencyFactory> find(String configuration, String jenkinsVersion) {
-        GradleVersion version = GradleVersion.version(jenkinsVersion);
+        VersionNumber version = new VersionNumber(jenkinsVersion);
         boolean beforeBomExists = JenkinsVersions.beforeBomExists(jenkinsVersion);
         Set<DependencyFactory> deps = new HashSet<>();
         Set<DependencyFactory> coreSet = new HashSet<>();
@@ -35,7 +34,7 @@ public class DependencyLookup {
                 deps.addAll(coreSet);
                 deps.add(testHarness);
                 deps.add(uiSamples);
-                if (version.compareTo(GradleVersion.version("1.505")) < 0) {
+                if (version.isOlderThan(new VersionNumber("1.505"))) {
                     deps.add(new MavenDependency("junit:junit-dep:4.10"));
                 }
                 return deps;
@@ -65,9 +64,9 @@ public class DependencyLookup {
         return configurations;
     }
 
-    private static DependencyFactory findbugsFor(GradleVersion version, boolean beforeBomExists) {
+    private static DependencyFactory findbugsFor(VersionNumber version, boolean beforeBomExists) {
         String findbugs = "com.github.spotbugs:spotbugs-annotations";
-        if (version.compareTo(GradleVersion.version("1.618")) < 0) {
+        if (version.compareTo(new VersionNumber("1.618")) < 0) {
             findbugs = "findbugs:annotations:1.0.0";
         } else if (beforeBomExists) {
             findbugs = "com.google.code.findbugs:annotations:3.0.0";
@@ -75,27 +74,27 @@ public class DependencyLookup {
         return new MavenDependency(findbugs);
     }
 
-    private static DependencyFactory servletFor(GradleVersion version) {
-        boolean isBefore2 = version.compareTo(GradleVersion.version("2.0")) < 0;
+    private static DependencyFactory servletFor(VersionNumber version) {
+        boolean isBefore2 = version.isOlderThan(new VersionNumber("2.0"));
         String notation = isBefore2 ? "javax.servlet:servlet-api:2.4" : "javax.servlet:javax.servlet-api:3.1.0";
         return new MavenDependency(notation);
     }
 
-    private static DependencyFactory testHarnessFor(GradleVersion version) {
+    private static DependencyFactory testHarnessFor(VersionNumber version) {
         String testHarness = "org.jenkins-ci.main:jenkins-test-harness:1837.vb_6efb_1790942";
-        if (version.compareTo(GradleVersion.version("2.64")) < 0) {
+        if (version.isOlderThan(new VersionNumber("2.64"))) {
             testHarness = "org.jenkins-ci.main:jenkins-test-harness:2.0";
         }
-        if (version.compareTo(GradleVersion.version("1.644")) <= 0) {
-            testHarness = "org.jenkins-ci.main:jenkins-test-harness:" + version.getVersion();
+        if (version.isOlderThanOrEqualTo(new VersionNumber("1.644"))) {
+            testHarness = "org.jenkins-ci.main:jenkins-test-harness:" + version;
         }
         return new MavenDependency(testHarness);
     }
 
-    private static DependencyFactory uiSamplesFor(GradleVersion version) {
+    private static DependencyFactory uiSamplesFor(VersionNumber version) {
         String uiSamples = "org.jenkins-ci.main:ui-samples-plugin:2.0";
-        if (version.compareTo(GradleVersion.version("1.533")) < 0) {
-            uiSamples = "org.jenkins-ci.main:ui-samples-plugin:" + version.getVersion();
+        if (version.isOlderThan(new VersionNumber("1.533"))) {
+            uiSamples = "org.jenkins-ci.main:ui-samples-plugin:" + version;
         }
         return new MavenDependency(uiSamples);
     }

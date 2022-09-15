@@ -39,6 +39,12 @@ dependencies {
     }
     compileOnly("org.jvnet.localizer:maven-localizer-plugin:1.24")
     implementation(sezpoz)
+    implementation("org.jenkins-ci:version-number") {
+        version {
+            strictly("[1.0, 2.0[")
+            prefer("1.10")
+        }
+    }
     implementation(localGroovy())
     testAnnotationProcessor(sezpoz)
     testCompileOnly("junit:junit:4.13") {

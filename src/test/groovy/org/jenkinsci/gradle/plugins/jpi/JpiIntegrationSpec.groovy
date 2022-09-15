@@ -28,6 +28,27 @@ class JpiIntegrationSpec extends IntegrationSpec {
             '''.stripIndent()
     }
 
+    @Unroll
+    def 'works with incremental #version'(String version) {
+        given:
+        build << """\
+            jenkinsPlugin {
+                jenkinsVersion = '${version}'
+            }
+            """.stripIndent()
+
+        when:
+        gradleRunner()
+                .withArguments('jpi')
+                .build()
+
+        then:
+        existsRelativeToProjectDir("build/libs/${projectName}.hpi")
+
+        where:
+        version << ['2.361.2-rc32710.c1a_5e8c179f6', '2.369-rc32854.076293e36922']
+    }
+
     def 'uses hpi file extension by default'() {
         given:
         build << """\
