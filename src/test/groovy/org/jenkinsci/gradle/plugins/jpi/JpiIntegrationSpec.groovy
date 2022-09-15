@@ -195,20 +195,20 @@ class JpiIntegrationSpec extends IntegrationSpec {
         result.task(dependency).outcome == outcome
 
         where:
-        task                                         | dependency                                    | outcome
-        'jar'                                        | ':generateJenkinsManifest'                    | TaskOutcome.SUCCESS
-        'jpi'                                        | ':generateJenkinsManifest'                    | TaskOutcome.SUCCESS
-        'compileGeneratedJenkinsTestJava'            | ':generateJenkinsTests'                       | TaskOutcome.SKIPPED
-        'test'                                       | ':generateTestHpl'                            | TaskOutcome.SUCCESS
-        'test'                                       | ':copyTestPluginDependencies'                 | TaskOutcome.SUCCESS
-        'generate-test-hpl'                          | ':generateTestHpl'                          | TaskOutcome.SUCCESS
-        'generateMetadataFileForMavenJpiPublication' | ':generateMetadataFileForMavenJpiPublication' | TaskOutcome.SUCCESS
-        'check'                                      | ':checkAccessModifier'                        | TaskOutcome.SUCCESS
-        'check'                                      | ':generatedJenkinsTest'                       | TaskOutcome.NO_SOURCE
-        'checkAccessModifier'                        | ':compileJava'                                | TaskOutcome.NO_SOURCE
-        'checkAccessModifier'                        | ':compileGroovy'                              | TaskOutcome.NO_SOURCE
-        'generateJenkinsPluginClassManifest'         | ':compileJava'                                | TaskOutcome.NO_SOURCE
-        'generateJenkinsPluginClassManifest'         | ':compileGroovy'                              | TaskOutcome.NO_SOURCE
+        task                                           | dependency                                      | outcome
+        'jar'                                          | ':generateJenkinsManifest'                      | TaskOutcome.SUCCESS
+        'jpi'                                          | ':generateJenkinsManifest'                      | TaskOutcome.SUCCESS
+        'compileGeneratedJenkinsTestJava'              | ':generateJenkinsTests'                         | TaskOutcome.SKIPPED
+        'test'                                         | ':generateTestHpl'                              | TaskOutcome.SUCCESS
+        'test'                                         | ':copyTestPluginDependencies'                   | TaskOutcome.SUCCESS
+        'generate-test-hpl'                            | ':generateTestHpl'                              | TaskOutcome.SUCCESS
+        'generateMetadataFileForMavenJpiPublication'   | ':generateMetadataFileForMavenJpiPublication'   | TaskOutcome.SUCCESS
+        'check'                                        | ':checkAccessModifier'                          | TaskOutcome.SUCCESS
+        'check'                                        | ':generatedJenkinsTest'                         | TaskOutcome.NO_SOURCE
+        'checkAccessModifier'                          | ':compileJava'                                  | TaskOutcome.NO_SOURCE
+        'checkAccessModifier'                          | ':compileGroovy'                                | TaskOutcome.NO_SOURCE
+        'generateJenkinsPluginClassManifest'           | ':compileJava'                                  | TaskOutcome.NO_SOURCE
+        'generateJenkinsPluginClassManifest'           | ':compileGroovy'                                | TaskOutcome.NO_SOURCE
         'generateJenkinsSupportDynamicLoadingManifest' | ':compileJava'                                  | TaskOutcome.NO_SOURCE
         'generateJenkinsSupportDynamicLoadingManifest' | ':compileGroovy'                                | TaskOutcome.NO_SOURCE
         'generateJenkinsServerHpl'                     | ':generateJenkinsManifest'                      | TaskOutcome.SUCCESS
@@ -243,8 +243,8 @@ class JpiIntegrationSpec extends IntegrationSpec {
 
         when:
         def result = gradleRunner()
-            .withArguments('describeTasks', '-q')
-            .build()
+                .withArguments('describeTasks', '-q')
+                .build()
         def actual = new JsonSlurper().parseText(result.output)
 
         then:
