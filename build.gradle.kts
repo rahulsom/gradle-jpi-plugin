@@ -1,5 +1,13 @@
+import okio.buffer
+import okio.sink
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+import java.nio.file.StandardOpenOption
 
+buildscript {
+    dependencies {
+        classpath("com.squareup.okhttp3:okhttp:4.10.0")
+    }
+}
 plugins {
     groovy
     `maven-publish`
@@ -39,12 +47,6 @@ dependencies {
     }
     compileOnly("org.jvnet.localizer:maven-localizer-plugin:1.24")
     implementation(sezpoz)
-    implementation("org.jenkins-ci:version-number") {
-        version {
-            strictly("[1.0, 2.0[")
-            prefer("1.10")
-        }
-    }
     implementation(localGroovy())
     testAnnotationProcessor(sezpoz)
     testCompileOnly("junit:junit:4.13") {
@@ -177,3 +179,27 @@ pluginBundle {
 }
 
 fun Project.stringProp(named: String): String? = findProperty(named) as String?
+
+tasks.register("shadeLatestVersionNumber") {
+    doLast {
+        val response = okhttp3.OkHttpClient().newCall(okhttp3.Request.Builder().get()
+                .url("https://raw.githubusercontent.com/jenkinsci/lib-version-number/master/src/main/java/hudson/util/VersionNumber.java")
+                .build())
+                .execute()
+        if (!response.isSuccessful) {
+            throw GradleException("${response.code} attempting to fetch latest hudson.util.VersionNumber")
+        }
+        val convention = project.convention.getPlugin(JavaPluginConvention::class)
+        val main = convention.sourceSets.getByName("main")
+        val srcMainJava = main.java.srcDirs.single().toPath()
+        val dest = srcMainJava.resolve("shaded/hudson/util/VersionNumber.java")
+        val sink = dest.sink(StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING).buffer()
+        response.body?.use {
+            it.source().use { input ->
+                sink.use { output ->
+                    output.writeAll(input)
+                }
+            }
+        }
+    }
+}

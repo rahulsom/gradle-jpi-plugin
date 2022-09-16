@@ -1,6 +1,6 @@
 package org.jenkinsci.gradle.plugins.jpi.internal;
 
-import hudson.util.VersionNumber;
+import shaded.hudson.util.VersionNumber;
 
 class JenkinsVersions {
     static final String FIRST_BOM_VERSION = "2.195";

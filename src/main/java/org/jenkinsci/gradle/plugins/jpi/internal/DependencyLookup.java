@@ -1,6 +1,6 @@
 package org.jenkinsci.gradle.plugins.jpi.internal;
 
-import hudson.util.VersionNumber;
+import shaded.hudson.util.VersionNumber;
 
 import java.util.HashSet;
 import java.util.Set;

@@ -16,7 +16,6 @@
 package org.jenkinsci.gradle.plugins.jpi
 
 import groovy.transform.CompileStatic
-import hudson.util.VersionNumber
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.model.ReplacedBy
@@ -31,6 +30,7 @@ import org.jenkinsci.gradle.plugins.jpi.core.PluginDeveloper
 import org.jenkinsci.gradle.plugins.jpi.core.PluginDeveloperSpec
 import org.jenkinsci.gradle.plugins.jpi.internal.BackwardsCompatiblePluginDevelopers
 import org.jenkinsci.gradle.plugins.jpi.internal.JpiExtensionBridge
+import shaded.hudson.util.VersionNumber
 
 /**
  * This gets exposed to the project as 'jpi' to offer additional convenience methods.

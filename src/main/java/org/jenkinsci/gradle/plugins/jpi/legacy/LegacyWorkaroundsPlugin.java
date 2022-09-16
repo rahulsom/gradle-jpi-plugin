@@ -1,6 +1,5 @@
 package org.jenkinsci.gradle.plugins.jpi.legacy;
 
-import hudson.util.VersionNumber;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -9,6 +8,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Delete;
 import org.gradle.api.tasks.TaskContainer;
 import org.jenkinsci.gradle.plugins.jpi.internal.JpiExtensionBridge;
+import shaded.hudson.util.VersionNumber;
 
 public class LegacyWorkaroundsPlugin implements Plugin<Project> {
     @Override

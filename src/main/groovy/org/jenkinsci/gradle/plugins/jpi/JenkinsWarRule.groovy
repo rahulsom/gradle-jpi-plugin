@@ -1,11 +1,11 @@
 package org.jenkinsci.gradle.plugins.jpi
 
-import hudson.util.VersionNumber
 import org.gradle.api.artifacts.CacheableRule
 import org.gradle.api.artifacts.ComponentMetadataContext
 import org.gradle.api.artifacts.ComponentMetadataRule
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.model.ObjectFactory
+import shaded.hudson.util.VersionNumber
 
 import javax.inject.Inject
 
