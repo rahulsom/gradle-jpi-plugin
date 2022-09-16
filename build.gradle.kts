@@ -1,3 +1,5 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
 
 plugins {
@@ -9,6 +11,7 @@ plugins {
     id("com.gradle.plugin-publish") version "1.0.0"
     `java-gradle-plugin`
     id("com.github.sghill.distribution-sha") version "0.4.0"
+    id("com.github.johnrengelman.shadow") version("6.1.0")
 }
 plugins.apply(internal.DependenciesComparisonPlugin::class.java)
 
@@ -26,10 +29,21 @@ java {
 
 val sezpoz = "net.java.sezpoz:sezpoz:1.13"
 
+val shadowJar = tasks.named<ShadowJar>("shadowJar")
+val relocate = tasks.register<ConfigureShadowRelocation>("relocateShadowJar") {
+    target = shadowJar.get()
+}
+shadowJar.configure {
+    dependsOn(relocate)
+    archiveClassifier.set("")
+    minimize()
+}
+
 dependencies {
     compileOnly("org.kohsuke:access-modifier-checker:1.21")
     annotationProcessor(sezpoz)
-    implementation(gradleApi())
+    shadow(gradleApi())
+    shadow(localGroovy())
     compileOnly("com.squareup:javapoet:1.13.0") {
         because("used for GenerateTestTask")
     }
@@ -38,14 +52,13 @@ dependencies {
         isTransitive = false
     }
     compileOnly("org.jvnet.localizer:maven-localizer-plugin:1.24")
-    implementation(sezpoz)
+    shadow(sezpoz)
     implementation("org.jenkins-ci:version-number") {
         version {
             strictly("[1.0, 2.0[")
             prefer("1.10")
         }
     }
-    implementation(localGroovy())
     testAnnotationProcessor(sezpoz)
     testCompileOnly("junit:junit:4.13") {
         because("used for generated tests with javapoet")
