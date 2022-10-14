@@ -54,7 +54,7 @@ dependencies {
     }
     testImplementation("org.spockframework:spock-core:2.1-groovy-2.5")
     testImplementation("org.xmlunit:xmlunit-core:2.8.3")
-    testImplementation("org.apache.commons:commons-text:1.9")
+    testImplementation("org.apache.commons:commons-text:1.10.0")
     testImplementation("com.squareup:javapoet:1.13.0")
     testImplementation("org.kohsuke:access-modifier-checker:1.21")
     testImplementation("org.jenkins-ci.main:jenkins-core:2.263.3") {
