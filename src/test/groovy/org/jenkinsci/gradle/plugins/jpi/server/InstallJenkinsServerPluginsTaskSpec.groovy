@@ -17,7 +17,7 @@ import static InstallJenkinsServerPluginsTask.TASK_NAME
 
 class InstallJenkinsServerPluginsTaskSpec extends IntegrationSpec {
     private static final String TASK_PATH = ':' + TASK_NAME
-    private static final Set<String> DEFAULT = ['ui-samples-plugin.jpi'] as Set
+    private static final Set<String> DEFAULT = [] as Set
     private static final Set<String> SOLO = DEFAULT + ['apache-httpcomponents-client-4-api.jpi'] as Set
     private static final Set<String> TRANSITIVES = DEFAULT + ['apache-httpcomponents-client-4-api.jpi',
                                                               'credentials.jpi',
@@ -30,7 +30,6 @@ class InstallJenkinsServerPluginsTaskSpec extends IntegrationSpec {
                                                               'scm-api.jpi',
                                                               'ssh-credentials.jpi',
                                                               'structs.jpi',
-                                                              'ui-samples-plugin.jpi',
                                                               'workflow-scm-step.jpi',
                                                               'workflow-step-api.jpi'] as Set
     private final String projectName = TestDataGenerator.generateName()

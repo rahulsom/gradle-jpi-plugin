@@ -58,14 +58,14 @@ class DependencyLookupSpec extends Specification {
 
         where:
         version                         | expected
-        '1.504'                         | [jenkinsCore('1.504'), jenkinsTestHarness('1.504'), uiSamples('1.504'), new MavenDependency('junit:junit-dep:4.10')] as Set
-        '1.532'                         | [jenkinsCore('1.532'), jenkinsTestHarness('1.532'), uiSamples('1.532')] as Set
-        '1.644'                         | [jenkinsCore('1.644'), jenkinsTestHarness('1.644'), uiSamples('2.0')] as Set
-        '1.645'                         | [jenkinsCore('1.645'), jenkinsTestHarness('2.0'), uiSamples('2.0')] as Set
-        '2.64'                          | [jenkinsCore('2.64'), JENKINS_TEST_HARNESS, uiSamples('2.0')] as Set
-        '2.222.3'                       | [jenkinsBom('2.222.3'), jenkinsCore('2.222.3'), JENKINS_TEST_HARNESS, uiSamples('2.0')] as Set
-        '2.361.2-rc32710.c1a_5e8c179f6' | [jenkinsBom('2.361.2-rc32710.c1a_5e8c179f6'), jenkinsCore('2.361.2-rc32710.c1a_5e8c179f6'), JENKINS_TEST_HARNESS, uiSamples('2.0')] as Set
-        '2.369-rc32854.076293e36922'    | [jenkinsBom('2.369-rc32854.076293e36922'), jenkinsCore('2.369-rc32854.076293e36922'), JENKINS_TEST_HARNESS, uiSamples('2.0')] as Set
+        '1.504'                         | [jenkinsCore('1.504'), jenkinsTestHarness('1.504'), new MavenDependency('junit:junit-dep:4.10')] as Set
+        '1.532'                         | [jenkinsCore('1.532'), jenkinsTestHarness('1.532')] as Set
+        '1.644'                         | [jenkinsCore('1.644'), jenkinsTestHarness('1.644')] as Set
+        '1.645'                         | [jenkinsCore('1.645'), jenkinsTestHarness('2.0')] as Set
+        '2.64'                          | [jenkinsCore('2.64'), JENKINS_TEST_HARNESS] as Set
+        '2.222.3'                       | [jenkinsBom('2.222.3'), jenkinsCore('2.222.3'), JENKINS_TEST_HARNESS] as Set
+        '2.361.2-rc32710.c1a_5e8c179f6' | [jenkinsBom('2.361.2-rc32710.c1a_5e8c179f6'), jenkinsCore('2.361.2-rc32710.c1a_5e8c179f6'), JENKINS_TEST_HARNESS] as Set
+        '2.369-rc32854.076293e36922'    | [jenkinsBom('2.369-rc32854.076293e36922'), jenkinsCore('2.369-rc32854.076293e36922'), JENKINS_TEST_HARNESS] as Set
     }
 
     @Unroll
@@ -113,10 +113,6 @@ class DependencyLookupSpec extends Specification {
         '2.222.3'                       | [jenkinsCore('2.222.3'), jenkinsBom('2.222.3'), JENKINS_TEST_HARNESS] as Set
         '2.361.2-rc32710.c1a_5e8c179f6' | [jenkinsCore('2.361.2-rc32710.c1a_5e8c179f6'), jenkinsBom('2.361.2-rc32710.c1a_5e8c179f6'), JENKINS_TEST_HARNESS] as Set
         '2.369-rc32854.076293e36922'    | [jenkinsCore('2.369-rc32854.076293e36922'), jenkinsBom('2.369-rc32854.076293e36922'), JENKINS_TEST_HARNESS] as Set
-    }
-
-    private static MavenDependency uiSamples(String version) {
-        new MavenDependency('org.jenkins-ci.main:ui-samples-plugin:' + version)
     }
 
     private static BomDependency jenkinsBom(String version) {

@@ -19,7 +19,6 @@ public class DependencyLookup {
         DependencyFactory findbugs = findbugsFor(version, beforeBomExists);
         DependencyFactory servlet = servletFor(version);
         DependencyFactory testHarness = testHarnessFor(version);
-        DependencyFactory uiSamples = uiSamplesFor(version);
         switch (configuration) {
             case "annotationProcessor":
                 deps.addAll(coreSet);
@@ -33,7 +32,6 @@ public class DependencyLookup {
             case "testImplementation":
                 deps.addAll(coreSet);
                 deps.add(testHarness);
-                deps.add(uiSamples);
                 if (version.isOlderThan(new VersionNumber("1.505"))) {
                     deps.add(new MavenDependency("junit:junit-dep:4.10"));
                 }
@@ -89,13 +87,5 @@ public class DependencyLookup {
             testHarness = "org.jenkins-ci.main:jenkins-test-harness:" + version;
         }
         return new MavenDependency(testHarness);
-    }
-
-    private static DependencyFactory uiSamplesFor(VersionNumber version) {
-        String uiSamples = "org.jenkins-ci.main:ui-samples-plugin:2.0";
-        if (version.isOlderThan(new VersionNumber("1.533"))) {
-            uiSamples = "org.jenkins-ci.main:ui-samples-plugin:" + version;
-        }
-        return new MavenDependency(uiSamples);
     }
 }

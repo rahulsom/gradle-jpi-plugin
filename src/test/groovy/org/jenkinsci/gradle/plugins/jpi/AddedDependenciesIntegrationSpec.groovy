@@ -51,7 +51,7 @@ class AddedDependenciesIntegrationSpec extends IntegrationSpec {
         def lines = Files.readAllLines(new File(dir, 'index').toPath())
         lines.toSet() == [
                 'config-file-provider', 'structs', 'cloudbees-folder',
-                'ui-samples-plugin', 'token-macro', 'credentials',
+                'token-macro', 'credentials',
         ].toSet()
         existsRelativeToProjectDir("${dependenciesPath}/structs.jpi")
         existsRelativeToProjectDir("${dependenciesPath}/config-file-provider.jpi")

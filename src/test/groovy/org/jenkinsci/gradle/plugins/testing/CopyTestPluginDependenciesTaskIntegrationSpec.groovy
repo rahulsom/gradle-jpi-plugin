@@ -189,7 +189,7 @@ class CopyTestPluginDependenciesTaskIntegrationSpec extends IntegrationSpec {
         then:
         def actual = new File(consumer, 'build/jpi-plugin/test/test-dependencies/index')
         actual.exists()
-        actual.readLines().toSorted() == ['my-dep-plugin-one', 'ui-samples-plugin']
+        actual.readLines().toSorted() == ['my-dep-plugin-one']
         new File(consumer, 'build/jpi-plugin/test/test-dependencies/my-dep-plugin-one.jpi').exists()
     }
 
@@ -223,7 +223,7 @@ class CopyTestPluginDependenciesTaskIntegrationSpec extends IntegrationSpec {
         then:
         def actual = new File(consumer, 'build/jpi-plugin/test/test-dependencies/index')
         actual.exists()
-        actual.readLines().toSorted() == ['ant', 'my-dep-plugin-one', 'structs', 'ui-samples-plugin']
+        actual.readLines().toSorted() == ['ant', 'my-dep-plugin-one', 'structs']
         actual.eachLine {
             assert new File(consumer, "build/jpi-plugin/test/test-dependencies/${it}.jpi").exists()
         }

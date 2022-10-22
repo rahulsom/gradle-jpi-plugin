@@ -161,7 +161,6 @@ class JpiPublishingAndConsumptionTest extends IntegrationSpec {
         ] as Set
 
         resolveConsumer('jenkinsTestRuntime') == [
-                'ui-samples-plugin-2.0.hpi',
                 'producer-1.0.hpi',
                 'git-3.12.1.hpi',
                 'git-client-2.7.7.hpi',
@@ -219,7 +218,6 @@ class JpiPublishingAndConsumptionTest extends IntegrationSpec {
                 'commons-lang3-3.9.jar' ] as Set
         resolveConsumer('jenkinsRuntime') == [ 'producer-1.0.hpi', 'ant-1.2.hpi' ] as Set
         resolveConsumer('jenkinsTestRuntime') == [
-                'ui-samples-plugin-2.0.hpi',
                 'producer-1.0.hpi',
                 'ant-1.2.hpi' ] as Set
 
@@ -246,8 +244,7 @@ class JpiPublishingAndConsumptionTest extends IntegrationSpec {
         resolveConsumer('jenkinsRuntime') ==
                 [ 'producer-1.0.hpi', 'ant-1.2.hpi', 'credentials-1.9.4.hpi' ] as Set
         resolveConsumer('jenkinsTestRuntime') ==
-                [ 'ui-samples-plugin-2.0.hpi',
-                  'producer-1.0.hpi',
+                [ 'producer-1.0.hpi',
                   'ant-1.2.hpi',
                   'credentials-1.9.4.hpi' ] as Set
 
@@ -284,8 +281,7 @@ class JpiPublishingAndConsumptionTest extends IntegrationSpec {
         resolveConsumer('compile') == JENKINS_CORE_DEPS + [ 'producer-1.0.jar' ] as Set
         resolveConsumer('runtime') == [ 'producer-1.0.jar' ] as Set
         resolveConsumer('jenkinsRuntime') == [ 'producer-1.0.hpi' ] as Set
-        resolveConsumer('jenkinsTestRuntime') == [
-                'producer-1.0.hpi', 'ui-samples-plugin-2.0.hpi' ] as Set
+        resolveConsumer('jenkinsTestRuntime') == [ 'producer-1.0.hpi' ] as Set
     }
 
     private void publishProducer() {

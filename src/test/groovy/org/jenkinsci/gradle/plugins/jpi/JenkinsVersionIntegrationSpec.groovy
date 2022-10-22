@@ -139,7 +139,7 @@ class JenkinsVersionIntegrationSpec extends IntegrationSpec {
                 'javax.servlet:servlet-api:2.4'                              : NOWHERE,
                 'javax.servlet:javax.servlet-api:3.1.0'                      : COMPILE_ONLY,
                 'org.jenkins-ci.main:jenkins-test-harness:1837.vb_6efb_1790942': TEST_IMPLEMENTATION_ONLY,
-                'org.jenkins-ci.main:ui-samples-plugin:2.0'                  : TEST_IMPLEMENTATION_ONLY,
+                'org.jenkins-ci.main:ui-samples-plugin:2.0'                  : NOWHERE,
                 'junit:junit-dep:4.10'                                       : NOWHERE,
         ]
         '2.150.3' | [
@@ -149,7 +149,7 @@ class JenkinsVersionIntegrationSpec extends IntegrationSpec {
                 'javax.servlet:servlet-api:2.4'                              : NOWHERE,
                 'javax.servlet:javax.servlet-api:3.1.0'                      : COMPILE_ONLY,
                 'org.jenkins-ci.main:jenkins-test-harness:1837.vb_6efb_1790942': TEST_IMPLEMENTATION_ONLY,
-                'org.jenkins-ci.main:ui-samples-plugin:2.0'                  : TEST_IMPLEMENTATION_ONLY,
+                'org.jenkins-ci.main:ui-samples-plugin:2.0'                  : NOWHERE,
                 'junit:junit-dep:4.10'                                       : NOWHERE,
         ]
         '2.64'    | [
@@ -159,7 +159,7 @@ class JenkinsVersionIntegrationSpec extends IntegrationSpec {
                 'javax.servlet:servlet-api:2.4'                              : NOWHERE,
                 'javax.servlet:javax.servlet-api:3.1.0'                      : COMPILE_ONLY,
                 'org.jenkins-ci.main:jenkins-test-harness:1837.vb_6efb_1790942': TEST_IMPLEMENTATION_ONLY,
-                'org.jenkins-ci.main:ui-samples-plugin:2.0'                  : TEST_IMPLEMENTATION_ONLY,
+                'org.jenkins-ci.main:ui-samples-plugin:2.0'                  : NOWHERE,
                 'junit:junit-dep:4.10'                                       : NOWHERE,
         ]
         '2.63'    | [
@@ -169,7 +169,7 @@ class JenkinsVersionIntegrationSpec extends IntegrationSpec {
                 'javax.servlet:servlet-api:2.4'               : NOWHERE,
                 'javax.servlet:javax.servlet-api:3.1.0'       : COMPILE_ONLY,
                 'org.jenkins-ci.main:jenkins-test-harness:2.0': TEST_IMPLEMENTATION_ONLY,
-                'org.jenkins-ci.main:ui-samples-plugin:2.0'   : TEST_IMPLEMENTATION_ONLY,
+                'org.jenkins-ci.main:ui-samples-plugin:2.0'   : NOWHERE,
                 'junit:junit-dep:4.10'                        : NOWHERE,
         ]
         '2.0'     | [
@@ -179,7 +179,7 @@ class JenkinsVersionIntegrationSpec extends IntegrationSpec {
                 'javax.servlet:servlet-api:2.4'               : NOWHERE,
                 'javax.servlet:javax.servlet-api:3.1.0'       : COMPILE_ONLY,
                 'org.jenkins-ci.main:jenkins-test-harness:2.0': TEST_IMPLEMENTATION_ONLY,
-                'org.jenkins-ci.main:ui-samples-plugin:2.0'   : TEST_IMPLEMENTATION_ONLY,
+                'org.jenkins-ci.main:ui-samples-plugin:2.0'   : NOWHERE,
                 'junit:junit-dep:4.10'                        : NOWHERE,
         ]
         '1.658'   | [
@@ -189,7 +189,7 @@ class JenkinsVersionIntegrationSpec extends IntegrationSpec {
                 'javax.servlet:servlet-api:2.4'               : COMPILE_ONLY,
                 'javax.servlet:javax.servlet-api:3.1.0'       : NOWHERE,
                 'org.jenkins-ci.main:jenkins-test-harness:2.0': TEST_IMPLEMENTATION_ONLY,
-                'org.jenkins-ci.main:ui-samples-plugin:2.0'   : TEST_IMPLEMENTATION_ONLY,
+                'org.jenkins-ci.main:ui-samples-plugin:2.0'   : NOWHERE,
                 'junit:junit-dep:4.10'                        : NOWHERE,
         ]
         '1.645'   | [
@@ -199,7 +199,7 @@ class JenkinsVersionIntegrationSpec extends IntegrationSpec {
                 'javax.servlet:servlet-api:2.4'               : COMPILE_ONLY,
                 'javax.servlet:javax.servlet-api:3.1.0'       : NOWHERE,
                 'org.jenkins-ci.main:jenkins-test-harness:2.0': TEST_IMPLEMENTATION_ONLY,
-                'org.jenkins-ci.main:ui-samples-plugin:2.0'   : TEST_IMPLEMENTATION_ONLY,
+                'org.jenkins-ci.main:ui-samples-plugin:2.0'   : NOWHERE,
                 'junit:junit-dep:4.10'                        : NOWHERE,
         ]
         '1.644'   | [
@@ -209,7 +209,7 @@ class JenkinsVersionIntegrationSpec extends IntegrationSpec {
                 'javax.servlet:servlet-api:2.4'                 : COMPILE_ONLY,
                 'javax.servlet:javax.servlet-api:3.1.0'         : NOWHERE,
                 'org.jenkins-ci.main:jenkins-test-harness:1.644': TEST_IMPLEMENTATION_ONLY,
-                'org.jenkins-ci.main:ui-samples-plugin:2.0'     : TEST_IMPLEMENTATION_ONLY,
+                'org.jenkins-ci.main:ui-samples-plugin:2.0'     : NOWHERE,
                 'junit:junit-dep:4.10'                          : NOWHERE,
         ]
         '1.618'   | [
@@ -219,7 +219,7 @@ class JenkinsVersionIntegrationSpec extends IntegrationSpec {
                 'javax.servlet:servlet-api:2.4'                 : COMPILE_ONLY,
                 'javax.servlet:javax.servlet-api:3.1.0'         : NOWHERE,
                 'org.jenkins-ci.main:jenkins-test-harness:1.618': TEST_IMPLEMENTATION_ONLY,
-                'org.jenkins-ci.main:ui-samples-plugin:2.0'     : TEST_IMPLEMENTATION_ONLY,
+                'org.jenkins-ci.main:ui-samples-plugin:2.0'     : NOWHERE,
                 'junit:junit-dep:4.10'                          : NOWHERE,
         ]
         '1.617'   | [
@@ -229,7 +229,7 @@ class JenkinsVersionIntegrationSpec extends IntegrationSpec {
                 'javax.servlet:servlet-api:2.4'                 : COMPILE_ONLY,
                 'javax.servlet:javax.servlet-api:3.1.0'         : NOWHERE,
                 'org.jenkins-ci.main:jenkins-test-harness:1.617': TEST_IMPLEMENTATION_ONLY,
-                'org.jenkins-ci.main:ui-samples-plugin:2.0'     : TEST_IMPLEMENTATION_ONLY,
+                'org.jenkins-ci.main:ui-samples-plugin:2.0'     : NOWHERE,
                 'junit:junit-dep:4.10'                          : NOWHERE,
         ]
         '1.533'   | [
@@ -239,7 +239,7 @@ class JenkinsVersionIntegrationSpec extends IntegrationSpec {
                 'javax.servlet:servlet-api:2.4'                 : COMPILE_ONLY,
                 'javax.servlet:javax.servlet-api:3.1.0'         : NOWHERE,
                 'org.jenkins-ci.main:jenkins-test-harness:1.533': TEST_IMPLEMENTATION_ONLY,
-                'org.jenkins-ci.main:ui-samples-plugin:2.0'     : TEST_IMPLEMENTATION_ONLY,
+                'org.jenkins-ci.main:ui-samples-plugin:2.0'     : NOWHERE,
                 'junit:junit-dep:4.10'                          : NOWHERE,
         ]
         '1.532'   | [
@@ -249,7 +249,7 @@ class JenkinsVersionIntegrationSpec extends IntegrationSpec {
                 'javax.servlet:servlet-api:2.4'                 : COMPILE_ONLY,
                 'javax.servlet:javax.servlet-api:3.1.0'         : NOWHERE,
                 'org.jenkins-ci.main:jenkins-test-harness:1.532': TEST_IMPLEMENTATION_ONLY,
-                'org.jenkins-ci.main:ui-samples-plugin:1.532'   : TEST_IMPLEMENTATION_ONLY,
+                'org.jenkins-ci.main:ui-samples-plugin:1.532'   : NOWHERE,
                 'junit:junit-dep:4.10'                          : NOWHERE,
         ]
         '1.505'   | [
@@ -259,7 +259,7 @@ class JenkinsVersionIntegrationSpec extends IntegrationSpec {
                 'javax.servlet:servlet-api:2.4'                 : COMPILE_ONLY,
                 'javax.servlet:javax.servlet-api:3.1.0'         : NOWHERE,
                 'org.jenkins-ci.main:jenkins-test-harness:1.505': TEST_IMPLEMENTATION_ONLY,
-                'org.jenkins-ci.main:ui-samples-plugin:1.505'   : TEST_IMPLEMENTATION_ONLY,
+                'org.jenkins-ci.main:ui-samples-plugin:1.505'   : NOWHERE,
                 'junit:junit-dep:4.10'                          : NOWHERE,
         ]
         '1.504'   | [
@@ -269,7 +269,7 @@ class JenkinsVersionIntegrationSpec extends IntegrationSpec {
                 'javax.servlet:servlet-api:2.4'                 : COMPILE_ONLY,
                 'javax.servlet:javax.servlet-api:3.1.0'         : NOWHERE,
                 'org.jenkins-ci.main:jenkins-test-harness:1.504': TEST_IMPLEMENTATION_ONLY,
-                'org.jenkins-ci.main:ui-samples-plugin:1.504'   : TEST_IMPLEMENTATION_ONLY,
+                'org.jenkins-ci.main:ui-samples-plugin:1.504'   : NOWHERE,
                 'junit:junit-dep:4.10'                          : TEST_IMPLEMENTATION_ONLY,
         ]
     }
