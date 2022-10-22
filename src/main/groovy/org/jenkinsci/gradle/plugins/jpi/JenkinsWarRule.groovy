@@ -32,8 +32,7 @@ abstract class JenkinsWarRule implements ComponentMetadataRule {
             }
             it.withDependencies {
                 // Dependencies with a classifier point at JARs and can be removed
-                // TODO needs public API - https://github.com/gradle/gradle/issues/11975
-                it.removeAll { it.originalMetadata?.dependencyDescriptor?.dependencyArtifact?.classifier }
+                it.removeAll { it.artifactSelectors.classifier }
             }
             if (new VersionNumber(id.version).isOlderThan(new VersionNumber('2.64'))) {
                 it.withFiles {
