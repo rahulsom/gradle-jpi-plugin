@@ -238,6 +238,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
         'generatedJenkinsTest'                         | ':compileJava'                                  | TaskOutcome.NO_SOURCE
         'generatedJenkinsTest'                         | ':copyGeneratedJenkinsTestPluginDependencies'   | TaskOutcome.SUCCESS
         'generateTestHpl'                              | ':generateJenkinsManifest'                      | TaskOutcome.SUCCESS
+        'generateTestHpl'                              | ':processResources'                             | TaskOutcome.NO_SOURCE
         'generateJenkinsManifest'                      | ':generateJenkinsPluginClassManifest'           | TaskOutcome.SUCCESS
         'generateJenkinsManifest'                      | ':generateJenkinsPluginDependenciesManifest'    | TaskOutcome.SUCCESS
         'generateJenkinsManifest'                      | ':generateJenkinsSupportDynamicLoadingManifest' | TaskOutcome.SUCCESS

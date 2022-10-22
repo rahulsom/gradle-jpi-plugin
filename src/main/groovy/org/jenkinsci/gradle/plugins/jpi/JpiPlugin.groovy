@@ -542,6 +542,7 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
         def outputDir = project.layout.buildDirectory.dir('generated-resources/test')
 
         def jenkinsManifest = project.tasks.named('generateJenkinsManifest')
+        def processResources = project.tasks.named('processResources')
         def generateTestHplTask = project.tasks.register('generateTestHpl', GenerateHplTask) {
             def main = project.extensions.getByType(SourceSetContainer)['main']
             def mainResources = main.resources.srcDirs
@@ -550,7 +551,7 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
             it.fileName.set('the.hpl')
             it.hplDir.set(outputDir)
             it.resourcePath.set(project.file(WEB_APP_DIR))
-            it.libraries.from(mainResources, mainOutput.classesDirs, mainOutput.resourcesDir, libraries)
+            it.libraries.from(mainResources, mainOutput.classesDirs, processResources, libraries)
             it.upstreamManifest.set(jenkinsManifest.get().outputFile)
         }
 
