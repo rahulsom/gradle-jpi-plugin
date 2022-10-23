@@ -4,6 +4,7 @@ import org.gradle.api.artifacts.CacheableRule
 import org.gradle.api.artifacts.ComponentMetadataContext
 import org.gradle.api.artifacts.ComponentMetadataRule
 import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.artifacts.maven.PomModuleDescriptor
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.Bundling
 import org.gradle.api.attributes.Category
@@ -110,8 +111,7 @@ abstract class JpiVariantRule implements ComponentMetadataRule {
     }
 
     private boolean isJenkinsPackaging(ComponentMetadataContext ctx) {
-        // TODO we need public API for this - https://github.com/gradle/gradle/issues/11955
-        String packaging = ctx.metadata.packaging
+        String packaging = ctx.getDescriptor(PomModuleDescriptor).packaging
         packaging == 'jpi' ||  packaging == 'hpi'
     }
 
