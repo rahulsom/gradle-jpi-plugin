@@ -25,7 +25,6 @@ import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.SourceSet
-import org.gradle.util.ConfigureUtil
 import org.jenkinsci.gradle.plugins.jpi.core.PluginDeveloper
 import org.jenkinsci.gradle.plugins.jpi.core.PluginDeveloperSpec
 import org.jenkinsci.gradle.plugins.jpi.internal.BackwardsCompatiblePluginDevelopers
@@ -311,7 +310,7 @@ class JpiExtension implements JpiExtensionBridge {
     Licenses licenses = new Licenses()
 
     def licenses(Closure closure) {
-        ConfigureUtil.configure(closure, licenses)
+        project.configure(licenses, closure)
     }
 
     /**
@@ -401,10 +400,6 @@ class JpiExtension implements JpiExtensionBridge {
     @ReplacedBy('pluginDevelopers')
     Developers developers = new Developers()
 
-    def developers(Closure closure) {
-        developers(ConfigureUtil.configureUsing(closure))
-    }
-
     @CompileStatic
     void developers(Action<? super PluginDeveloperSpec> action) {
         def devs = new BackwardsCompatiblePluginDevelopers(project.objects)
@@ -490,8 +485,8 @@ class JpiExtension implements JpiExtensionBridge {
         }
 
         def developer(Closure closure) {
-            def developer = new JpiDeveloper(JpiExtension.this.project.logger)
-            developer.configure(closure)
+            def developer = new JpiDeveloper(project.logger)
+            project.configure(developer, closure)
             setProperty(developer.id, developer)
         }
 
