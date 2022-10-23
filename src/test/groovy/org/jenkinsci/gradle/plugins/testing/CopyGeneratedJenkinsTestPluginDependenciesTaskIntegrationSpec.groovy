@@ -183,7 +183,7 @@ class CopyGeneratedJenkinsTestPluginDependenciesTaskIntegrationSpec extends Inte
 
         when:
         gradleRunner()
-                .withArguments("my-consumer:$taskPath")
+                .withArguments("my-consumer$taskPath")
                 .build()
 
         then:
@@ -217,7 +217,7 @@ class CopyGeneratedJenkinsTestPluginDependenciesTaskIntegrationSpec extends Inte
 
         when:
         gradleRunner()
-                .withArguments("my-consumer:$taskPath")
+                .withArguments("my-consumer$taskPath")
                 .build()
 
         then:
