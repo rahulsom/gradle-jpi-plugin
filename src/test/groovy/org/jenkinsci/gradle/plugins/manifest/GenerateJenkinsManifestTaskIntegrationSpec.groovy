@@ -332,11 +332,15 @@ class GenerateJenkinsManifestTaskIntegrationSpec extends IntegrationSpec {
         thirdRun.task(taskPath).outcome == TaskOutcome.UP_TO_DATE
     }
 
+    @Unroll
     def 'should use release plugin version as is'() {
         given:
         build.text = """\
             $BUILD_FILE
             version = '1.0'
+            tasks.named("$GenerateJenkinsManifestTask.NAME").configure {
+                dynamicSnapshotVersion = $dynamicSnapshotVersion
+            }
             """.stripIndent()
 
         when:
@@ -349,6 +353,9 @@ class GenerateJenkinsManifestTaskIntegrationSpec extends IntegrationSpec {
 
         and:
         pluginVersion() == '1.0'
+
+        where:
+        dynamicSnapshotVersion << [true, false]
     }
 
     def 'should enhance snapshot plugin version'() {
