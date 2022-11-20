@@ -397,13 +397,13 @@ class GenerateJenkinsManifestTaskIntegrationSpec extends IntegrationSpec {
         result.task(taskPath).outcome == TaskOutcome.SUCCESS
 
         and:
-        pluginVersion() == "1.0-SNAPSHOT"
+        pluginVersion() == '1.0-SNAPSHOT'
     }
 
     def pluginVersion() {
         def manifest = new Manifest(inProjectDir('build/jenkins-manifests/jenkins.mf').newInputStream())
         assert manifest != null
 
-        manifest.getMainAttributes().getValue("Plugin-Version")
+        manifest.mainAttributes.getValue('Plugin-Version')
     }
 }
