@@ -8,6 +8,8 @@ import spock.lang.IgnoreIf
 import spock.lang.PendingFeature
 import spock.lang.Unroll
 
+import java.util.jar.Manifest
+
 import static org.jenkinsci.gradle.plugins.jpi.TestSupport.q
 
 class GenerateJenkinsManifestTaskIntegrationSpec extends IntegrationSpec {
@@ -287,5 +289,114 @@ class GenerateJenkinsManifestTaskIntegrationSpec extends IntegrationSpec {
 
         then:
         result.task(taskPath).outcome == TaskOutcome.SUCCESS
+    }
+
+    def 'should rerun if dynamicSnapshotVersion changes'() {
+        given:
+        build.text = """\
+            $BUILD_FILE
+            tasks.named("$GenerateJenkinsManifestTask.NAME").configure {
+                dynamicSnapshotVersion = true
+            }
+            """.stripIndent()
+
+        when:
+        def result = gradleRunner()
+                .withArguments(taskName)
+                .build()
+
+        then:
+        result.task(taskPath).outcome == TaskOutcome.SUCCESS
+
+        when:
+        build.text = """\
+            $BUILD_FILE
+            tasks.named("$GenerateJenkinsManifestTask.NAME").configure {
+                dynamicSnapshotVersion = false
+            }
+            """.stripIndent()
+
+        def rerunResult = gradleRunner()
+                .withArguments(taskName)
+                .build()
+
+        then:
+        rerunResult.task(taskPath).outcome == TaskOutcome.SUCCESS
+
+        when:
+        def thirdRun = gradleRunner()
+                .withArguments(taskName)
+                .build()
+
+        then:
+        thirdRun.task(taskPath).outcome == TaskOutcome.UP_TO_DATE
+    }
+
+    def 'should use release plugin version as is'() {
+        given:
+        build.text = """\
+            $BUILD_FILE
+            version = '1.0'
+            """.stripIndent()
+
+        when:
+        def result = gradleRunner()
+                .withArguments(taskName)
+                .build()
+
+        then:
+        result.task(taskPath).outcome == TaskOutcome.SUCCESS
+
+        and:
+        pluginVersion() == '1.0'
+    }
+
+    def 'should enhance snapshot plugin version'() {
+        given:
+        build.text = """\
+            $BUILD_FILE
+            version = '1.0-SNAPSHOT'
+            """.stripIndent()
+
+        when:
+        def result = gradleRunner()
+            .withArguments(taskName)
+            .build()
+
+        then:
+        result.task(taskPath).outcome == TaskOutcome.SUCCESS
+
+        and:
+        pluginVersion() ==~ /^1\.0-SNAPSHOT \(private-.+\)$/
+    }
+
+    def 'should not enhance snapshot version if opted-out'() {
+        given:
+        build.text = """\
+            $BUILD_FILE
+            version = '1.0-SNAPSHOT'
+
+            tasks.named("$GenerateJenkinsManifestTask.NAME").configure {
+                dynamicSnapshotVersion = false
+            }
+            """.stripIndent()
+
+        when:
+        def result = gradleRunner()
+                .withArguments(taskName)
+                .build()
+
+        then:
+        result.task(taskPath).outcome == TaskOutcome.SUCCESS
+
+        and:
+        pluginVersion() == "1.0-SNAPSHOT"
+    }
+
+    def pluginVersion() {
+        def manifest = new Manifest(inProjectDir('build/jenkins-manifests/jenkins.mf').newInputStream())
+        assert manifest != null
+
+        manifest.getMainAttributes().getValue("Plugin-Version")
     }
 }
