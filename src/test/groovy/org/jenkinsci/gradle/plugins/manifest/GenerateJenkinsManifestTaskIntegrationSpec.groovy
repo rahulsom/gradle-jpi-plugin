@@ -367,8 +367,8 @@ class GenerateJenkinsManifestTaskIntegrationSpec extends IntegrationSpec {
 
         when:
         def result = gradleRunner()
-            .withArguments(taskName)
-            .build()
+                .withArguments(taskName)
+                .build()
 
         then:
         result.task(taskPath).outcome == TaskOutcome.SUCCESS
