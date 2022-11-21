@@ -295,7 +295,7 @@ class GenerateJenkinsManifestTaskIntegrationSpec extends IntegrationSpec {
         given:
         build.text = """\
             $BUILD_FILE
-            tasks.named("$GenerateJenkinsManifestTask.NAME").configure {
+            tasks.named('$GenerateJenkinsManifestTask.NAME').configure {
                 dynamicSnapshotVersion = true
             }
             """.stripIndent()
@@ -311,7 +311,7 @@ class GenerateJenkinsManifestTaskIntegrationSpec extends IntegrationSpec {
         when:
         build.text = """\
             $BUILD_FILE
-            tasks.named("$GenerateJenkinsManifestTask.NAME").configure {
+            tasks.named('$GenerateJenkinsManifestTask.NAME').configure {
                 dynamicSnapshotVersion = false
             }
             """.stripIndent()
@@ -338,7 +338,7 @@ class GenerateJenkinsManifestTaskIntegrationSpec extends IntegrationSpec {
         build.text = """\
             $BUILD_FILE
             version = '1.0'
-            tasks.named("$GenerateJenkinsManifestTask.NAME").configure {
+            tasks.named('$GenerateJenkinsManifestTask.NAME').configure {
                 dynamicSnapshotVersion = $dynamicSnapshotVersion
             }
             """.stripIndent()
@@ -383,7 +383,7 @@ class GenerateJenkinsManifestTaskIntegrationSpec extends IntegrationSpec {
             $BUILD_FILE
             version = '1.0-SNAPSHOT'
 
-            tasks.named("$GenerateJenkinsManifestTask.NAME").configure {
+            tasks.named('$GenerateJenkinsManifestTask.NAME').configure {
                 dynamicSnapshotVersion = false
             }
             """.stripIndent()
