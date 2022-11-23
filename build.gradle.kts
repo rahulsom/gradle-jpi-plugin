@@ -142,6 +142,17 @@ tasks.addRule("Pattern: testGradle<ID>") {
     }
 }
 
+val integrationTestOnJava11 = tasks.register<Test>("integrationTestOnJava11") {
+    systemProperty("gradle.under.test", "7.5.1")
+    setTestNameIncludePatterns(listOf("*IntegrationSpec"))
+    javaLauncher.set(javaToolchains.launcherFor {
+        languageVersion.set(JavaLanguageVersion.of(11))
+    })
+}
+tasks.check {
+    dependsOn(integrationTestOnJava11)
+}
+
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
     testLogging {
