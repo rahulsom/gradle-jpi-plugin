@@ -66,13 +66,22 @@ open class GenerateJenkinsManifestTask : DefaultTask() {
     @Internal
     val version: Property<String> = project.objects.property()
 
+    @Input
+    val dynamicSnapshotVersion: Property<Boolean> = project.objects.property<Boolean>().convention(true)
+
     // TODO this is most correct based on today's behavior, but it's worth considering
     // before 1.0.0 if this timestamp appending should continue to be a part of the jpi
     // plugin. There are many gradle plugins dedicated to versioning that could be
     // recommended instead, and this means the default behavior of `-SNAPSHOT` versions
     // is to always rerun this task and therefore any downstream task
     @Input
-    val pluginVersion: Provider<String> = version.map { VersionCalculator().calculate(it) }
+    val pluginVersion: Provider<String> =
+        dynamicSnapshotVersion.flatMap { isDynamicSnapshotVersion ->
+            when (isDynamicSnapshotVersion) {
+                true -> version.map { VersionCalculator().calculate(it) }
+                false -> version
+            }
+        }
 
     @Input
     val maskedClasses: SetProperty<String> = project.objects.setProperty()

@@ -124,17 +124,17 @@ Examples:
             usingSourceSet(sourceSets.main)
         }
     }
-    
+
     dependencies {
         implementation 'org.jenkinsci.plugins:git:1.1.15'
         api 'org.jenkins-ci.plugins:credentials:1.9.4'
-        
+
         // dependency of the (optional) ant feature
         antImplementation 'org.jenkins-ci.plugins:ant:1.2'
-        
+
         // dependency for testing only
         testImplementation 'org.jenkins-ci.main:maven-plugin:1.480'
-        
+
         // addition dependencies for manual tests on the server started with `gradle server`
         jenkinsServer 'org.jenkins-ci.plugins:ant:1.2'
     }
@@ -150,7 +150,7 @@ Examples:
   the Jenkins Maven repository to be included in the Update Center.
 * `gradle server` - Start a local instance of Jenkins with the plugin pre-installed for testing
   and debugging.
-  
+
 ### Running Jenkins Locally
 
 The `server` task creates a [hpl][hpl], installs plugins, and starts up Jenkins on port 8080. The server runs
@@ -262,6 +262,19 @@ tasks.named('checkAccessModifier').configure {
 ```
 
 `checkAccessModifier` will only be cached on success if `ignoreFailures` is `false`.
+
+### Disabling appending timestamp to the SNAPSHOT plugin version
+
+By default, `generateJenkinsManifest` task appends the current timestamp and the current username to the `-SNAPSHOT` plugin version.
+It leads to a non-repeatable outputs that affect the task cacheability.
+
+To opt-out from modifying the `-SNAPSHOT` plugin version, add this configuration to build.gradle:
+
+```gradle
+tasks.named('generateJenkinsManifest').configure {
+    dynamicSnapshotVersion.set(false)
+}
+```
 
 ## Disabling SHA256 and SHA512 checksums when releasing a plugin
 
