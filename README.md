@@ -9,6 +9,18 @@
 This is a Gradle plugin for building [Jenkins](http://jenkins-ci.org)
 plugins, written in Groovy or Java.
 
+## :warning: New OSS Plugins Rejected
+
+As of December 2022, new OSS plugins will be [rejected by the Jenkins hosting team][213] until [hosting requirements][host-reqs] are met.
+
+Hosting requirements are well-defined and expected to be a small amount of work, but this is not prioritized.
+Contributions are welcome.
+Existing OSS plugins can continue to use this plugin.
+Plugins not hosted by the Jenkins infra team (internal-only plugins) are not impacted.
+
+[213]: https://github.com/jenkinsci/gradle-jpi-plugin/issues/213
+[host-reqs]: https://github.com/jenkinsci/gradle-jpi-plugin/milestone/10
+
 ## Compatibility with Gradle versions
 
 The latest version of the JPI plugin requires **Gradle 6.3 or later** to make use of advanced dependency management features.
