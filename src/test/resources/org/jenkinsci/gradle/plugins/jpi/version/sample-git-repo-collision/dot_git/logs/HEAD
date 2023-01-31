@@ -1,0 +1,21 @@
+0000000000000000000000000000000000000000 fb9d8e13a5820b12d075c1bb4bc3ebe0653d0729 Alexis Tual <atual@gradle.com> 1675071262 +0100	commit (initial): Initial commit
+fb9d8e13a5820b12d075c1bb4bc3ebe0653d0729 fee4afaecf76913d8bf597652f01c9fd34c28b9d Alexis Tual <atual@gradle.com> 1675071296 +0100	commit: Another commit
+fee4afaecf76913d8bf597652f01c9fd34c28b9d fee4afaecf76913d8bf597652f01c9fd34c28b9d Alexis Tual <atual@gradle.com> 1675071351 +0100	checkout: moving from main to collision
+fee4afaecf76913d8bf597652f01c9fd34c28b9d 3d977d394c1d57ffa6312dfa619f6599e081e092 Alexis Tual <atual@gradle.com> 1675071376 +0100	commit: Try to collide with other commits
+3d977d394c1d57ffa6312dfa619f6599e081e092 fee4afaecf76913d8bf597652f01c9fd34c28b9d Alexis Tual <atual@gradle.com> 1675071441 +0100	checkout: moving from collision to main
+fee4afaecf76913d8bf597652f01c9fd34c28b9d fee4afaecf76913d8bf597652f01c9fd34c28b9d Alexis Tual <atual@gradle.com> 1675071789 +0100	checkout: moving from main to collision
+fee4afaecf76913d8bf597652f01c9fd34c28b9d f84eff769f8009584353f35bafa4252ece54fc26 Alexis Tual <atual@gradle.com> 1675071810 +0100	commit: Try to collide with other commits
+f84eff769f8009584353f35bafa4252ece54fc26 fee4afaecf76913d8bf597652f01c9fd34c28b9d Alexis Tual <atual@gradle.com> 1675072979 +0100	checkout: moving from collision to main
+fee4afaecf76913d8bf597652f01c9fd34c28b9d f84eff769f8009584353f35bafa4252ece54fc26 Alexis Tual <atual@gradle.com> 1675072992 +0100	checkout: moving from main to collision
+f84eff769f8009584353f35bafa4252ece54fc26 fee4afaecf76913d8bf597652f01c9fd34c28b9d Alexis Tual <atual@gradle.com> 1675099418 +0100	checkout: moving from collision to main
+fee4afaecf76913d8bf597652f01c9fd34c28b9d f84eff769f8009584353f35bafa4252ece54fc26 Alexis Tual <atual@gradle.com> 1675099789 +0100	checkout: moving from main to collision
+f84eff769f8009584353f35bafa4252ece54fc26 fee4afaecf76913d8bf597652f01c9fd34c28b9d Alexis Tual <atual@gradle.com> 1675100365 +0100	checkout: moving from collision to main
+fee4afaecf76913d8bf597652f01c9fd34c28b9d 95f1f5d60e708ffa62e310d9cd7af5ad0a7912cd Alexis Tual <atual@gradle.com> 1675100466 +0100	commit: Ahead
+95f1f5d60e708ffa62e310d9cd7af5ad0a7912cd a96661f70098cd50448fbe0cf5edd80dc047a4c9 Alexis Tual <atual@gradle.com> 1675100548 +0100	commit (amend): Ahead
+a96661f70098cd50448fbe0cf5edd80dc047a4c9 8ccd98c242db91636c1f840bcef4671720f24873 Alexis Tual <atual@gradle.com> 1675100550 +0100	commit (amend): Ahead
+8ccd98c242db91636c1f840bcef4671720f24873 02fd16744eecd7b16707f18000568006a210feb0 Alexis Tual <atual@gradle.com> 1675100552 +0100	commit (amend): Ahead
+02fd16744eecd7b16707f18000568006a210feb0 5da7f7919cc8080761db671e5aaa3cbafd30416d Alexis Tual <atual@gradle.com> 1675100553 +0100	commit (amend): Ahead
+5da7f7919cc8080761db671e5aaa3cbafd30416d 5edf6b47159250baece84fd049b4ebce803fdedb Alexis Tual <atual@gradle.com> 1675100554 +0100	commit (amend): Ahead
+5edf6b47159250baece84fd049b4ebce803fdedb f3832ef5776b5c3fb47ea7b8227f4bc6c6503e71 Alexis Tual <atual@gradle.com> 1675100557 +0100	commit (amend): Ahead
+f3832ef5776b5c3fb47ea7b8227f4bc6c6503e71 f84eff769f8009584353f35bafa4252ece54fc26 Alexis Tual <atual@gradle.com> 1675244694 +0100	checkout: moving from main to collision
+f84eff769f8009584353f35bafa4252ece54fc26 f3832ef5776b5c3fb47ea7b8227f4bc6c6503e71 Alexis Tual <atual@gradle.com> 1675244735 +0100	checkout: moving from collision to main

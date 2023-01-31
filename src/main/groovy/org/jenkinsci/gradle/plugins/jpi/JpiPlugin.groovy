@@ -59,6 +59,7 @@ import org.jenkinsci.gradle.plugins.jpi.server.GenerateHplTask
 import org.jenkinsci.gradle.plugins.jpi.server.InstallJenkinsServerPluginsTask
 import org.jenkinsci.gradle.plugins.jpi.server.JenkinsServerTask
 import org.jenkinsci.gradle.plugins.jpi.verification.CheckOverlappingSourcesTask
+import org.jenkinsci.gradle.plugins.jpi.version.GitVersion
 
 import java.util.concurrent.Callable
 
@@ -236,6 +237,8 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
         configureTestDependencies(gradleProject)
         configurePublishing(gradleProject)
         configureTestHpl(gradleProject)
+        configureVersion(gradleProject)
+
         gradleProject.afterEvaluate {
             gradleProject.setProperty('archivesBaseName', ext.shortName)
         }
@@ -334,6 +337,20 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
                 logger.warn('{} is deprecated and will be removed in 1.0.0. Please use {}',
                         TestInsertionTask.TASK_NAME,
                         replacementTask)
+            }
+        }
+    }
+
+    private void configureVersion(Project project) {
+        def rootProject = project.rootProject
+        if (project == rootProject) {
+            if (rootProject.hasProperty('gitBasedVersioning')) {
+                boolean allowDirty = rootProject.hasProperty('git.allowDirty')
+                def gitVersion = GitVersion.builder(rootProject.projectDir.toPath())
+                    .allowDirty(allowDirty).build().generate()
+                rootProject.allprojects { prj ->
+                    prj.version = gitVersion
+                }
             }
         }
     }
