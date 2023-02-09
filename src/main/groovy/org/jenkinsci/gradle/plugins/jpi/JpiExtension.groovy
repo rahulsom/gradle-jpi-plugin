@@ -70,6 +70,8 @@ class JpiExtension implements JpiExtensionBridge {
     private final SetProperty<String> maskedClassesFromCore
     private final ListProperty<PluginDeveloper> pluginDevelopers
 
+    private final GitVersionExtension gitVersion
+
     @SuppressWarnings('UnnecessarySetter')
     JpiExtension(Project project) {
         this.project = project
@@ -92,6 +94,7 @@ class JpiExtension implements JpiExtensionBridge {
         this.generateTests = project.objects.property(Boolean).convention(false)
         this.requireEscapeByDefaultInJelly = project.objects.property(Boolean).convention(true)
         this.generatedTestClassName = project.objects.property(String).convention('InjectedTest')
+        this.gitVersion = project.objects.newInstance(GitVersionExtension)
     }
 
     /**
@@ -468,7 +471,15 @@ class JpiExtension implements JpiExtensionBridge {
         pluginDevelopers
     }
 
-    /**
+    GitVersionExtension getGitVersion() {
+        gitVersion
+    }
+
+    def gitVersion(Action<GitVersionExtension> action) {
+        action.execute(gitVersion)
+    }
+
+/**
      * @see PluginDeveloper
      * @deprecated To be removed in 1.0.0
      */

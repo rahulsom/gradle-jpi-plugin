@@ -59,7 +59,7 @@ import org.jenkinsci.gradle.plugins.jpi.server.GenerateHplTask
 import org.jenkinsci.gradle.plugins.jpi.server.InstallJenkinsServerPluginsTask
 import org.jenkinsci.gradle.plugins.jpi.server.JenkinsServerTask
 import org.jenkinsci.gradle.plugins.jpi.verification.CheckOverlappingSourcesTask
-import org.jenkinsci.gradle.plugins.jpi.version.GitVersion
+import org.jenkinsci.gradle.plugins.jpi.version.GenerateGitVersionTask
 
 import java.util.concurrent.Callable
 
@@ -342,17 +342,8 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
     }
 
     private void configureVersion(Project project) {
-        def rootProject = project.rootProject
-        if (project == rootProject) {
-            if (rootProject.hasProperty('gitBasedVersioning')) {
-                boolean allowDirty = rootProject.hasProperty('git.allowDirty')
-                def gitVersion = GitVersion.builder(rootProject.projectDir.toPath())
-                    .allowDirty(allowDirty).build().generate()
-                rootProject.allprojects { prj ->
-                    prj.version = gitVersion
-                }
-            }
-        }
+        JpiExtension jpiExtension = project.extensions.getByType(JpiExtension)
+        project.tasks.register('generateGitVersion', GenerateGitVersionTask, jpiExtension.gitVersion)
     }
 
     private static configureRepositories(Project project) {
