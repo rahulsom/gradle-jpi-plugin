@@ -48,7 +48,7 @@ class GenerateGitVersionTaskSpec extends IntegrationSpec {
             .build()
 
         then:
-        inProjectDir('build/generated/version/version.txt').text =~ /1\.\w{12}/
+        inProjectDir('build/generated/version/version.txt').text ==~ /1\.\w{12}/
     }
 
     def 'should generate jar named according to generated version'() {
@@ -72,7 +72,7 @@ class GenerateGitVersionTaskSpec extends IntegrationSpec {
             .build()
 
         then:
-        inProjectDir('build/generated/version/version.txt').text =~ /1\.\w{12}/
+        inProjectDir('build/generated/version/version.txt').text ==~ /1\.\w{12}/
         def jarPattern = ~/${projectName}-1\.\w{12}\.jar/
         inProjectDir('build/libs').listFiles({ f -> jarPattern.matcher(f.name).matches() } as FileFilter).size() == 1
     }
@@ -121,7 +121,7 @@ class GenerateGitVersionTaskSpec extends IntegrationSpec {
             .build()
 
         then:
-        inProjectDir('build/generated/version/version.txt').text =~ /1\.\w{12}/
+        inProjectDir('build/generated/version/version.txt').text ==~ /1\.\w{12}/
     }
 
     def 'should generate with custom version format'() {
@@ -140,7 +140,7 @@ class GenerateGitVersionTaskSpec extends IntegrationSpec {
             .build()
 
         then:
-        inProjectDir('build/generated/version/version.txt').text =~ /rc-1\.\w{10}/
+        inProjectDir('build/generated/version/version.txt').text ==~ /rc-1\.\w{10}/
     }
 
     def 'should generate with custom git root'() {
@@ -159,7 +159,7 @@ class GenerateGitVersionTaskSpec extends IntegrationSpec {
             .build()
 
         then:
-        inProjectDir('build/generated/version/version.txt').text =~ /1\.\w{12}/
+        inProjectDir('build/generated/version/version.txt').text ==~ /1\.\w{12}/
     }
 
     def initGitRepo(File gitRoot = projectDir) {
