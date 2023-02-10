@@ -38,7 +38,8 @@ dependencies {
     compileOnly("org.kohsuke:access-modifier-checker:1.21")
     annotationProcessor(sezpoz)
     implementation(gradleApi())
-    implementation("org.eclipse.jgit:org.eclipse.jgit:5.13.1.202206130422-r")
+    compileOnly("org.eclipse.jgit:org.eclipse.jgit:5.13.1.202206130422-r")
+    testImplementation("org.eclipse.jgit:org.eclipse.jgit:5.13.1.202206130422-r")
     compileOnly("com.squareup:javapoet:1.13.0") {
         because("used for GenerateTestTask")
     }

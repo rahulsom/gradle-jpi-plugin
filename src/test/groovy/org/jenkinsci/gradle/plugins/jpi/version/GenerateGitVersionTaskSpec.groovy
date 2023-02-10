@@ -166,7 +166,7 @@ class GenerateGitVersionTaskSpec extends IntegrationSpec {
         def gitCmd = Git.init()
         gitCmd.directory = gitRoot
         Git git = gitCmd.call()
-        Files.createFile(projectDir.toPath().resolve('.gitignore')).text = '.gradle'
+        Files.createFile(projectDir.toPath().resolve('.gitignore')).text = '.gradle\nbuild'
         git.add().addFilepattern('.').call()
         def commit = git.commit()
         commit.setCommitter('Anne', 'Onyme')

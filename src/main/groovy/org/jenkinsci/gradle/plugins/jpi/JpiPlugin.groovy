@@ -343,7 +343,23 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
 
     private void configureVersion(Project project) {
         JpiExtension jpiExtension = project.extensions.getByType(JpiExtension)
-        project.tasks.register('generateGitVersion', GenerateGitVersionTask, jpiExtension.gitVersion)
+
+        def jgit = project.dependencies.create('org.eclipse.jgit:org.eclipse.jgit:5.13.1.202206130422-r')
+        def generateGitVersionConfiguration = project.configurations.create('generateGitVersion') {
+            attributes {
+                attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
+            }
+            visible = false
+            canBeConsumed = false
+            canBeResolved = true
+            withDependencies { deps ->
+                deps.add(jgit)
+            }
+        }
+
+        project.tasks.register('generateGitVersion', GenerateGitVersionTask, jpiExtension.gitVersion).configure {
+            classpath.from(generateGitVersionConfiguration)
+        }
     }
 
     private static configureRepositories(Project project) {
