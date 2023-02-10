@@ -1,5 +1,6 @@
 package org.jenkinsci.gradle.plugins.jpi.version
 
+import org.apache.commons.io.FilenameUtils
 import org.eclipse.jgit.api.Git
 import org.jenkinsci.gradle.plugins.jpi.IntegrationSpec
 import org.jenkinsci.gradle.plugins.jpi.TestDataGenerator
@@ -148,7 +149,7 @@ class GenerateGitVersionTaskSpec extends IntegrationSpec {
         given:
         build.text = customBuildFile("""
             gitVersion {
-                gitRoot = file('${customGitRoot.toAbsolutePath()}')
+                gitRoot = file("${FilenameUtils.separatorsToUnix(customGitRoot.toAbsolutePath().toString())}")
             }
         """)
         initGitRepo(customGitRoot.toFile())
