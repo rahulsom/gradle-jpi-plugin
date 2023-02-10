@@ -19,7 +19,7 @@ class GenerateGitVersionTaskSpec extends IntegrationSpec {
 
     def setup() {
         File settings = touchInProjectDir('settings.gradle')
-        settings << """rootProject.name = \"$projectName\""""
+        settings << "rootProject.name = \"${projectName}\""
         build = touchInProjectDir('build.gradle')
         def props = new Properties()
         props.setProperty('version', '1.0.0')

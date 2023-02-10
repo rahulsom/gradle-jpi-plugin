@@ -237,7 +237,7 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
         configureTestDependencies(gradleProject)
         configurePublishing(gradleProject)
         configureTestHpl(gradleProject)
-        configureVersion(gradleProject)
+        configureGenerateGitVersion(gradleProject)
 
         gradleProject.afterEvaluate {
             gradleProject.setProperty('archivesBaseName', ext.shortName)
@@ -341,11 +341,11 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
         }
     }
 
-    private void configureVersion(Project project) {
+    private void configureGenerateGitVersion(Project project) {
         JpiExtension jpiExtension = project.extensions.getByType(JpiExtension)
 
         def jgit = project.dependencies.create('org.eclipse.jgit:org.eclipse.jgit:5.13.1.202206130422-r')
-        def generateGitVersionConfiguration = project.configurations.create('generateGitVersion') {
+        def generateGitVersionConfiguration = project.configurations.create(GenerateGitVersionTask.TASK_NAME) {
             attributes {
                 attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
             }
@@ -357,7 +357,8 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
             }
         }
 
-        project.tasks.register('generateGitVersion', GenerateGitVersionTask, jpiExtension.gitVersion).configure {
+        project.tasks.register(GenerateGitVersionTask.TASK_NAME,
+            GenerateGitVersionTask, jpiExtension.gitVersion).configure {
             classpath.from(generateGitVersionConfiguration)
         }
     }

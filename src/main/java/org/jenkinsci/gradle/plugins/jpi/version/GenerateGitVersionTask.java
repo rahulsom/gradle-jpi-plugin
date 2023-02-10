@@ -22,6 +22,8 @@ import java.nio.file.Files;
 
 public abstract class GenerateGitVersionTask extends DefaultTask {
 
+    public static final String TASK_NAME = "generateGitVersion";
+
     private final Directory gitRoot;
     private final String versionFormat;
     private final Boolean allowDirty;
