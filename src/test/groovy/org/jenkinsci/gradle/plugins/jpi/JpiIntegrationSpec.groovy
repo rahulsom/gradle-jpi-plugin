@@ -624,4 +624,39 @@ class JpiIntegrationSpec extends IntegrationSpec {
         then:
         result.output.contains(expected)
     }
+
+    @Unroll
+    def 'setup publishing incrementals repo by extension (#url)'(String url, String expected) {
+        given:
+        build << """\
+            jenkinsPlugin {
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                incrementalsRepoUrl = $url
+            }
+            version = '0.40.0-SNAPSHOT'
+
+            tasks.register('repos') {
+                doLast {
+                    publishing.repositories.each {
+                        println it.url
+                    }
+                }
+            }
+            """.stripIndent()
+
+        when:
+        def result = gradleRunner()
+            .withArguments('repos', '-q')
+            .build()
+
+        then:
+        result.output.contains(expected)
+
+        where:
+        url                            | expected
+        null                           | 'https://repo.jenkins-ci.org/incrementals'
+        "''"                           | 'https://repo.jenkins-ci.org/incrementals'
+        "'https://maven.example.org/'" | 'https://maven.example.org/'
+    }
+
 }
