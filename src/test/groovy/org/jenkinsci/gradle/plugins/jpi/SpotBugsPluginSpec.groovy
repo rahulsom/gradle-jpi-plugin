@@ -24,7 +24,7 @@ class SpotBugsPluginSpec extends IntegrationSpec {
     }
 
     @Requires({ gradle7AndAbove() })
-    def "build should not run SpotBugs tasks by default (Gradle 7)"() {
+    def "should not run SpotBugs tasks by default (Gradle 7)"() {
         given:
         build << """jenkinsPlugin {
             jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
@@ -41,7 +41,7 @@ class SpotBugsPluginSpec extends IntegrationSpec {
     }
 
     @Requires({ gradle7AndAbove() })
-    def "build should run SpotBugs tasks with default and generate only xml"() {
+    def "should run SpotBugs tasks with default and generate only xml"() {
         given:
         build << """
             jenkinsPlugin {
@@ -91,7 +91,7 @@ class SpotBugsPluginSpec extends IntegrationSpec {
     }
 
     @Requires({ belowGradle7() })
-    def "build should not run SpotBugs tasks and not fail (Gradle 6)"() {
+    def "should not run SpotBugs tasks and not fail (Gradle 6)"() {
         given:
         build << """jenkinsPlugin {
             jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
@@ -116,5 +116,3 @@ class SpotBugsPluginSpec extends IntegrationSpec {
     }
 
 }
-
-

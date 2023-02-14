@@ -591,7 +591,7 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
 
     private configureCheckstyle(Project project) {
         def checkstyle = project.extensions.getByType(CheckstyleExtension)
-        checkstyle.config = project.resources.text.fromUri(JpiPlugin.class.getResource('/sun_checks.xml').toURI())
+        checkstyle.config = project.resources.text.fromUri(JpiPlugin.getResource('/sun_checks.xml').toURI())
         project.tasks.withType(Checkstyle).configureEach {
             it.reports {
                 xml.required = true

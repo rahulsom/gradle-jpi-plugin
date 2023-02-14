@@ -25,7 +25,7 @@ class JacocoPluginSpec extends IntegrationSpec {
         TestSupport.PASSING_TEST.writeTo(inProjectDir('src/test/java'))
     }
 
-    def "build should not run jacoco report task by default"() {
+    def "should not run jacoco report task by default"() {
         given:
         build << """jenkinsPlugin {
             jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
@@ -40,7 +40,7 @@ class JacocoPluginSpec extends IntegrationSpec {
         result.task(':jacocoTestReport') == null
     }
 
-    def "build should run jacoco task and generate only xml report"() {
+    def "should run jacoco task and generate only xml report"() {
         given:
         build << """
             jenkinsPlugin {

@@ -21,7 +21,7 @@ class CheckstylePluginSpec extends IntegrationSpec {
         TestSupport.PASSING_TEST.writeTo(inProjectDir('src/test/java'))
     }
 
-    def "build should not run checkstyle tasks by default"() {
+    def "should not run checkstyle tasks by default"() {
         given:
         build << """jenkinsPlugin {
             jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
@@ -37,7 +37,7 @@ class CheckstylePluginSpec extends IntegrationSpec {
         result.task(':checkstyleTest').outcome == TaskOutcome.SKIPPED
     }
 
-    def "build should run checkstyle tasks with default sun-checks and generate only xml"() {
+    def "should run checkstyle tasks with default sun-checks and generate only xml"() {
         given:
         build << """
             jenkinsPlugin {
