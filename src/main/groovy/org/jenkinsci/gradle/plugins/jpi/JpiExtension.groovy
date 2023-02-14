@@ -73,6 +73,7 @@ class JpiExtension implements JpiExtensionBridge {
     private final Property<String> incrementalsRepoUrl
     private final Property<Boolean> checkstyleEnabled
     private final Property<Boolean> jacocoEnabled
+    private final Property<Boolean> spotBugsEnabled
 
     @SuppressWarnings('UnnecessarySetter')
     JpiExtension(Project project) {
@@ -99,6 +100,7 @@ class JpiExtension implements JpiExtensionBridge {
         this.incrementalsRepoUrl = project.objects.property(String).convention(JENKINS_INCREMENTALS_REPO)
         this.checkstyleEnabled = project.objects.property(Boolean).convention(false)
         this.jacocoEnabled = project.objects.property(Boolean).convention(false)
+        this.spotBugsEnabled = project.objects.property(Boolean).convention(false)
     }
 
     /**
@@ -485,6 +487,10 @@ class JpiExtension implements JpiExtensionBridge {
 
     Property<Boolean> getJacocoEnabled() {
         jacocoEnabled
+    }
+
+    Property<Boolean> getSpotBugsEnabled() {
+        spotBugsEnabled
     }
 
     /**

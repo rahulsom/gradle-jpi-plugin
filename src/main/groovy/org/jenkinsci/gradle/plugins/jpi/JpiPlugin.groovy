@@ -15,6 +15,8 @@
  */
 package org.jenkinsci.gradle.plugins.jpi
 
+import com.github.spotbugs.snom.SpotBugsPlugin
+import com.github.spotbugs.snom.SpotBugsTask
 import org.gradle.api.Action
 import org.gradle.api.GradleException
 import org.gradle.api.NamedDomainObjectProvider
@@ -64,7 +66,6 @@ import org.jenkinsci.gradle.plugins.jpi.server.GenerateHplTask
 import org.jenkinsci.gradle.plugins.jpi.server.InstallJenkinsServerPluginsTask
 import org.jenkinsci.gradle.plugins.jpi.server.JenkinsServerTask
 import org.jenkinsci.gradle.plugins.jpi.verification.CheckOverlappingSourcesTask
-
 import java.util.concurrent.Callable
 
 import static org.gradle.api.logging.LogLevel.INFO
@@ -245,6 +246,7 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
         configureTestHpl(gradleProject)
         configureCheckstyle(gradleProject)
         configureJacoco(gradleProject)
+        configureSpotbugs(gradleProject)
         gradleProject.afterEvaluate {
             gradleProject.setProperty('archivesBaseName', ext.shortName)
         }
@@ -618,6 +620,27 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
             if (jpiExtension.jacocoEnabled.get()) {
                 project.tasks.withType(Test).each {
                     it.finalizedBy(project.tasks.named('jacocoTestReport'))
+                }
+            }
+        }
+    }
+
+    private configureSpotbugs(Project project) {
+        if (GradleVersion.current() < GradleVersion.version('7.0')) {
+            return
+        }
+        project.plugins.apply(SpotBugsPlugin)
+        def jpiExtension = project.extensions.getByType(JpiExtension)
+        project.tasks.withType(SpotBugsTask).configureEach {
+            it.reports {
+                xml.required = true
+                html.required = false
+            }
+        }
+        project.afterEvaluate {
+            if (!jpiExtension.spotBugsEnabled.get()) {
+                project.tasks.withType(SpotBugsTask).each {
+                    it.enabled = false
                 }
             }
         }
