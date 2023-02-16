@@ -147,7 +147,7 @@ class ConfigurePublishingIntegrationSpec extends IntegrationSpec {
     def 'should configure publishing repository for #status'(String status,
                                                              String version,
                                                              String declaration,
-                                                             String expected) {
+                                                             List<String> expected) {
         given:
         build << """
             jenkinsPlugin {
@@ -164,14 +164,14 @@ class ConfigurePublishingIntegrationSpec extends IntegrationSpec {
         def actual = deserializeReposFrom(result)
 
         then:
-        actual == [expected]
+        actual == expected
 
         where:
         status     | version        | declaration                  | expected
-        'snapshot' | '1.0-SNAPSHOT' | 'configurePublishing = true' | 'https://repo.jenkins-ci.org/snapshots'
-        'release'  | '1.0'          | 'configurePublishing = true' | 'https://repo.jenkins-ci.org/releases'
-        'snapshot' | '1.0-SNAPSHOT' | null                         | 'https://repo.jenkins-ci.org/snapshots'
-        'release'  | '1.0'          | null                         | 'https://repo.jenkins-ci.org/releases'
+        'snapshot' | '1.0-SNAPSHOT' | 'configurePublishing = true' | ['https://repo.jenkins-ci.org/incrementals', 'https://repo.jenkins-ci.org/snapshots']
+        'release'  | '1.0'          | 'configurePublishing = true' | ['https://repo.jenkins-ci.org/incrementals', 'https://repo.jenkins-ci.org/releases']
+        'snapshot' | '1.0-SNAPSHOT' | null                         | ['https://repo.jenkins-ci.org/incrementals', 'https://repo.jenkins-ci.org/snapshots']
+        'release'  | '1.0'          | null                         | ['https://repo.jenkins-ci.org/incrementals', 'https://repo.jenkins-ci.org/releases']
     }
 
     @Unroll
@@ -259,7 +259,7 @@ class ConfigurePublishingIntegrationSpec extends IntegrationSpec {
     }
 
     private static List<String> deserializeReposFrom(BuildResult result) {
-        new JsonSlurper().parseText(result.output)['repositories']*.uri
+        new JsonSlurper().parseText(result.output)['repositories']*.uri.toSorted()
     }
 
     private static Map<String, Map<String, Object>> deserializePublicationsFrom(BuildResult result) {
