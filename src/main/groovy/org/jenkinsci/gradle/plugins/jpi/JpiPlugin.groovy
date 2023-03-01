@@ -540,6 +540,10 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
                             url jpiExtension.repoUrl
                         }
                     }
+                    maven {
+                        name 'jenkinsIncrementals'
+                        url(jpiExtension.incrementalsRepoUrl.get() ?: jpiExtension.JENKINS_INCREMENTALS_REPO)
+                    }
                 }
 
                 JavaPluginExtension javaPluginExtension = project.extensions.getByType(JavaPluginExtension)

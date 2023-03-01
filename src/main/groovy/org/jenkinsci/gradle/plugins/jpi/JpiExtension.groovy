@@ -39,6 +39,7 @@ import shaded.hudson.util.VersionNumber
  */
 @SuppressWarnings('MethodCount')
 class JpiExtension implements JpiExtensionBridge {
+    public static final String JENKINS_INCREMENTALS_REPO = 'https://repo.jenkins-ci.org/incrementals'
     final Project project
     @Deprecated
     Map<String, String> jenkinsWarCoordinates
@@ -69,6 +70,7 @@ class JpiExtension implements JpiExtensionBridge {
     private final Property<Boolean> usePluginFirstClassLoader
     private final SetProperty<String> maskedClassesFromCore
     private final ListProperty<PluginDeveloper> pluginDevelopers
+    private final Property<String> incrementalsRepoUrl
 
     private final GitVersionExtension gitVersion
 
@@ -95,6 +97,7 @@ class JpiExtension implements JpiExtensionBridge {
         this.requireEscapeByDefaultInJelly = project.objects.property(Boolean).convention(true)
         this.generatedTestClassName = project.objects.property(String).convention('InjectedTest')
         this.gitVersion = project.objects.newInstance(GitVersionExtension)
+        this.incrementalsRepoUrl = project.objects.property(String).convention(JENKINS_INCREMENTALS_REPO)
     }
 
     /**
@@ -479,7 +482,11 @@ class JpiExtension implements JpiExtensionBridge {
         action.execute(gitVersion)
     }
 
-/**
+    Property<String> getIncrementalsRepoUrl() {
+        incrementalsRepoUrl
+    }
+
+    /**
      * @see PluginDeveloper
      * @deprecated To be removed in 1.0.0
      */
