@@ -71,6 +71,9 @@ class JpiExtension implements JpiExtensionBridge {
     private final SetProperty<String> maskedClassesFromCore
     private final ListProperty<PluginDeveloper> pluginDevelopers
     private final Property<String> incrementalsRepoUrl
+    private final Property<Boolean> checkstyleEnabled
+    private final Property<Boolean> jacocoEnabled
+    private final Property<Boolean> spotBugsEnabled
 
     @SuppressWarnings('UnnecessarySetter')
     JpiExtension(Project project) {
@@ -95,6 +98,9 @@ class JpiExtension implements JpiExtensionBridge {
         this.requireEscapeByDefaultInJelly = project.objects.property(Boolean).convention(true)
         this.generatedTestClassName = project.objects.property(String).convention('InjectedTest')
         this.incrementalsRepoUrl = project.objects.property(String).convention(JENKINS_INCREMENTALS_REPO)
+        this.checkstyleEnabled = project.objects.property(Boolean).convention(false)
+        this.jacocoEnabled = project.objects.property(Boolean).convention(false)
+        this.spotBugsEnabled = project.objects.property(Boolean).convention(false)
     }
 
     /**
@@ -473,6 +479,18 @@ class JpiExtension implements JpiExtensionBridge {
 
     Property<String> getIncrementalsRepoUrl() {
         incrementalsRepoUrl
+    }
+
+    Property<Boolean> getCheckstyleEnabled() {
+        checkstyleEnabled
+    }
+
+    Property<Boolean> getJacocoEnabled() {
+        jacocoEnabled
+    }
+
+    Property<Boolean> getSpotBugsEnabled() {
+        spotBugsEnabled
     }
 
     /**

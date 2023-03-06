@@ -24,6 +24,7 @@ repositories {
     maven {
         url = uri("https://repo.jenkins-ci.org/public")
     }
+    gradlePluginPortal()
 }
 
 java {
@@ -46,6 +47,7 @@ dependencies {
         isTransitive = false
     }
     compileOnly("org.jvnet.localizer:maven-localizer-plugin:1.24")
+    implementation("com.github.spotbugs.snom:spotbugs-gradle-plugin:5.0.13")
     implementation(sezpoz)
     implementation(localGroovy())
     testAnnotationProcessor(sezpoz)
