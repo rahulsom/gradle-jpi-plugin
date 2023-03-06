@@ -597,31 +597,24 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
                 xml.required = true
                 html.required = false
             }
-        }
-        project.afterEvaluate {
-            def jpiExtension = project.extensions.getByType(JpiExtension)
-            if (!jpiExtension.checkstyleEnabled.get()) {
-                project.tasks.withType(Checkstyle).each {
-                    it.enabled = false
-                }
+            it.onlyIf {
+                project.extensions.getByType(JpiExtension).checkstyleEnabled.get()
             }
         }
     }
 
     private configureJacoco(Project project) {
-        def jpiExtension = project.extensions.getByType(JpiExtension)
         project.tasks.withType(JacocoReport).configureEach {
             it.reports {
                 xml.required = true
                 html.required = false
             }
-        }
-        project.afterEvaluate {
-            if (jpiExtension.jacocoEnabled.get()) {
-                project.tasks.withType(Test).each {
-                    it.finalizedBy(project.tasks.named('jacocoTestReport'))
-                }
+            it.onlyIf {
+                project.extensions.getByType(JpiExtension).jacocoEnabled.get()
             }
+        }
+        project.tasks.withType(Test).configureEach {
+            it.finalizedBy(project.tasks.named('jacocoTestReport'))
         }
     }
 
@@ -630,18 +623,13 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
             return
         }
         project.plugins.apply(SpotBugsPlugin)
-        def jpiExtension = project.extensions.getByType(JpiExtension)
         project.tasks.withType(SpotBugsTask).configureEach {
             it.reports {
                 xml.required = true
                 html.required = false
             }
-        }
-        project.afterEvaluate {
-            if (!jpiExtension.spotBugsEnabled.get()) {
-                project.tasks.withType(SpotBugsTask).each {
-                    it.enabled = false
-                }
+            it.onlyIf {
+                project.extensions.getByType(JpiExtension).spotBugsEnabled.get()
             }
         }
     }

@@ -37,7 +37,7 @@ class JacocoPluginSpec extends IntegrationSpec {
             .build()
 
         then:
-        result.task(':jacocoTestReport') == null
+        result.task(':jacocoTestReport').outcome == TaskOutcome.SKIPPED
     }
 
     def "should run jacoco task and generate only xml report"() {
