@@ -111,6 +111,18 @@ jenkinsPlugin {
             comments 'A business-friendly OSS license'
         }
     }
+
+    // Git based version generation is optional
+    gitVersion {
+        // Don't fail if changes are not committed (default: false)
+        allowDirty = true
+        // Customize version format (default: %d.%s where %d is the commit depth, %s the abbreviated sha)
+        versionFormat = 'rc-%d.%s'
+        // Customize abbreviated sha length (default: 12)
+        abbrevLength = 10
+        // Customize git root (default: project directory)
+        gitRoot = file('/some/external/git/repo')
+    }
 }
 ```
 
@@ -301,6 +313,24 @@ When performing a release via `gradle publish`, gradle will automatically try to
 
 
 [shasum]: https://docs.gradle.org/6.0.1/release-notes.html#publication-of-sha256-and-sha512-checksums
+
+## Using Git based version
+[JEP-229](https://github.com/jenkinsci/jep/blob/master/jep/229/README.adoc#version-format) outlines requirements for creating sensible version numbers automatically.
+The plugin registers a `generateGitVersion` task that generates a Git based version in a text file. A bit of plumbing is required to use this version, for example:
+
+```
+tasks.named('generateGitVersion') {
+    doLast {
+        project.version = outputFile.get().getAsFile().text
+    }
+}
+
+tasks.named('jar') {
+    dependsOn(tasks.named('generateGitVersion'))
+}
+```
+
+See [Configuration](#configuration) to customize the generation.
 
 ## Gradle 4+
 
