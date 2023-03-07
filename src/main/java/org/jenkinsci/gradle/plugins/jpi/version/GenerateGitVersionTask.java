@@ -17,8 +17,10 @@ import org.gradle.workers.WorkerExecutor;
 import org.jenkinsci.gradle.plugins.jpi.GitVersionExtension;
 
 import javax.inject.Inject;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 
 public abstract class GenerateGitVersionTask extends DefaultTask {
 
@@ -83,16 +85,17 @@ public abstract class GenerateGitVersionTask extends DefaultTask {
     public abstract static class GenerateGitVersion implements WorkAction<GenerateGitVersionParameters> {
         @Override
         public void execute() {
+            GenerateGitVersionParameters p = getParameters();
+            Path outputFile = p.getOutputFile().get().getAsFile().toPath();
             try {
-                GenerateGitVersionParameters p = getParameters();
                 String version = new GitVersionGenerator(
                     p.getGitRoot().get().getAsFile().toPath(),
                     p.getAbbrevLength().get(),
                     p.getVersionFormat().get(),
                     p.getAllowDirty().get()).generate();
-                Files.write(p.getOutputFile().get().getAsFile().toPath(), version.getBytes(StandardCharsets.UTF_8));
-            } catch (Exception e) {
-                throw new RuntimeException(e);
+                Files.write(outputFile, version.getBytes(StandardCharsets.UTF_8));
+            } catch (IOException e) {
+                throw new RuntimeException("Fail to write version file at " + outputFile, e);
             }
         }
     }
