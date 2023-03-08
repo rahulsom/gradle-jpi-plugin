@@ -123,6 +123,14 @@ jenkinsPlugin {
         // Customize git root (default: project directory)
         gitRoot = file('/some/external/git/repo')
     }
+
+    // "Incrementals" custom repository (default: https://repo.jenkins-ci.org/incrementals)
+    incrementalsRepoUrl = 'https://custom'
+
+    // Enable quality check plugins
+    spotBugsEnabled = true
+    checkstyleEnabled = true
+    jacocoEnabled = true
 }
 ```
 
@@ -300,21 +308,7 @@ tasks.named('generateJenkinsManifest').configure {
 }
 ```
 
-## Disabling SHA256 and SHA512 checksums when releasing a plugin
-
-This section applies to the warning:
-
-```
-Cannot upload checksum for module-maven-metadata.xml. Remote repository doesn't support sha-256. Error: Could not PUT 'https://repo.jenkins-ci.org/releases/org/jenkins-ci/plugins/<shortname>/maven-metadata.xml.sha256'. Received status code 403 from server: Forbidden
-Cannot upload checksum for module-maven-metadata.xml. Remote repository doesn't support sha-512. Error: Could not PUT 'https://repo.jenkins-ci.org/releases/org/jenkins-ci/plugins/<shortname>/maven-metadata.xml.sha512'. Received status code 403 from server: Forbidden
-```
-
-When performing a release via `gradle publish`, gradle will automatically try to upload artifacts with SHA 256 and 512 checksums. This is not currently supported in the public artifact repository for Jenkins.  To disable this, you can pass [a command line argument][shasum] `gradle publish -Dorg.gradle.internal.publish.checksums.insecure` or include a `gradle.properties` file with the line `org.gradle.internal.publish.checksums.insecure=true`.
-
-
-[shasum]: https://docs.gradle.org/6.0.1/release-notes.html#publication-of-sha256-and-sha512-checksums
-
-## Using Git based version
+### Using Git based version
 [JEP-229](https://github.com/jenkinsci/jep/blob/master/jep/229/README.adoc#version-format) outlines requirements for creating sensible version numbers automatically.
 The plugin registers a `generateGitVersion` task that generates a Git based version in a text file. A bit of plumbing is required to use this version, for example:
 
@@ -329,8 +323,38 @@ tasks.named('jar') {
     dependsOn(tasks.named('generateGitVersion'))
 }
 ```
-
 See [Configuration](#configuration) to customize the generation.
+
+### Using Jenkins "incrementals" repository
+[JEP-305](https://github.com/jenkinsci/jep/tree/master/jep/305) specifies how to deploy incremental versions, the plugin defines the
+https://repo.jenkins-ci.org/incrementals/ repository and the `publish` task will also publish to this one.
+It's possible to specify a different repository,
+See [Configuration](#configuration) to customize the generation.
+
+### Enabling quality checks
+To eventually publish reports to ci.jenkins.io, one can enable SpotBugs, Checkstyle or JaCoCo plugins:
+```
+jenkinsPlugin {
+    spotBugsEnabled = true
+    checkstyleEnabled = true
+    jacocoEnabled = true
+}
+```
+When enabled, plugins are configured with sensitive defaults: only xml reports, checkstyle rules default to sun-checks.xml... still the plugins can be configured as usual, see their corresponding docs.
+
+## Disabling SHA256 and SHA512 checksums when releasing a plugin
+
+This section applies to the warning:
+
+```
+Cannot upload checksum for module-maven-metadata.xml. Remote repository doesn't support sha-256. Error: Could not PUT 'https://repo.jenkins-ci.org/releases/org/jenkins-ci/plugins/<shortname>/maven-metadata.xml.sha256'. Received status code 403 from server: Forbidden
+Cannot upload checksum for module-maven-metadata.xml. Remote repository doesn't support sha-512. Error: Could not PUT 'https://repo.jenkins-ci.org/releases/org/jenkins-ci/plugins/<shortname>/maven-metadata.xml.sha512'. Received status code 403 from server: Forbidden
+```
+
+When performing a release via `gradle publish`, gradle will automatically try to upload artifacts with SHA 256 and 512 checksums. This is not currently supported in the public artifact repository for Jenkins.  To disable this, you can pass [a command line argument][shasum] `gradle publish -Dorg.gradle.internal.publish.checksums.insecure` or include a `gradle.properties` file with the line `org.gradle.internal.publish.checksums.insecure=true`.
+
+
+[shasum]: https://docs.gradle.org/6.0.1/release-notes.html#publication-of-sha256-and-sha512-checksums
 
 ## Gradle 4+
 
