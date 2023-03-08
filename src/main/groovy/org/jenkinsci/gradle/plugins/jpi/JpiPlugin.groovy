@@ -66,6 +66,8 @@ import org.jenkinsci.gradle.plugins.jpi.server.GenerateHplTask
 import org.jenkinsci.gradle.plugins.jpi.server.InstallJenkinsServerPluginsTask
 import org.jenkinsci.gradle.plugins.jpi.server.JenkinsServerTask
 import org.jenkinsci.gradle.plugins.jpi.verification.CheckOverlappingSourcesTask
+import org.jenkinsci.gradle.plugins.jpi.version.GenerateGitVersionTask
+
 import java.util.concurrent.Callable
 
 import static org.gradle.api.logging.LogLevel.INFO
@@ -244,6 +246,7 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
         configureTestDependencies(gradleProject)
         configurePublishing(gradleProject)
         configureTestHpl(gradleProject)
+        configureGenerateGitVersion(gradleProject)
         configureCheckstyle(gradleProject)
         configureJacoco(gradleProject)
         configureSpotbugs(gradleProject)
@@ -346,6 +349,28 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
                         TestInsertionTask.TASK_NAME,
                         replacementTask)
             }
+        }
+    }
+
+    private void configureGenerateGitVersion(Project project) {
+        JpiExtension jpiExtension = project.extensions.getByType(JpiExtension)
+
+        def jgit = project.dependencies.create('org.eclipse.jgit:org.eclipse.jgit:5.13.1.202206130422-r')
+        def generateGitVersionConfiguration = project.configurations.create(GenerateGitVersionTask.TASK_NAME) {
+            attributes {
+                attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
+            }
+            visible = false
+            canBeConsumed = false
+            canBeResolved = true
+            withDependencies { deps ->
+                deps.add(jgit)
+            }
+        }
+
+        project.tasks.register(GenerateGitVersionTask.TASK_NAME,
+            GenerateGitVersionTask, jpiExtension.gitVersion).configure {
+            classpath.from(generateGitVersionConfiguration)
         }
     }
 

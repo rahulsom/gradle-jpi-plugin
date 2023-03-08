@@ -75,6 +75,8 @@ class JpiExtension implements JpiExtensionBridge {
     private final Property<Boolean> jacocoEnabled
     private final Property<Boolean> spotBugsEnabled
 
+    private final GitVersionExtension gitVersion
+
     @SuppressWarnings('UnnecessarySetter')
     JpiExtension(Project project) {
         this.project = project
@@ -97,6 +99,7 @@ class JpiExtension implements JpiExtensionBridge {
         this.generateTests = project.objects.property(Boolean).convention(false)
         this.requireEscapeByDefaultInJelly = project.objects.property(Boolean).convention(true)
         this.generatedTestClassName = project.objects.property(String).convention('InjectedTest')
+        this.gitVersion = project.objects.newInstance(GitVersionExtension)
         this.incrementalsRepoUrl = project.objects.property(String).convention(JENKINS_INCREMENTALS_REPO)
         this.checkstyleEnabled = project.objects.property(Boolean).convention(false)
         this.jacocoEnabled = project.objects.property(Boolean).convention(false)
@@ -475,6 +478,14 @@ class JpiExtension implements JpiExtensionBridge {
     @Override
     ListProperty<PluginDeveloper> getPluginDevelopers() {
         pluginDevelopers
+    }
+
+    GitVersionExtension getGitVersion() {
+        gitVersion
+    }
+
+    def gitVersion(Action<GitVersionExtension> action) {
+        action.execute(gitVersion)
     }
 
     Property<String> getIncrementalsRepoUrl() {

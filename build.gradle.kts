@@ -34,11 +34,14 @@ java {
 }
 
 val sezpoz = "net.java.sezpoz:sezpoz:1.13"
+val jgit = "org.eclipse.jgit:org.eclipse.jgit:5.13.1.202206130422-r"
 
 dependencies {
     compileOnly("org.kohsuke:access-modifier-checker:1.21")
     annotationProcessor(sezpoz)
     implementation(gradleApi())
+    compileOnly(jgit)
+    testImplementation(jgit)
     compileOnly("com.squareup:javapoet:1.13.0") {
         because("used for GenerateTestTask")
     }
