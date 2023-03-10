@@ -49,6 +49,14 @@ class ConfigurePublishingIntegrationSpec extends IntegrationSpec {
                     println groovy.json.JsonOutput.toJson([publications: publications])
                 }
             }
+
+            tasks.register('discoverPublishDependencies') {
+                doLast {
+                    def publishTask = tasks.getByName('publish')
+                    println groovy.json.JsonOutput.toJson(publishTask.dependsOn)
+                }
+            }
+
             '''.stripIndent()
     }
 
@@ -258,12 +266,56 @@ class ConfigurePublishingIntegrationSpec extends IntegrationSpec {
         'sourcesJar' | 'configurePublishing = true'
     }
 
+    def 'publish task should not depend on Jenkins incrementals publication tasks'() {
+        given:
+        build << """
+            jenkinsPlugin {
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+            }
+            """.stripIndent()
+
+        when:
+        def result = gradleRunner()
+            .withArguments('discoverPublishDependencies', '-q')
+            .build()
+        def actual = deserializeTaskDependenciesFrom(result)
+
+        then:
+        actual.stream().noneMatch { it.contains('ToJenkinsIncrementalsRepository') }
+    }
+
+    def 'publish to Jenkins incrementals task should work'() {
+        def version = '1.5833933a3345'
+        given:
+        build << """
+            group = 'org.jenkinsci.sample'
+            version = '${version}'
+            jenkinsPlugin {
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                incrementalsRepoUrl = 'build/testRepo'
+            }
+            """.stripIndent()
+
+        when:
+        gradleRunner()
+            .withArguments('publishMavenJpiPublicationToJenkinsIncrementalsRepository', '-q')
+            .build()
+
+        then:
+        existsRelativeToProjectDir("build/testRepo/org/jenkinsci/sample/${projectName}/${version}/${projectName}-${version}-javadoc.jar")
+        existsRelativeToProjectDir("build/testRepo/org/jenkinsci/sample/${projectName}/${version}/${projectName}-${version}-sources.jar")
+    }
+
     private static List<String> deserializeReposFrom(BuildResult result) {
         new JsonSlurper().parseText(result.output)['repositories']*.uri.toSorted()
     }
 
     private static Map<String, Map<String, Object>> deserializePublicationsFrom(BuildResult result) {
         new JsonSlurper().parseText(result.output)['publications'] as Map<String, Map<String, Object>>
+    }
+
+    private static Collection<String> deserializeTaskDependenciesFrom(BuildResult result) {
+        new JsonSlurper().parseText(result.output) as Collection<String>
     }
 
     private static String inBuildLibs(String rest) {

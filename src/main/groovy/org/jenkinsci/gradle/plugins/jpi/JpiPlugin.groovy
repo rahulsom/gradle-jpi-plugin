@@ -69,6 +69,7 @@ import org.jenkinsci.gradle.plugins.jpi.verification.CheckOverlappingSourcesTask
 import org.jenkinsci.gradle.plugins.jpi.version.GenerateGitVersionTask
 
 import java.util.concurrent.Callable
+import java.util.stream.Collectors
 
 import static org.gradle.api.logging.LogLevel.INFO
 import static org.gradle.api.tasks.SourceSet.MAIN_SOURCE_SET_NAME
@@ -555,6 +556,13 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
                         name 'jenkinsIncrementals'
                         url(jpiExtension.incrementalsRepoUrl.get() ?: jpiExtension.JENKINS_INCREMENTALS_REPO)
                     }
+                }
+
+                project.tasks.named('publish').configure {
+                    def depTasks = it.dependsOn.stream()
+                        .filter { t -> !(t as String).contains('ToJenkinsIncrementalsRepository') }
+                        .collect(Collectors.toSet())
+                    it.dependsOn = depTasks
                 }
 
                 JavaPluginExtension javaPluginExtension = project.extensions.getByType(JavaPluginExtension)

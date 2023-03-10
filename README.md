@@ -327,9 +327,10 @@ See [Configuration](#configuration) to customize the generation.
 
 ### Using Jenkins "incrementals" repository
 [JEP-305](https://github.com/jenkinsci/jep/tree/master/jep/305) specifies how to deploy incremental versions, the plugin defines the
-https://repo.jenkins-ci.org/incrementals/ repository and the `publish` task will also publish to this one.
-It's possible to specify a different repository,
-See [Configuration](#configuration) to customize the generation.
+https://repo.jenkins-ci.org/incrementals/ repository. The `publish` task will not publish to this one by default, instead one should call
+the `publish*PublicationToJenkinsIncrementalsRepository` task(s) separately (so `publishMavenJpiPublicationToJenkinsIncrementalsRepository` for the default publication)
+
+It's also possible to specify a different repository, see [Configuration](#configuration).
 
 ### Enabling quality checks
 To eventually publish reports to ci.jenkins.io, one can enable SpotBugs, Checkstyle or JaCoCo plugins:
