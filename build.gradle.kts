@@ -37,7 +37,7 @@ val sezpoz = "net.java.sezpoz:sezpoz:1.13"
 val jgit = "org.eclipse.jgit:org.eclipse.jgit:5.13.1.202206130422-r"
 
 dependencies {
-    compileOnly("org.kohsuke:access-modifier-checker:1.21")
+    compileOnly("org.kohsuke:access-modifier-checker:1.27")
     annotationProcessor(sezpoz)
     implementation(gradleApi())
     compileOnly(jgit)
@@ -61,7 +61,7 @@ dependencies {
     testImplementation("org.xmlunit:xmlunit-core:2.8.3")
     testImplementation("org.apache.commons:commons-text:1.10.0")
     testImplementation("com.squareup:javapoet:1.13.0")
-    testImplementation("org.kohsuke:access-modifier-checker:1.21")
+    testImplementation("org.kohsuke:access-modifier-checker:1.27")
     testImplementation("org.jenkins-ci.main:jenkins-core:2.263.3") {
         exclude(module = "groovy-all")
     }
