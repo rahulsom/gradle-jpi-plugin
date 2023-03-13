@@ -15,16 +15,25 @@
  */
 package org.jenkinsci.gradle.plugins.jpi
 
+import com.github.spotbugs.snom.SpotBugsPlugin
+import com.github.spotbugs.snom.SpotBugsTask
 import groovy.transform.CompileStatic
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.model.ReplacedBy
 import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.plugins.quality.Checkstyle
+import org.gradle.api.plugins.quality.CheckstyleExtension
+import org.gradle.api.plugins.quality.CheckstylePlugin
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.SourceSet
+import org.gradle.api.tasks.testing.Test
+import org.gradle.testing.jacoco.plugins.JacocoPlugin
+import org.gradle.testing.jacoco.tasks.JacocoReport
+import org.gradle.util.GradleVersion
 import org.jenkinsci.gradle.plugins.jpi.core.PluginDeveloper
 import org.jenkinsci.gradle.plugins.jpi.core.PluginDeveloperSpec
 import org.jenkinsci.gradle.plugins.jpi.internal.BackwardsCompatiblePluginDevelopers
@@ -71,10 +80,6 @@ class JpiExtension implements JpiExtensionBridge {
     private final SetProperty<String> maskedClassesFromCore
     private final ListProperty<PluginDeveloper> pluginDevelopers
     private final Property<String> incrementalsRepoUrl
-    private final Property<Boolean> checkstyleEnabled
-    private final Property<Boolean> jacocoEnabled
-    private final Property<Boolean> spotBugsEnabled
-
     private final GitVersionExtension gitVersion
 
     @SuppressWarnings('UnnecessarySetter')
@@ -101,9 +106,6 @@ class JpiExtension implements JpiExtensionBridge {
         this.generatedTestClassName = project.objects.property(String).convention('InjectedTest')
         this.gitVersion = project.objects.newInstance(GitVersionExtension)
         this.incrementalsRepoUrl = project.objects.property(String).convention(JENKINS_INCREMENTALS_REPO)
-        this.checkstyleEnabled = project.objects.property(Boolean).convention(false)
-        this.jacocoEnabled = project.objects.property(Boolean).convention(false)
-        this.spotBugsEnabled = project.objects.property(Boolean).convention(false)
     }
 
     /**
@@ -492,16 +494,43 @@ class JpiExtension implements JpiExtensionBridge {
         incrementalsRepoUrl
     }
 
-    Property<Boolean> getCheckstyleEnabled() {
-        checkstyleEnabled
+    void enableCheckstyle() {
+        project.plugins.apply(CheckstylePlugin)
+        def checkstyle = project.extensions.getByType(CheckstyleExtension)
+        checkstyle.config = project.resources.text.fromUri(JpiPlugin.getResource('/sun_checks.xml').toURI())
+        project.tasks.withType(Checkstyle).configureEach {
+            it.enabled = true
+            it.reports {
+                xml.required = true
+                html.required = false
+            }
+        }
     }
 
-    Property<Boolean> getJacocoEnabled() {
-        jacocoEnabled
+    void enableJacoco() {
+        project.plugins.apply(JacocoPlugin)
+        project.tasks.withType(JacocoReport).configureEach {
+            it.reports {
+                xml.required = true
+                html.required = false
+            }
+        }
+        project.tasks.withType(Test).configureEach {
+            it.finalizedBy(project.tasks.named('jacocoTestReport'))
+        }
     }
 
-    Property<Boolean> getSpotBugsEnabled() {
-        spotBugsEnabled
+    void enableSpotBugs() {
+        if (GradleVersion.current() < GradleVersion.version('7.0')) {
+            return
+        }
+        project.plugins.apply(SpotBugsPlugin)
+        project.tasks.withType(SpotBugsTask).configureEach {
+            it.reports {
+                xml.required = true
+                html.required = false
+            }
+        }
     }
 
     /**

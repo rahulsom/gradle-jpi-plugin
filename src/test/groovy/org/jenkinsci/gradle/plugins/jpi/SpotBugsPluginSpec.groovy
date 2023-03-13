@@ -36,8 +36,8 @@ class SpotBugsPluginSpec extends IntegrationSpec {
             .build()
 
         then:
-        result.task(':spotbugsMain').outcome == TaskOutcome.SKIPPED
-        result.task(':spotbugsTest').outcome == TaskOutcome.SKIPPED
+        result.task(':spotbugsMain') == null
+        result.task(':spotbugsTest') == null
     }
 
     @Requires({ gradle7AndAbove() })
@@ -46,7 +46,7 @@ class SpotBugsPluginSpec extends IntegrationSpec {
         build << """
             jenkinsPlugin {
                 jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
-                spotBugsEnabled = true
+                enableSpotBugs()
             }""".stripIndent()
 
         when:
@@ -67,7 +67,7 @@ class SpotBugsPluginSpec extends IntegrationSpec {
         build << """
             jenkinsPlugin {
                 jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
-                spotBugsEnabled = true
+                enableSpotBugs()
             }
             spotbugsMain {
                 reports {
