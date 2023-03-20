@@ -15,8 +15,6 @@
  */
 package org.jenkinsci.gradle.plugins.jpi
 
-import com.github.spotbugs.snom.SpotBugsPlugin
-import com.github.spotbugs.snom.SpotBugsTask
 import org.gradle.api.Action
 import org.gradle.api.GradleException
 import org.gradle.api.NamedDomainObjectProvider
@@ -41,9 +39,6 @@ import org.gradle.api.plugins.JavaLibraryPlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.plugins.JavaPluginExtension
-import org.gradle.api.plugins.quality.Checkstyle
-import org.gradle.api.plugins.quality.CheckstyleExtension
-import org.gradle.api.plugins.quality.CheckstylePlugin
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
@@ -54,8 +49,6 @@ import org.gradle.api.tasks.compile.GroovyCompile
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.testing.Test
 import org.gradle.language.base.plugins.LifecycleBasePlugin
-import org.gradle.testing.jacoco.plugins.JacocoPlugin
-import org.gradle.testing.jacoco.tasks.JacocoReport
 import org.gradle.util.GradleVersion
 import org.jenkinsci.gradle.plugins.jpi.internal.DependenciesPlugin
 import org.jenkinsci.gradle.plugins.jpi.internal.PluginDependencyProvider
@@ -132,8 +125,6 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
 
         gradleProject.plugins.apply(JavaLibraryPlugin)
         gradleProject.plugins.apply(GroovyPlugin)
-        gradleProject.plugins.apply(JacocoPlugin)
-        gradleProject.plugins.apply(CheckstylePlugin)
         gradleProject.plugins.apply(kotlinPlugin('org.jenkinsci.gradle.plugins.accmod.AccessModifierPlugin'))
         gradleProject.plugins.apply(kotlinPlugin('org.jenkinsci.gradle.plugins.manifest.JenkinsManifestPlugin'))
         gradleProject.plugins.apply(kotlinPlugin('org.jenkinsci.gradle.plugins.testing.JpiTestingPlugin'))
@@ -248,9 +239,6 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
         configurePublishing(gradleProject)
         configureTestHpl(gradleProject)
         configureGenerateGitVersion(gradleProject)
-        configureCheckstyle(gradleProject)
-        configureJacoco(gradleProject)
-        configureSpotbugs(gradleProject)
         gradleProject.afterEvaluate {
             gradleProject.setProperty('archivesBaseName', ext.shortName)
         }
@@ -619,51 +607,6 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
 
         project.tasks.register('generate-test-hpl') {
             it.dependsOn(generateTestHplTask)
-        }
-    }
-
-    private configureCheckstyle(Project project) {
-        def checkstyle = project.extensions.getByType(CheckstyleExtension)
-        checkstyle.config = project.resources.text.fromUri(JpiPlugin.getResource('/sun_checks.xml').toURI())
-        project.tasks.withType(Checkstyle).configureEach {
-            it.reports {
-                xml.required = true
-                html.required = false
-            }
-            it.onlyIf {
-                project.extensions.getByType(JpiExtension).checkstyleEnabled.get()
-            }
-        }
-    }
-
-    private configureJacoco(Project project) {
-        project.tasks.withType(JacocoReport).configureEach {
-            it.reports {
-                xml.required = true
-                html.required = false
-            }
-            it.onlyIf {
-                project.extensions.getByType(JpiExtension).jacocoEnabled.get()
-            }
-        }
-        project.tasks.withType(Test).configureEach {
-            it.finalizedBy(project.tasks.named('jacocoTestReport'))
-        }
-    }
-
-    private configureSpotbugs(Project project) {
-        if (GradleVersion.current() < GradleVersion.version('7.0')) {
-            return
-        }
-        project.plugins.apply(SpotBugsPlugin)
-        project.tasks.withType(SpotBugsTask).configureEach {
-            it.reports {
-                xml.required = true
-                html.required = false
-            }
-            it.onlyIf {
-                project.extensions.getByType(JpiExtension).spotBugsEnabled.get()
-            }
         }
     }
 

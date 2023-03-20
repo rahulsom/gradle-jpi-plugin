@@ -33,8 +33,8 @@ class CheckstylePluginSpec extends IntegrationSpec {
             .build()
 
         then:
-        result.task(':checkstyleMain').outcome == TaskOutcome.SKIPPED
-        result.task(':checkstyleTest').outcome == TaskOutcome.SKIPPED
+        result.task(':checkstyleMain') == null
+        result.task(':checkstyleTest') == null
     }
 
     def "should run checkstyle tasks with default sun-checks and generate only xml"() {
@@ -42,7 +42,7 @@ class CheckstylePluginSpec extends IntegrationSpec {
         build << """
             jenkinsPlugin {
                 jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
-                checkstyleEnabled = true
+                enableCheckstyle()
             }""".stripIndent()
 
         when:
@@ -61,7 +61,7 @@ class CheckstylePluginSpec extends IntegrationSpec {
         build << """
             jenkinsPlugin {
                 jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
-                checkstyleEnabled = true
+                enableCheckstyle()
             }
 
             checkstyle {

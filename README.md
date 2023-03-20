@@ -336,9 +336,9 @@ It's also possible to specify a different repository, see [Configuration](#confi
 To eventually publish reports to ci.jenkins.io, one can enable SpotBugs, Checkstyle or JaCoCo plugins:
 ```
 jenkinsPlugin {
-    spotBugsEnabled = true
-    checkstyleEnabled = true
-    jacocoEnabled = true
+    enableSpotBugs()
+    enableCheckstyle()
+    enableJacoco()
 }
 ```
 When enabled, plugins are configured with sensitive defaults: only xml reports, checkstyle rules default to sun-checks.xml... still the plugins can be configured as usual, see their corresponding docs.

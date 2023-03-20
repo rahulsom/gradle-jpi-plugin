@@ -37,7 +37,7 @@ class JacocoPluginSpec extends IntegrationSpec {
             .build()
 
         then:
-        result.task(':jacocoTestReport').outcome == TaskOutcome.SKIPPED
+        result.task(':jacocoTestReport') == null
     }
 
     def "should run jacoco task and generate only xml report"() {
@@ -45,7 +45,7 @@ class JacocoPluginSpec extends IntegrationSpec {
         build << """
             jenkinsPlugin {
                 jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
-                jacocoEnabled = true
+                enableJacoco()
             }""".stripIndent()
 
         when:
@@ -65,7 +65,7 @@ class JacocoPluginSpec extends IntegrationSpec {
         build << """
             jenkinsPlugin {
                 jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
-                jacocoEnabled = true
+                enableJacoco()
             }
 
             jacocoTestReport {
