@@ -128,9 +128,9 @@ jenkinsPlugin {
     incrementalsRepoUrl = 'https://custom'
 
     // Enable quality check plugins
-    spotBugsEnabled = true
-    checkstyleEnabled = true
-    jacocoEnabled = true
+    enableSpotBugs()
+    enableCheckstyle()
+    enableJacoco()
 }
 ```
 
