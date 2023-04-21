@@ -15,7 +15,7 @@ class GitVersionGeneratorSpec extends Specification {
         def gitRoot = generateGitRepo()
 
         when:
-        def version = new GitVersionGenerator(gitRoot, 12, '%d.%s', false).generate()
+        def version = new GitVersionGenerator(gitRoot, 12, '%d.%s', false, false).generate()
 
         then:
         version ==~ /3\.\w{12}/
@@ -26,7 +26,7 @@ class GitVersionGeneratorSpec extends Specification {
         def gitRoot = generateGitRepo()
 
         when:
-        def version = new GitVersionGenerator(gitRoot, 12, 'rc.%d-%s', false).generate()
+        def version = new GitVersionGenerator(gitRoot, 12, 'rc.%d-%s', false, false).generate()
 
         then:
         version ==~ /rc\.3-\w{12}/
@@ -38,7 +38,7 @@ class GitVersionGeneratorSpec extends Specification {
         def gitRoot = generateGitRepo()
 
         when:
-        def version = new GitVersionGenerator(gitRoot, 2, '%d.%s', false).generate()
+        def version = new GitVersionGenerator(gitRoot, 2, '%d.%s', false, false).generate()
 
         then:
         version ==~ /3\.\w{2}/
@@ -50,7 +50,7 @@ class GitVersionGeneratorSpec extends Specification {
         Files.createFile(gitRoot.resolve('untracked')).text = 'bar'
 
         when:
-        new GitVersionGenerator(gitRoot, 12, '%d.%s', false).generate()
+        new GitVersionGenerator(gitRoot, 12, '%d.%s', false, false).generate()
 
         then:
         def exception = thrown(RuntimeException)
@@ -63,7 +63,7 @@ class GitVersionGeneratorSpec extends Specification {
         gitRoot.resolve('somefile').text = 'foo!'
 
         when:
-        new GitVersionGenerator(gitRoot, 12, '%d.%s', false).generate()
+        new GitVersionGenerator(gitRoot, 12, '%d.%s', false, false).generate()
 
         then:
         def exception = thrown(RuntimeException)
@@ -77,7 +77,7 @@ class GitVersionGeneratorSpec extends Specification {
         gitRoot.resolve('somefile').text = 'foo!'
 
         when:
-        new GitVersionGenerator(gitRoot, 12, '%d.%s', false).generate()
+        new GitVersionGenerator(gitRoot, 12, '%d.%s', false, false).generate()
 
         then:
         def exception = thrown(RuntimeException)
@@ -93,10 +93,29 @@ class GitVersionGeneratorSpec extends Specification {
         Files.createFile(gitRoot.resolve('untracked')).text = 'bar'
 
         when:
-        def version = new GitVersionGenerator(gitRoot, 12, '%d.%s', true).generate()
+        def version = new GitVersionGenerator(gitRoot, 12, '%d.%s', true, false).generate()
 
         then:
         version ==~ /3\.\w{12}/
+    }
+
+    def 'can sanitize version from git'() {
+        given:
+        def gitRoot = generateGitRepo()
+
+        when:
+        def version = new GitVersionGenerator(gitRoot, 12, 'ab-%d.%s', true, true).generate()
+
+        then:
+        !(version ==~ /ab-([ab][^_])/)
+    }
+
+    def 'sanitize'() {
+        when:
+        def sanitized = GitVersionGenerator.sanitize('9a80981b849e')
+
+        then:
+        sanitized == '9a_80981b_849e'
     }
 
     Path generateGitRepo() {

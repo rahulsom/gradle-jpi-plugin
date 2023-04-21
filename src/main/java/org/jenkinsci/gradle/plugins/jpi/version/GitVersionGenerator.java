@@ -15,14 +15,16 @@ import java.util.stream.StreamSupport;
 public class GitVersionGenerator {
     private final int abbrevLength;
     private final String versionFormat;
+    private final boolean sanitize;
     private final boolean allowDirty;
     private final Path gitRoot;
 
-    public GitVersionGenerator(Path gitRoot, int abbrevLength, String versionFormat, boolean allowDirty) {
+    public GitVersionGenerator(Path gitRoot, int abbrevLength, String versionFormat, boolean allowDirty, boolean sanitize) {
         this.gitRoot = gitRoot;
         // TODO abbrevLength should be 2 minimum
         this.abbrevLength = abbrevLength;
         this.versionFormat = versionFormat;
+        this.sanitize = sanitize;
         this.allowDirty = allowDirty;
     }
 
@@ -38,11 +40,18 @@ public class GitVersionGenerator {
             try (ObjectReader reader = repo.newObjectReader()) {
                 String abbrevHash = reader.abbreviate(head, abbrevLength).name();
                 long headDepth = commitDepth(repo, head);
+                if (sanitize) {
+                    abbrevHash = sanitize(abbrevHash);
+                }
                 return String.format(versionFormat, headDepth, abbrevHash);
             }
         } catch (GitAPIException | IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    static String sanitize(String hash) {
+        return hash.replaceAll("[ab]", "$0_");
     }
 
     private void checkGitStatus(Status status) {
