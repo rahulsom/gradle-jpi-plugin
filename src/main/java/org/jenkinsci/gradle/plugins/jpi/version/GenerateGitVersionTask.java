@@ -2,7 +2,6 @@ package org.jenkinsci.gradle.plugins.jpi.version;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFileProperty;
@@ -26,19 +25,14 @@ public abstract class GenerateGitVersionTask extends DefaultTask {
 
     public static final String TASK_NAME = "generateGitVersion";
 
-    private final Directory gitRoot;
-    private final Property<String> versionFormat;
-    private final Property<Boolean> sanitize;
-    private final boolean allowDirty;
-    private final Integer abbrevLength;
-    private final RegularFileProperty outputFile;
+    private final GitVersionExtension gitVersionExtension;
 
     @Classpath
     public abstract ConfigurableFileCollection getClasspath();
 
     @OutputFile
     public RegularFileProperty getOutputFile() {
-        return outputFile;
+        return gitVersionExtension.getOutputFile();
     }
 
     @Inject
@@ -49,14 +43,7 @@ public abstract class GenerateGitVersionTask extends DefaultTask {
 
     @Inject
     public GenerateGitVersionTask(GitVersionExtension gitVersionExtension) {
-        this.gitRoot = gitVersionExtension.getGitRoot().get();
-        this.versionFormat = gitVersionExtension.getVersionFormat();
-        this.sanitize = gitVersionExtension.getSanitize();
-        this.allowDirty = gitVersionExtension.getAllowDirty().get();
-        // TODO: validate abbrevLength > 2
-        this.abbrevLength = gitVersionExtension.getAbbrevLength().get();
-        this.outputFile = gitVersionExtension.getOutputFile();
-
+        this.gitVersionExtension = gitVersionExtension;
         getOutputs().doNotCacheIf("Caching would require `.git` to be an input", t -> true);
         getOutputs().upToDateWhen(t -> false);
     }
@@ -67,11 +54,11 @@ public abstract class GenerateGitVersionTask extends DefaultTask {
             classLoaderWorkerSpec.getClasspath().from(getClasspath());
         });
         queue.submit(GenerateGitVersion.class, p -> {
-            p.getGitRoot().set(gitRoot);
-            p.getAbbrevLength().set(abbrevLength);
-            p.getVersionFormat().set(versionFormat);
-            p.getSanitize().set(sanitize);
-            p.getAllowDirty().set(allowDirty);
+            p.getGitRoot().set(gitVersionExtension.getGitRoot());
+            p.getAbbrevLength().set(gitVersionExtension.getAbbrevLength());
+            p.getVersionFormat().set(gitVersionExtension.getVersionFormat());
+            p.getSanitize().set(gitVersionExtension.getSanitize());
+            p.getAllowDirty().set(gitVersionExtension.getAllowDirty());
             p.getOutputFile().set(getOutputFile());
         });
     }
