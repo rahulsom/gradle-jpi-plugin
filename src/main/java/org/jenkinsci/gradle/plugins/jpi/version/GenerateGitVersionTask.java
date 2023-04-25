@@ -2,7 +2,6 @@ package org.jenkinsci.gradle.plugins.jpi.version;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFileProperty;
@@ -26,16 +25,15 @@ public abstract class GenerateGitVersionTask extends DefaultTask {
 
     public static final String TASK_NAME = "generateGitVersion";
 
-    private final Directory gitRoot;
-    private final String versionFormat;
-    private final Boolean allowDirty;
-    private final Integer abbrevLength;
+    private final GitVersionExtension gitVersionExtension;
 
     @Classpath
     public abstract ConfigurableFileCollection getClasspath();
 
     @OutputFile
-    public abstract RegularFileProperty getOutputFile();
+    public RegularFileProperty getOutputFile() {
+        return gitVersionExtension.getOutputFile();
+    }
 
     @Inject
     abstract public WorkerExecutor getWorkerExecutor();
@@ -45,13 +43,7 @@ public abstract class GenerateGitVersionTask extends DefaultTask {
 
     @Inject
     public GenerateGitVersionTask(GitVersionExtension gitVersionExtension) {
-        this.gitRoot = gitVersionExtension.getGitRoot().get();
-        this.versionFormat = gitVersionExtension.getVersionFormat().get();
-        this.allowDirty = gitVersionExtension.getAllowDirty().get();
-        // TODO: validate abbrevLength > 2
-        this.abbrevLength = gitVersionExtension.getAbbrevLength().get();
-
-        getOutputFile().convention(getProjectLayout().getBuildDirectory().file("generated/version/version.txt"));
+        this.gitVersionExtension = gitVersionExtension;
         getOutputs().doNotCacheIf("Caching would require `.git` to be an input", t -> true);
         getOutputs().upToDateWhen(t -> false);
     }
@@ -62,10 +54,11 @@ public abstract class GenerateGitVersionTask extends DefaultTask {
             classLoaderWorkerSpec.getClasspath().from(getClasspath());
         });
         queue.submit(GenerateGitVersion.class, p -> {
-            p.getGitRoot().set(gitRoot);
-            p.getAbbrevLength().set(abbrevLength);
-            p.getVersionFormat().set(versionFormat);
-            p.getAllowDirty().set(allowDirty);
+            p.getGitRoot().set(gitVersionExtension.getGitRoot());
+            p.getAbbrevLength().set(gitVersionExtension.getAbbrevLength());
+            p.getVersionFormat().set(gitVersionExtension.getVersionFormat());
+            p.getSanitize().set(gitVersionExtension.getSanitize());
+            p.getAllowDirty().set(gitVersionExtension.getAllowDirty());
             p.getOutputFile().set(getOutputFile());
         });
     }
@@ -74,6 +67,8 @@ public abstract class GenerateGitVersionTask extends DefaultTask {
         DirectoryProperty getGitRoot();
 
         Property<String> getVersionFormat();
+
+        Property<Boolean> getSanitize();
 
         Property<Boolean> getAllowDirty();
 
@@ -89,10 +84,11 @@ public abstract class GenerateGitVersionTask extends DefaultTask {
             Path outputFile = p.getOutputFile().get().getAsFile().toPath();
             try {
                 String version = new GitVersionGenerator(
-                    p.getGitRoot().get().getAsFile().toPath(),
-                    p.getAbbrevLength().get(),
-                    p.getVersionFormat().get(),
-                    p.getAllowDirty().get()).generate();
+                        p.getGitRoot().get().getAsFile().toPath(),
+                        p.getAbbrevLength().get(),
+                        p.getVersionFormat().get(),
+                        p.getAllowDirty().get(),
+                        p.getSanitize().get()).generate();
                 Files.write(outputFile, version.getBytes(StandardCharsets.UTF_8));
             } catch (IOException e) {
                 throw new RuntimeException("Fail to write version file at " + outputFile, e);

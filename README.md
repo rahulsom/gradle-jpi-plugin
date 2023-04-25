@@ -118,6 +118,8 @@ jenkinsPlugin {
         allowDirty = true
         // Customize version format (default: %d.%s where %d is the commit depth, %s the abbreviated sha)
         versionFormat = 'rc-%d.%s'
+        // Sanitize the hash according to Jenkins requirements (default: false)  
+        sanitize = true 
         // Customize abbreviated sha length (default: 12)
         abbrevLength = 10
         // Customize git root (default: project directory)
@@ -310,26 +312,18 @@ tasks.named('generateJenkinsManifest').configure {
 
 ### Using Git based version
 [JEP-229](https://github.com/jenkinsci/jep/blob/master/jep/229/README.adoc#version-format) outlines requirements for creating sensible version numbers automatically.
-The plugin registers a `generateGitVersion` task that generates a Git based version in a text file. A bit of plumbing is required to use this version, for example:
+The plugin registers a `generateGitVersion` task that generates a Git based version in a text file. 
+This version scheme is typically used on ci.jenkins.io by first generating the version and then setting it when 
+building with `-Pversion=${versionFile.text}`. This works fine as long as no version is set in `build.gradle`.
 
-```
-tasks.named('generateGitVersion') {
-    doLast {
-        project.version = outputFile.get().getAsFile().text
-    }
-}
-
-tasks.named('jar') {
-    dependsOn(tasks.named('generateGitVersion'))
-}
-```
 See [Configuration](#configuration) to customize the generation.
 
 ### Using Jenkins "incrementals" repository
-[JEP-305](https://github.com/jenkinsci/jep/tree/master/jep/305) specifies how to deploy incremental versions, the plugin defines the
-https://repo.jenkins-ci.org/incrementals/ repository. The `publish` task will not publish to this one by default, instead one should call
-the `publish*PublicationToJenkinsIncrementalsRepository` task(s) separately (so `publishMavenJpiPublicationToJenkinsIncrementalsRepository` for the default publication)
+[JEP-305](https://github.com/jenkinsci/jep/tree/master/jep/305) specifies how to deploy incremental versions.
+This applies mainly for the ci.jenkins.io infrastructure, for Gradle the logic is defined in https://github.com/jenkins-infra/pipeline-library/blob/master/vars/buildPluginWithGradle.groovy.
 
+For local builds, the plugin defines the https://repo.jenkins-ci.org/incrementals/ repository. The `publish` task will not publish to this one by default, instead one should call
+the `publish*PublicationToJenkinsIncrementalsRepository` task(s) separately (so `publishMavenJpiPublicationToJenkinsIncrementalsRepository` for the default publication)
 It's also possible to specify a different repository, see [Configuration](#configuration).
 
 ### Enabling quality checks
