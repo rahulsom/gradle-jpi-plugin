@@ -14,15 +14,17 @@ import java.util.stream.StreamSupport;
 
 public class GitVersionGenerator {
     private final int abbrevLength;
+    private final String versionPrefix;
     private final String versionFormat;
     private final boolean sanitize;
     private final boolean allowDirty;
     private final Path gitRoot;
 
-    public GitVersionGenerator(Path gitRoot, int abbrevLength, String versionFormat, boolean allowDirty, boolean sanitize) {
+    public GitVersionGenerator(Path gitRoot, int abbrevLength, String versionPrefix, String versionFormat, boolean allowDirty, boolean sanitize) {
         this.gitRoot = gitRoot;
         // TODO abbrevLength should be 2 minimum
         this.abbrevLength = abbrevLength;
+        this.versionPrefix = versionPrefix;
         this.versionFormat = versionFormat;
         this.sanitize = sanitize;
         this.allowDirty = allowDirty;
@@ -43,7 +45,7 @@ public class GitVersionGenerator {
                 if (sanitize) {
                     abbrevHash = sanitize(abbrevHash);
                 }
-                return new GitVersion(head.getName(), String.format(versionFormat, headDepth, abbrevHash));
+                return new GitVersion(head.getName(), versionPrefix + String.format(versionFormat, headDepth, abbrevHash));
             }
         } catch (GitAPIException | IOException e) {
             throw new RuntimeException(e);

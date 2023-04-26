@@ -140,6 +140,25 @@ class GenerateGitVersionTaskSpec extends IntegrationSpec {
         isGitHash(inProjectDir('build/generated/version/version.txt').readLines()[1])
     }
 
+    def 'should generate with custom prefix format'() {
+        given:
+        build.text = customBuildFile('''
+            gitVersion {
+                versionPrefix = version
+            }
+        ''')
+        initGitRepo()
+
+        when:
+        gradleRunner()
+                .withArguments('generateGitVersion')
+                .build()
+
+        then:
+        inProjectDir('build/generated/version/version.txt').readLines()[0] ==~ /1\.0\.01\.\w{12}/
+        isGitHash(inProjectDir('build/generated/version/version.txt').readLines()[1])
+    }
+
     def 'should generate with custom git root'() {
         def customGitRoot = Files.createTempDirectory('custom-git-root')
         given:
@@ -200,12 +219,16 @@ class GenerateGitVersionTaskSpec extends IntegrationSpec {
         def customVersionFile = Files.createTempDirectory('custom-version-dir').resolve('version.txt')
         def customM2 = Files.createTempDirectory('custom-m2')
         given:
-        build.text = customBuildFile()
+        build.text = customBuildFile('''
+            gitVersion {
+                versionPrefix = version
+            }
+        ''')
         initGitRepo()
 
         when:
         gradleRunner()
-                .withArguments('clean', 'generateGitVersion', "-PgitVersionFile=${customVersionFile}")
+                .withArguments('clean', 'generateGitVersion', "-PgitVersionFile=${customVersionFile}", '-PgitVersionFormat=-rc%d.%s')
                 .build()
 
         def version = customVersionFile.readLines()[0]
@@ -216,7 +239,7 @@ class GenerateGitVersionTaskSpec extends IntegrationSpec {
                 .build()
 
         then:
-        customVersionFile.readLines()[0] ==~ /1\.\w{12}/
+        customVersionFile.readLines()[0] ==~ /1.0.0-rc1\.\w{12}/
         customVersionFile.readLines()[1] ==~ /\w{40}/
         def prefix = "${projectName}-${version}"
         customM2.resolve("${GROUP_NAME}/${projectName}/${version}").toFile().list() as Set == [
