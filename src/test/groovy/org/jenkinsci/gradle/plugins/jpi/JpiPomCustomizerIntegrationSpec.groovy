@@ -93,6 +93,7 @@ class JpiPomCustomizerIntegrationSpec extends IntegrationSpec {
                 jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
                 url = 'https://lorem-ipsum.org'
                 gitHubUrl = 'https://github.com/lorem/ipsum'
+                scmTag = 'my-tag'
                 developers {
                     developer {
                         id 'abayer'

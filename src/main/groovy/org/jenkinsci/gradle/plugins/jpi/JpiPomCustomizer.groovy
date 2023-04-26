@@ -44,6 +44,11 @@ class JpiPomCustomizer {
         pom.url.set(jpiExtension.url)
         pom.description.set(project.description)
         def github = jpiExtension.gitHubUrl
+        if (jpiExtension.scmTag.isPresent()) {
+            pom.scm { MavenPomScm s ->
+                s.tag.set(jpiExtension.scmTag)
+            }
+        }
         if (github) {
             pom.scm { MavenPomScm s ->
                 s.url.set(github)

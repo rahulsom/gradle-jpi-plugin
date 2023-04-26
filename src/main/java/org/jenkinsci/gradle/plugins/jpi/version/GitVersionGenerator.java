@@ -28,7 +28,7 @@ public class GitVersionGenerator {
         this.allowDirty = allowDirty;
     }
 
-    public String generate() {
+    public GitVersion generate() {
         try (Git git = Git.open(gitRoot.toFile())) {
             Repository repo = git.getRepository();
             Status status = git.status().call();
@@ -43,7 +43,7 @@ public class GitVersionGenerator {
                 if (sanitize) {
                     abbrevHash = sanitize(abbrevHash);
                 }
-                return String.format(versionFormat, headDepth, abbrevHash);
+                return new GitVersion(head.getName(), String.format(versionFormat, headDepth, abbrevHash));
             }
         } catch (GitAPIException | IOException e) {
             throw new RuntimeException(e);
@@ -74,4 +74,28 @@ public class GitVersionGenerator {
             return StreamSupport.stream(walk.spliterator(), false).count();
         }
     }
+
+    static class GitVersion {
+        private final String fullHash;
+        private final String abbreviatedHash;
+
+        public GitVersion(String fullHash, String abbreviatedHash) {
+            this.fullHash = fullHash;
+            this.abbreviatedHash = abbreviatedHash;
+        }
+
+        @Override
+        public String toString() {
+            return abbreviatedHash + "\n" + fullHash;
+        }
+
+        public String getAbbreviatedHash() {
+            return abbreviatedHash;
+        }
+
+        public String getFullHash() {
+            return fullHash;
+        }
+    }
+
 }

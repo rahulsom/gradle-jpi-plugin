@@ -81,6 +81,7 @@ class JpiExtension implements JpiExtensionBridge {
     private final ListProperty<PluginDeveloper> pluginDevelopers
     private final Property<String> incrementalsRepoUrl
     private final GitVersionExtension gitVersion
+    private final Property<String> scmTag
 
     @SuppressWarnings('UnnecessarySetter')
     JpiExtension(Project project) {
@@ -106,6 +107,8 @@ class JpiExtension implements JpiExtensionBridge {
         this.generatedTestClassName = project.objects.property(String).convention('InjectedTest')
         this.gitVersion = project.objects.newInstance(GitVersionExtension)
         this.incrementalsRepoUrl = project.objects.property(String).convention(JENKINS_INCREMENTALS_REPO)
+        this.scmTag = project.objects.property(String)
+                .convention(project.providers.gradleProperty('scmTag').forUseAtConfigurationTime())
     }
 
     /**
@@ -492,6 +495,10 @@ class JpiExtension implements JpiExtensionBridge {
 
     Property<String> getIncrementalsRepoUrl() {
         incrementalsRepoUrl
+    }
+
+    Property<String> getScmTag() {
+        scmTag
     }
 
     void enableCheckstyle() {

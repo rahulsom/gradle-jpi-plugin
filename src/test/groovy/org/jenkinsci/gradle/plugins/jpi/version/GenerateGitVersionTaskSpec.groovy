@@ -8,6 +8,8 @@ import org.jenkinsci.gradle.plugins.jpi.TestSupport
 
 import java.nio.file.Files
 
+import static org.jenkinsci.gradle.plugins.jpi.version.Util.isGitHash
+
 class GenerateGitVersionTaskSpec extends IntegrationSpec {
     private final String projectName = TestDataGenerator.generateName()
     private static final String GROUP_NAME = 'jpitest'
@@ -51,7 +53,8 @@ class GenerateGitVersionTaskSpec extends IntegrationSpec {
             .build()
 
         then:
-        inProjectDir('build/generated/version/version.txt').text ==~ /1\.\w{12}/
+        inProjectDir('build/generated/version/version.txt').readLines()[0] ==~ /1\.\w{12}/
+        isGitHash(inProjectDir('build/generated/version/version.txt').readLines()[1])
     }
 
     def 'should fail generate on non git repository'() {
@@ -98,7 +101,8 @@ class GenerateGitVersionTaskSpec extends IntegrationSpec {
             .build()
 
         then:
-        inProjectDir('build/generated/version/version.txt').text ==~ /1\.\w{12}/
+        inProjectDir('build/generated/version/version.txt').readLines()[0] ==~ /1\.\w{12}/
+        isGitHash(inProjectDir('build/generated/version/version.txt').readLines()[1])
     }
 
     def 'should generate with custom version format'() {
@@ -117,7 +121,8 @@ class GenerateGitVersionTaskSpec extends IntegrationSpec {
             .build()
 
         then:
-        inProjectDir('build/generated/version/version.txt').text ==~ /rc-1\.\w{10}/
+        inProjectDir('build/generated/version/version.txt').readLines()[0] ==~ /rc-1\.\w{10}/
+        isGitHash(inProjectDir('build/generated/version/version.txt').readLines()[1])
     }
 
     def 'should generate with custom version format from gradle property'() {
@@ -131,7 +136,8 @@ class GenerateGitVersionTaskSpec extends IntegrationSpec {
             .build()
 
         then:
-        inProjectDir('build/generated/version/version.txt').text ==~ /rc-1\.\w{12}/
+        inProjectDir('build/generated/version/version.txt').readLines()[0] ==~ /rc-1\.\w{12}/
+        isGitHash(inProjectDir('build/generated/version/version.txt').readLines()[1])
     }
 
     def 'should generate with custom git root'() {
@@ -150,7 +156,8 @@ class GenerateGitVersionTaskSpec extends IntegrationSpec {
             .build()
 
         then:
-        inProjectDir('build/generated/version/version.txt').text ==~ /1\.\w{12}/
+        inProjectDir('build/generated/version/version.txt').readLines()[0] ==~ /1\.\w{12}/
+        isGitHash(inProjectDir('build/generated/version/version.txt').readLines()[1])
     }
 
     def 'should set custom version file'() {
@@ -169,7 +176,8 @@ class GenerateGitVersionTaskSpec extends IntegrationSpec {
                 .build()
 
         then:
-        customVersionFile.text ==~ /1\.\w{12}/
+        customVersionFile.readLines()[0] ==~ /1\.\w{12}/
+        isGitHash(customVersionFile.readLines()[1])
     }
 
     def 'should set custom version file from gradle property'() {
@@ -184,7 +192,8 @@ class GenerateGitVersionTaskSpec extends IntegrationSpec {
                 .build()
 
         then:
-        customVersionFile.text ==~ /1\.\w{12}/
+        customVersionFile.readLines()[0] ==~ /1\.\w{12}/
+        isGitHash(customVersionFile.readLines()[1])
     }
 
     def 'should generate incrementals publication according to jenkins infra expectations'() {
@@ -199,14 +208,16 @@ class GenerateGitVersionTaskSpec extends IntegrationSpec {
                 .withArguments('clean', 'generateGitVersion', "-PgitVersionFile=${customVersionFile}")
                 .build()
 
-        def version = customVersionFile.toFile().text
+        def version = customVersionFile.readLines()[0]
+        def tag = customVersionFile.readLines()[1]
         // Note that overriding the version with `-Pversion` works only if the version is not set in the build.gradle
         gradleRunner()
-                .withArguments('build', 'publishToMavenLocal', "-Pversion=${version}", "-Dmaven.repo.local=${customM2}")
+                .withArguments('build', 'publishToMavenLocal', "-Pversion=${version}", "-Dmaven.repo.local=${customM2}", "-PscmTag=${tag}")
                 .build()
 
         then:
-        customVersionFile.text ==~ /1\.\w{12}/
+        customVersionFile.readLines()[0] ==~ /1\.\w{12}/
+        customVersionFile.readLines()[1] ==~ /\w{40}/
         def prefix = "${projectName}-${version}"
         customM2.resolve("${GROUP_NAME}/${projectName}/${version}").toFile().list() as Set == [
             "${prefix}-javadoc.jar",
@@ -216,6 +227,7 @@ class GenerateGitVersionTaskSpec extends IntegrationSpec {
             "${prefix}.module",
             "${prefix}.pom",
         ] as Set
+        customM2.resolve("${GROUP_NAME}/${projectName}/${version}/${prefix}.pom").text =~ /<tag>\w{40}<\/tag>/
     }
 
     def 'should be able to pass sanitize flag'() {

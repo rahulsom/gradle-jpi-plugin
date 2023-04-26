@@ -83,13 +83,13 @@ public abstract class GenerateGitVersionTask extends DefaultTask {
             GenerateGitVersionParameters p = getParameters();
             Path outputFile = p.getOutputFile().get().getAsFile().toPath();
             try {
-                String version = new GitVersionGenerator(
+                GitVersionGenerator.GitVersion version = new GitVersionGenerator(
                         p.getGitRoot().get().getAsFile().toPath(),
                         p.getAbbrevLength().get(),
                         p.getVersionFormat().get(),
                         p.getAllowDirty().get(),
                         p.getSanitize().get()).generate();
-                Files.write(outputFile, version.getBytes(StandardCharsets.UTF_8));
+                Files.write(outputFile, version.toString().getBytes(StandardCharsets.UTF_8));
             } catch (IOException e) {
                 throw new RuntimeException("Fail to write version file at " + outputFile, e);
             }
