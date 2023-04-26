@@ -220,6 +220,7 @@ class GenerateGitVersionTaskSpec extends IntegrationSpec {
         def customM2 = Files.createTempDirectory('custom-m2')
         given:
         build.text = customBuildFile('''
+            gitHubUrl = 'https://github.com/foo'
             gitVersion {
                 versionPrefix = version
             }

@@ -108,7 +108,7 @@ class JpiExtension implements JpiExtensionBridge {
         this.gitVersion = project.objects.newInstance(GitVersionExtension)
         this.incrementalsRepoUrl = project.objects.property(String).convention(JENKINS_INCREMENTALS_REPO)
         this.scmTag = project.objects.property(String)
-                .convention(project.providers.gradleProperty('scmTag').forUseAtConfigurationTime())
+                .convention(project.providers.gradleProperty('scmTag'))
     }
 
     /**
