@@ -56,6 +56,7 @@ public abstract class GenerateGitVersionTask extends DefaultTask {
         queue.submit(GenerateGitVersion.class, p -> {
             p.getGitRoot().set(gitVersionExtension.getGitRoot());
             p.getAbbrevLength().set(gitVersionExtension.getAbbrevLength());
+            p.getVersionPrefix().set(gitVersionExtension.getVersionPrefix());
             p.getVersionFormat().set(gitVersionExtension.getVersionFormat());
             p.getSanitize().set(gitVersionExtension.getSanitize());
             p.getAllowDirty().set(gitVersionExtension.getAllowDirty());
@@ -64,7 +65,10 @@ public abstract class GenerateGitVersionTask extends DefaultTask {
     }
 
     public interface GenerateGitVersionParameters extends WorkParameters {
+
         DirectoryProperty getGitRoot();
+
+        Property<String> getVersionPrefix();
 
         Property<String> getVersionFormat();
 
@@ -83,13 +87,14 @@ public abstract class GenerateGitVersionTask extends DefaultTask {
             GenerateGitVersionParameters p = getParameters();
             Path outputFile = p.getOutputFile().get().getAsFile().toPath();
             try {
-                String version = new GitVersionGenerator(
+                GitVersionGenerator.GitVersion version = new GitVersionGenerator(
                         p.getGitRoot().get().getAsFile().toPath(),
                         p.getAbbrevLength().get(),
+                        p.getVersionPrefix().get(),
                         p.getVersionFormat().get(),
                         p.getAllowDirty().get(),
                         p.getSanitize().get()).generate();
-                Files.write(outputFile, version.getBytes(StandardCharsets.UTF_8));
+                Files.write(outputFile, version.toString().getBytes(StandardCharsets.UTF_8));
             } catch (IOException e) {
                 throw new RuntimeException("Fail to write version file at " + outputFile, e);
             }

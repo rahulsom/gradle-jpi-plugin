@@ -26,10 +26,14 @@ public abstract class GitVersionExtension {
                 providers.gradleProperty("gitVersionFile")
                         .map(p-> layout.getProjectDirectory().file(p))
                         .orElse(layout.getBuildDirectory().file("generated/version/version.txt")));
+        getVersionPrefix().convention("");
     }
 
     @Optional
     public abstract Property<String> getVersionFormat();
+
+    @Optional
+    public abstract Property<String> getVersionPrefix();
 
     @Optional
     public abstract Property<Boolean> getSanitize();

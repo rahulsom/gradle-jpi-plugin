@@ -14,21 +14,23 @@ import java.util.stream.StreamSupport;
 
 public class GitVersionGenerator {
     private final int abbrevLength;
+    private final String versionPrefix;
     private final String versionFormat;
     private final boolean sanitize;
     private final boolean allowDirty;
     private final Path gitRoot;
 
-    public GitVersionGenerator(Path gitRoot, int abbrevLength, String versionFormat, boolean allowDirty, boolean sanitize) {
+    public GitVersionGenerator(Path gitRoot, int abbrevLength, String versionPrefix, String versionFormat, boolean allowDirty, boolean sanitize) {
         this.gitRoot = gitRoot;
         // TODO abbrevLength should be 2 minimum
         this.abbrevLength = abbrevLength;
+        this.versionPrefix = versionPrefix;
         this.versionFormat = versionFormat;
         this.sanitize = sanitize;
         this.allowDirty = allowDirty;
     }
 
-    public String generate() {
+    public GitVersion generate() {
         try (Git git = Git.open(gitRoot.toFile())) {
             Repository repo = git.getRepository();
             Status status = git.status().call();
@@ -43,7 +45,7 @@ public class GitVersionGenerator {
                 if (sanitize) {
                     abbrevHash = sanitize(abbrevHash);
                 }
-                return String.format(versionFormat, headDepth, abbrevHash);
+                return new GitVersion(head.getName(), versionPrefix + String.format(versionFormat, headDepth, abbrevHash));
             }
         } catch (GitAPIException | IOException e) {
             throw new RuntimeException(e);
@@ -74,4 +76,28 @@ public class GitVersionGenerator {
             return StreamSupport.stream(walk.spliterator(), false).count();
         }
     }
+
+    static class GitVersion {
+        private final String fullHash;
+        private final String abbreviatedHash;
+
+        public GitVersion(String fullHash, String abbreviatedHash) {
+            this.fullHash = fullHash;
+            this.abbreviatedHash = abbreviatedHash;
+        }
+
+        @Override
+        public String toString() {
+            return abbreviatedHash + "\n" + fullHash;
+        }
+
+        public String getAbbreviatedHash() {
+            return abbreviatedHash;
+        }
+
+        public String getFullHash() {
+            return fullHash;
+        }
+    }
+
 }

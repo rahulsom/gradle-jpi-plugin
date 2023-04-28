@@ -8,6 +8,8 @@ import spock.lang.Specification
 import java.nio.file.Files
 import java.nio.file.Path
 
+import static org.jenkinsci.gradle.plugins.jpi.version.Util.isGitHash
+
 class GitVersionGeneratorSpec extends Specification {
 
     def 'generate version from git abbreviated hash'() {
@@ -15,10 +17,11 @@ class GitVersionGeneratorSpec extends Specification {
         def gitRoot = generateGitRepo()
 
         when:
-        def version = new GitVersionGenerator(gitRoot, 12, '%d.%s', false, false).generate()
+        def version = new GitVersionGenerator(gitRoot, 12, '', '%d.%s', false, false).generate()
 
         then:
-        version ==~ /3\.\w{12}/
+        version.abbreviatedHash ==~ /3\.\w{12}/
+        isGitHash(version.fullHash)
     }
 
     def 'generate version from git abbreviated hash with a custom format'() {
@@ -26,10 +29,11 @@ class GitVersionGeneratorSpec extends Specification {
         def gitRoot = generateGitRepo()
 
         when:
-        def version = new GitVersionGenerator(gitRoot, 12, 'rc.%d-%s', false, false).generate()
+        def version = new GitVersionGenerator(gitRoot, 12, '', 'rc.%d-%s', false, false).generate()
 
         then:
-        version ==~ /rc\.3-\w{12}/
+        version.abbreviatedHash ==~ /rc\.3-\w{12}/
+        isGitHash(version.fullHash)
     }
 
     @Ignore('TODO: generate git repo with collision')
@@ -38,10 +42,10 @@ class GitVersionGeneratorSpec extends Specification {
         def gitRoot = generateGitRepo()
 
         when:
-        def version = new GitVersionGenerator(gitRoot, 2, '%d.%s', false, false).generate()
+        def version = new GitVersionGenerator(gitRoot, 2, '', '%d.%s', false, false).generate()
 
         then:
-        version ==~ /3\.\w{2}/
+        version.abbreviatedHash ==~ /3\.\w{2}/
     }
 
     def 'cannot generate version from git because of untracked files'() {
@@ -50,7 +54,7 @@ class GitVersionGeneratorSpec extends Specification {
         Files.createFile(gitRoot.resolve('untracked')).text = 'bar'
 
         when:
-        new GitVersionGenerator(gitRoot, 12, '%d.%s', false, false).generate()
+        new GitVersionGenerator(gitRoot, 12, '', '%d.%s', false, false).generate()
 
         then:
         def exception = thrown(RuntimeException)
@@ -63,7 +67,7 @@ class GitVersionGeneratorSpec extends Specification {
         gitRoot.resolve('somefile').text = 'foo!'
 
         when:
-        new GitVersionGenerator(gitRoot, 12, '%d.%s', false, false).generate()
+        new GitVersionGenerator(gitRoot, 12, '', '%d.%s', false, false).generate()
 
         then:
         def exception = thrown(RuntimeException)
@@ -77,7 +81,7 @@ class GitVersionGeneratorSpec extends Specification {
         gitRoot.resolve('somefile').text = 'foo!'
 
         when:
-        new GitVersionGenerator(gitRoot, 12, '%d.%s', false, false).generate()
+        new GitVersionGenerator(gitRoot, 12, '', '%d.%s', false, false).generate()
 
         then:
         def exception = thrown(RuntimeException)
@@ -93,10 +97,11 @@ class GitVersionGeneratorSpec extends Specification {
         Files.createFile(gitRoot.resolve('untracked')).text = 'bar'
 
         when:
-        def version = new GitVersionGenerator(gitRoot, 12, '%d.%s', true, false).generate()
+        def version = new GitVersionGenerator(gitRoot, 12, '', '%d.%s', true, false).generate()
 
         then:
-        version ==~ /3\.\w{12}/
+        version.abbreviatedHash ==~ /3\.\w{12}/
+        isGitHash(version.fullHash)
     }
 
     def 'can sanitize version from git'() {
@@ -104,7 +109,7 @@ class GitVersionGeneratorSpec extends Specification {
         def gitRoot = generateGitRepo()
 
         when:
-        def version = new GitVersionGenerator(gitRoot, 12, 'ab-%d.%s', true, true).generate()
+        def version = new GitVersionGenerator(gitRoot, 12, '', 'ab-%d.%s', true, true).generate()
 
         then:
         !(version ==~ /ab-([ab][^_])/)

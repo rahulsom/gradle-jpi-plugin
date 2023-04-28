@@ -50,6 +50,7 @@ class JpiPomCustomizer {
                 if (github =~ /^https:\/\/github\.com/) {
                     s.connection.set(github.replaceFirst(~/https:/, 'scm:git:git:') + '.git')
                 }
+                s.tag.set(jpiExtension.scmTag)
             }
         }
         if (!jpiExtension.licenses.isEmpty()) {

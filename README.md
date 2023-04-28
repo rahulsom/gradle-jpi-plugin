@@ -57,6 +57,9 @@ jenkinsPlugin {
 
     // plugin URL on GitHub, optional
     gitHubUrl = 'https://github.com/jenkinsci/some-plugin'
+  
+    // scm tag eventually set in the published pom, optional
+    scmTag = 'v1.0.0'
 
     // use the plugin class loader before the core class loader, defaults to false
     pluginFirstClassLoader = true
@@ -312,9 +315,9 @@ tasks.named('generateJenkinsManifest').configure {
 
 ### Using Git based version
 [JEP-229](https://github.com/jenkinsci/jep/blob/master/jep/229/README.adoc#version-format) outlines requirements for creating sensible version numbers automatically.
-The plugin registers a `generateGitVersion` task that generates a Git based version in a text file. 
+The plugin registers a `generateGitVersion` task that generates a Git based version in a text file (1st line an abbreviated hash, 2nd line the full hash). 
 This version scheme is typically used on ci.jenkins.io by first generating the version and then setting it when 
-building with `-Pversion=${versionFile.text}`. This works fine as long as no version is set in `build.gradle`.
+building with `-Pversion=${versionFile.readLines()[0]}`. This works fine as long as no version is set in `build.gradle`.
 
 See [Configuration](#configuration) to customize the generation.
 
