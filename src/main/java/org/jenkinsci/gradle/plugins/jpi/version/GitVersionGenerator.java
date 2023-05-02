@@ -88,7 +88,7 @@ public class GitVersionGenerator {
 
         @Override
         public String toString() {
-            return abbreviatedHash + "\n" + fullHash;
+            return String.format("%s%n%s", abbreviatedHash, fullHash);
         }
 
         public String getAbbreviatedHash() {
