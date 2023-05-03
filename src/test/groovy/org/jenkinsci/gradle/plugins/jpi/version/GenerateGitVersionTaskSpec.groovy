@@ -215,6 +215,7 @@ class GenerateGitVersionTaskSpec extends IntegrationSpec {
         isGitHash(customVersionFile.readLines()[1])
     }
 
+    @SuppressWarnings('GStringExpressionWithinString')
     def 'should generate incrementals publication according to jenkins infra expectations'() {
         def customVersionFile = Files.createTempDirectory('custom-version-dir').resolve('version.txt')
         def customM2 = Files.createTempDirectory('custom-m2')
@@ -222,14 +223,14 @@ class GenerateGitVersionTaskSpec extends IntegrationSpec {
         build.text = customBuildFile('''
             gitHubUrl = 'https://github.com/foo'
             gitVersion {
-                versionPrefix = version
+                versionPrefix = "${version}-"
             }
         ''')
         initGitRepo()
 
         when:
         gradleRunner()
-                .withArguments('clean', 'generateGitVersion', "-PgitVersionFile=${customVersionFile}", '-PgitVersionFormat=-rc%d.%s')
+                .withArguments('clean', 'generateGitVersion', "-PgitVersionFile=${customVersionFile}", '-PgitVersionFormat=rc%d.%s')
                 .build()
 
         def version = customVersionFile.readLines()[0]
