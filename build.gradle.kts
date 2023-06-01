@@ -57,7 +57,7 @@ dependencies {
     testCompileOnly("junit:junit:4.13") {
         because("used for generated tests with javapoet")
     }
-    testImplementation("org.spockframework:spock-core:2.1-groovy-2.5")
+    testImplementation("org.spockframework:spock-core:2.1-groovy-3.0")
     testImplementation("org.xmlunit:xmlunit-core:2.8.3")
     testImplementation("org.apache.commons:commons-text:1.10.0")
     testImplementation("com.squareup:javapoet:1.13.0")
@@ -170,11 +170,11 @@ tasks.withType<Test>().configureEach {
 
 codenarc {
     toolVersion = "1.1"
-    configFile = file("config/codenarc/rules.groovy")
+    configFile = rootProject.file("config/codenarc/rules.groovy")
 }
 
 tasks.codenarcTest {
-    configFile = file("config/codenarc/rules-test.groovy")
+    configFile = rootProject.file("config/codenarc/rules-test.groovy")
 }
 
 group = "org.jenkins-ci.tools"
@@ -208,8 +208,8 @@ tasks.register("shadeLatestVersionNumber") {
         if (!response.isSuccessful) {
             throw GradleException("${response.code} attempting to fetch latest hudson.util.VersionNumber")
         }
-        val convention = project.convention.getPlugin(JavaPluginConvention::class)
-        val main = convention.sourceSets.getByName("main")
+        val extension = project.extensions.getByType(JavaPluginExtension::class)
+        val main = extension.sourceSets.getByName("main")
         val srcMainJava = main.java.srcDirs.single().toPath()
         val dest = srcMainJava.resolve("shaded/hudson/util/VersionNumber.java")
         val sink = dest.sink(StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING).buffer()

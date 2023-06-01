@@ -17,7 +17,7 @@ package org.jenkinsci.gradle.plugins.jpi
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logger
-import org.gradle.util.ConfigureUtil
+import org.jenkinsci.gradle.plugins.jpi.internal.ConfigureUtil
 
 /**
  * Information on a single developer for the <developer> tag in the output POM.

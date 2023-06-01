@@ -1,7 +1,7 @@
 package org.jenkinsci.gradle.plugins.jpi
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.TaskAction
@@ -22,8 +22,8 @@ class TestInsertionTask extends DefaultTask {
     @TaskAction
     void generateInjectedTest() {
         JpiExtension jpiExtension = project.extensions.getByType(JpiExtension)
-        JavaPluginConvention javaConvention = project.convention.getPlugin(JavaPluginConvention)
-        SourceSet mainSourceSet = javaConvention.sourceSets.getByName(MAIN_SOURCE_SET_NAME)
+        JavaPluginExtension javaPluginExtension = project.extensions.getByType(JavaPluginExtension)
+        SourceSet mainSourceSet = javaPluginExtension.sourceSets.getByName(MAIN_SOURCE_SET_NAME)
 
         testSuite.parentFile.mkdirs()
         testSuite.text = """import java.util.*;
