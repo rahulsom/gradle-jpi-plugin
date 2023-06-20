@@ -288,10 +288,9 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
         def jpi = project.tasks.register(JPI_TASK_NAME, War) {
             it.description = 'Generates the JPI package'
             it.group = BasePlugin.BUILD_GROUP
-            def fileName = "${jpiExtension.shortName}.${jpiExtension.fileExtension}"
-            def extension = jpiExtension.fileExtension
+            def fileName = jpiExtension.pluginId.zip(jpiExtension.extension) { id, ext -> (id + '.' + ext) }
             it.archiveFileName.set(fileName)
-            it.archiveExtension.set(extension)
+            it.archiveExtension.set(jpiExtension.extension)
             it.classpath(jar, dependencyAnalysis.allLibraryDependencies)
             it.from(WEB_APP_DIR)
         }
@@ -528,7 +527,7 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
                         artifactId jpiExtension.shortName
                         from(project.components.java)
 
-                        new JpiPomCustomizer(project).customizePom(pom)
+                        new JpiPomCustomizer(project, jpiExtension).customizePom(pom)
                     }
                 }
                 publishingExtension.repositories {

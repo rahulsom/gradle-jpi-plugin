@@ -11,6 +11,7 @@ import java.net.URI;
 
 public interface JpiExtensionBridge {
     Property<String> getPluginId();
+    Property<String> getExtension();
     Property<String> getHumanReadableName();
     Property<URI> getHomePage();
     Provider<String> getJenkinsCoreVersion();
@@ -24,4 +25,7 @@ public interface JpiExtensionBridge {
     Property<Boolean> getGenerateTests();
     Property<String> getGeneratedTestClassName();
     Property<Boolean> getRequireEscapeByDefaultInJelly();
+    
+    Property<String> getScmTag();
+    Property<URI> getGitHub();
 }

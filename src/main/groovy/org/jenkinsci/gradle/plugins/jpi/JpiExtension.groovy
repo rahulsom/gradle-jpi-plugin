@@ -87,6 +87,12 @@ class JpiExtension implements JpiExtensionBridge {
     private final GitVersionExtension gitVersion
     private final Property<String> scmTag
 
+    /**
+     * File extension for plugin archives. Must be hpi or jpi. Default: hpi
+     */
+    final Property<String> extension
+    final Property<URI> gitHub
+
     @SuppressWarnings('UnnecessarySetter')
     JpiExtension(Project project) {
         this.project = project
@@ -114,6 +120,8 @@ class JpiExtension implements JpiExtensionBridge {
         this.incrementalsRepoUrl = project.objects.property(String).convention(JENKINS_INCREMENTALS_REPO)
         this.scmTag = project.objects.property(String)
                 .convention(project.providers.gradleProperty('scmTag'))
+        this.extension = project.objects.property(String).convention('hpi')
+        this.gitHub = project.objects.property(URI)
     }
 
     /**
@@ -132,17 +140,18 @@ class JpiExtension implements JpiExtensionBridge {
         s.endsWith('-plugin') ? s[0..-8] : s
     }
 
-    private String fileExtension
-
-    /**
-     * File extension for plugin archives.
-     */
+    @Deprecated
+    @ReplacedBy('extension')
     String getFileExtension() {
-        fileExtension ?: 'hpi'
+        extension.get()
     }
 
+    @Deprecated
+    @ReplacedBy('extension')
     void setFileExtension(String s) {
-        this.fileExtension = s
+        if (s) {
+            extension.convention(s)
+        }
     }
 
     /**
@@ -324,7 +333,17 @@ class JpiExtension implements JpiExtensionBridge {
     /**
      * The GitHub URL. Optional. Used to construct the SCM section of the POM.
      */
-    String gitHubUrl
+    @Deprecated
+    @ReplacedBy('gitHub')
+    String getGitHubUrl() {
+        gitHub.orNull
+    }
+
+    @Deprecated
+    @ReplacedBy('gitHub')
+    void setGitHubUrl(String s) {
+        gitHub.convention(project.uri(s))
+    }
 
     /**
      * Use #getPluginLicenses instead.
@@ -514,6 +533,7 @@ class JpiExtension implements JpiExtensionBridge {
         incrementalsRepoUrl
     }
 
+    @Override
     Property<String> getScmTag() {
         scmTag
     }

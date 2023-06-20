@@ -85,7 +85,7 @@ class JpiPomCustomizerIntegrationSpec extends IntegrationSpec {
         compareJson('minimal-module.json', actualModule())
     }
 
-    def 'POM with all metadata'() {
+    def 'POM with all metadata - legacy fields'() {
         setup:
         build << """\
             description = 'lorem ipsum'
@@ -93,6 +93,47 @@ class JpiPomCustomizerIntegrationSpec extends IntegrationSpec {
                 jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
                 url = 'https://lorem-ipsum.org'
                 gitHubUrl = 'https://github.com/lorem/ipsum'
+                scmTag = 'my-tag'
+                developers {
+                    developer {
+                        id 'abayer'
+                        name 'Andrew Bayer'
+                        email 'andrew.bayer@gmail.com'
+                    }
+                }
+                licenses {
+                    license {
+                        name 'Apache License, Version 2.0'
+                        url 'https://www.apache.org/licenses/LICENSE-2.0.txt'
+                        distribution 'repo'
+                        comments 'A business-friendly OSS license'
+                    }
+                }
+            }
+            repositories {
+                maven {
+                    name 'lorem-ipsum'
+                    url 'https://repo.lorem-ipsum.org/'
+                }
+            }
+            """.stripIndent()
+
+        when:
+        generatePom()
+
+        then:
+        compareXml('complex-pom.xml', actualPom())
+        compareJson('minimal-module.json', actualModule())
+    }
+
+    def 'POM with all metadata'() {
+        setup:
+        build << """\
+            description = 'lorem ipsum'
+            jenkinsPlugin {
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+                homePage.set(uri('https://lorem-ipsum.org'))
+                gitHub.set(uri('https://github.com/lorem/ipsum'))
                 scmTag = 'my-tag'
                 developers {
                     developer {
