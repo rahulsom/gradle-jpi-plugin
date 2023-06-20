@@ -42,8 +42,8 @@ class LicenseTask extends DefaultTask {
                         name: jpiExtension.displayName, url: jpiExtension.url,
                 ) {
                     'l:description'(project.description)
-                    jpiExtension.licenses.each { license ->
-                        'l:license'(url: license.url, name: license.name)
+                    jpiExtension.pluginLicenses.get().each { license ->
+                        'l:license'(url: license.url.orNull, name: license.name.orNull)
                     }
                 }
 

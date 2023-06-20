@@ -4,7 +4,6 @@ import groovy.transform.CompileStatic
 import org.gradle.api.Project
 import org.gradle.api.XmlProvider
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
-import org.gradle.api.provider.Property
 import org.gradle.api.publish.maven.MavenPom
 import org.gradle.api.publish.maven.MavenPomDeveloper
 import org.gradle.api.publish.maven.MavenPomDeveloperSpec
@@ -12,6 +11,7 @@ import org.gradle.api.publish.maven.MavenPomLicense
 import org.gradle.api.publish.maven.MavenPomLicenseSpec
 import org.gradle.api.publish.maven.MavenPomScm
 import org.jenkinsci.gradle.plugins.jpi.core.PluginDeveloper
+import org.jenkinsci.gradle.plugins.jpi.core.PluginLicense
 
 import static org.gradle.api.artifacts.ArtifactRepositoryContainer.DEFAULT_MAVEN_CENTRAL_REPO_NAME
 import static org.gradle.api.artifacts.ArtifactRepositoryContainer.DEFAULT_MAVEN_LOCAL_REPO_NAME
@@ -53,17 +53,15 @@ class JpiPomCustomizer {
                 s.tag.set(jpiExtension.scmTag)
             }
         }
-        if (!jpiExtension.licenses.isEmpty()) {
+        def licenses = jpiExtension.pluginLicenses.get()
+        if (!licenses.isEmpty()) {
             pom.licenses { MavenPomLicenseSpec s ->
-                jpiExtension.licenses.each { JpiLicense declared ->
+                for (PluginLicense declared : licenses) {
                     s.license { MavenPomLicense l ->
-                        ['name'        : l.name,
-                         'url'         : l.url,
-                         'distribution': l.distribution,
-                         'comments'    : l.comments,
-                        ].each {
-                            mapExtensionToProperty(declared, it.key, it.value)
-                        }
+                        l.name.set(declared.name)
+                        l.url.set(declared.url)
+                        l.distribution.set(declared.distribution)
+                        l.comments.set(declared.comments)
                     }
                 }
             }
@@ -87,10 +85,6 @@ class JpiPomCustomizer {
             }
         }
         pom.withXml { XmlProvider xmlProvider -> additionalCustomizations(xmlProvider.asNode()) }
-    }
-
-    private static mapExtensionToProperty(Object from, String property, Property<String> to) {
-        to.set(from.getProperty(property) as String)
     }
 
     void additionalCustomizations(Node pom) {

@@ -36,7 +36,10 @@ import org.gradle.testing.jacoco.tasks.JacocoReport
 import org.gradle.util.GradleVersion
 import org.jenkinsci.gradle.plugins.jpi.core.PluginDeveloper
 import org.jenkinsci.gradle.plugins.jpi.core.PluginDeveloperSpec
+import org.jenkinsci.gradle.plugins.jpi.core.PluginLicense
+import org.jenkinsci.gradle.plugins.jpi.core.PluginLicenseSpec
 import org.jenkinsci.gradle.plugins.jpi.internal.BackwardsCompatiblePluginDevelopers
+import org.jenkinsci.gradle.plugins.jpi.internal.BackwardsCompatiblePluginLicenses
 import org.jenkinsci.gradle.plugins.jpi.internal.JpiExtensionBridge
 import shaded.hudson.util.VersionNumber
 
@@ -79,6 +82,7 @@ class JpiExtension implements JpiExtensionBridge {
     private final Property<Boolean> usePluginFirstClassLoader
     private final SetProperty<String> maskedClassesFromCore
     private final ListProperty<PluginDeveloper> pluginDevelopers
+    private final ListProperty<PluginLicense> pluginLicenses
     private final Property<String> incrementalsRepoUrl
     private final GitVersionExtension gitVersion
     private final Property<String> scmTag
@@ -102,6 +106,7 @@ class JpiExtension implements JpiExtensionBridge {
         this.usePluginFirstClassLoader = project.objects.property(Boolean).convention(false)
         this.maskedClassesFromCore = project.objects.setProperty(String).convention([])
         this.pluginDevelopers = project.objects.listProperty(PluginDeveloper)
+        this.pluginLicenses = project.objects.listProperty(PluginLicense)
         this.generateTests = project.objects.property(Boolean).convention(false)
         this.requireEscapeByDefaultInJelly = project.objects.property(Boolean).convention(true)
         this.generatedTestClassName = project.objects.property(String).convention('InjectedTest')
@@ -322,12 +327,19 @@ class JpiExtension implements JpiExtensionBridge {
     String gitHubUrl
 
     /**
-     * The license for the plugin. Optional.
+     * Use #getPluginLicenses instead.
+     *
+     * @deprecated To be removed in 1.0.0
      */
+    @Deprecated
+    @ReplacedBy('pluginLicenses')
     Licenses licenses = new Licenses()
 
-    def licenses(Closure closure) {
-        project.configure(licenses, closure)
+    @CompileStatic
+    def licenses(Action<? super PluginLicenseSpec> action) {
+        def l = new BackwardsCompatiblePluginLicenses(project.objects)
+        action.execute(l)
+        pluginLicenses.set(l.licenses)
     }
 
     /**
@@ -485,6 +497,11 @@ class JpiExtension implements JpiExtensionBridge {
         pluginDevelopers
     }
 
+    @Override
+    ListProperty<PluginLicense> getPluginLicenses() {
+        pluginLicenses
+    }
+
     GitVersionExtension getGitVersion() {
         gitVersion
     }
@@ -579,6 +596,11 @@ class JpiExtension implements JpiExtensionBridge {
         }
     }
 
+    /**
+     * @see org.jenkinsci.gradle.plugins.jpi.core.PluginLicense
+     * @deprecated To be removed in 1.0.0
+     */
+    @Deprecated
     class Licenses {
         def licenseMap = [:]
 

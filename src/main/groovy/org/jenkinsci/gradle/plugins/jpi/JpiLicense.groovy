@@ -23,7 +23,9 @@ import org.gradle.util.ConfigureUtil
  * Information on a single license for the <license> tag in the output POM.
  *
  * @author Alex Earl
+ * @see org.jenkinsci.gradle.plugins.jpi.core.PluginLicense
  */
+@Deprecated
 class JpiLicense {
     final static LEGAL_FIELDS = ['name', 'url', 'distribution', 'comments']
 

@@ -5,6 +5,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SetProperty;
 import org.jenkinsci.gradle.plugins.jpi.core.PluginDeveloper;
+import org.jenkinsci.gradle.plugins.jpi.core.PluginLicense;
 
 import java.net.URI;
 
@@ -18,6 +19,7 @@ public interface JpiExtensionBridge {
     Property<Boolean> getUsePluginFirstClassLoader();
     SetProperty<String> getMaskedClassesFromCore();
     ListProperty<PluginDeveloper> getPluginDevelopers();
+    ListProperty<PluginLicense> getPluginLicenses();
 
     Property<Boolean> getGenerateTests();
     Property<String> getGeneratedTestClassName();
