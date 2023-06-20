@@ -4,6 +4,7 @@ import org.gradle.api.artifacts.CacheableRule
 import org.gradle.api.artifacts.ComponentMetadataContext
 import org.gradle.api.artifacts.ComponentMetadataRule
 import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.artifacts.ivy.IvyModuleDescriptor
 import org.gradle.api.artifacts.maven.PomModuleDescriptor
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.Bundling
@@ -11,7 +12,6 @@ import org.gradle.api.attributes.Category
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
 import org.gradle.api.model.ObjectFactory
-import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -107,7 +107,7 @@ abstract class JpiVariantRule implements ComponentMetadataRule {
     }
 
     private boolean isIvyResolvedDependency(ComponentMetadataContext ctx) {
-        ctx.metadata instanceof IvyModuleResolveMetadata
+        ctx.getDescriptor(IvyModuleDescriptor) != null
     }
 
     private boolean isJenkinsPackaging(ComponentMetadataContext ctx) {
