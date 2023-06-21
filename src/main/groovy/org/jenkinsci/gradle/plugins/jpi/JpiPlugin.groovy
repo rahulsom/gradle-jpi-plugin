@@ -288,7 +288,7 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
         def jpi = project.tasks.register(JPI_TASK_NAME, War) {
             it.description = 'Generates the JPI package'
             it.group = BasePlugin.BUILD_GROUP
-            
+
             if (hasZip) {
                 def fileName = jpiExtension.pluginId.zip(jpiExtension.extension) { id, ext -> (id + '.' + ext) }
                 it.archiveFileName.set(fileName)
