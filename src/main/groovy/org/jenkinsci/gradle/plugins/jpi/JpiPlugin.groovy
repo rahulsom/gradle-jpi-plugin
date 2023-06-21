@@ -232,7 +232,7 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
 
         gradleProject.plugins.apply(DependenciesPlugin)
         configureRepositories(gradleProject)
-        configureJpi(gradleProject)
+        configureJpi(gradleProject, current >= GradleVersion.version('6.6'))
         configureManifest(gradleProject)
         configureLicenseInfo(gradleProject)
         configureTestDependencies(gradleProject)
@@ -281,15 +281,20 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
         }
     }
 
-    private configureJpi(Project project) {
+    private configureJpi(Project project, boolean hasZip) {
         JpiExtension jpiExtension = project.extensions.getByType(JpiExtension)
 
         def jar = project.tasks.named(JavaPlugin.JAR_TASK_NAME)
         def jpi = project.tasks.register(JPI_TASK_NAME, War) {
             it.description = 'Generates the JPI package'
             it.group = BasePlugin.BUILD_GROUP
-            def fileName = jpiExtension.pluginId.zip(jpiExtension.extension) { id, ext -> (id + '.' + ext) }
-            it.archiveFileName.set(fileName)
+            
+            if (hasZip) {
+                def fileName = jpiExtension.pluginId.zip(jpiExtension.extension) { id, ext -> (id + '.' + ext) }
+                it.archiveFileName.set(fileName)
+            } else {
+                it.archiveFileName.set(jpiExtension.pluginId.get() + '.' + jpiExtension.extension.get())
+            }
             it.archiveExtension.set(jpiExtension.extension)
             it.classpath(jar, dependencyAnalysis.allLibraryDependencies)
             it.from(WEB_APP_DIR)
