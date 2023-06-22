@@ -172,23 +172,14 @@ class InstallJenkinsServerPluginsTaskSpec extends IntegrationSpec {
         'jenkinsServer'      | 'changed jpi' | ['org.jenkins-ci.plugins:git:4.0.0'] | ['org.jenkins-ci.plugins:git:4.0.1']
         'jenkinsServer'      | 'added jpi'   | []                                   | ['org.jenkins-ci.plugins:git:4.0.1']
         'jenkinsServer'      | 'removed jpi' | ['org.jenkins-ci.plugins:git:4.0.0'] | []
-        'jenkinsServer'      | 'changed jar' | ['com.google.guava:guava:19.0']      | ['com.google.guava:guava:20.0']
-        'jenkinsServer'      | 'added jar'   | []                                   | ['com.google.guava:guava:20.0']
-        'jenkinsServer'      | 'removed jar' | ['com.google.guava:guava:20.0']      | []
 
         'testImplementation' | 'changed jpi' | ['org.jenkins-ci.plugins:git:4.0.0'] | ['org.jenkins-ci.plugins:git:4.0.1']
         'testImplementation' | 'added jpi'   | []                                   | ['org.jenkins-ci.plugins:git:4.0.1']
         'testImplementation' | 'removed jpi' | ['org.jenkins-ci.plugins:git:4.0.0'] | []
-        'testImplementation' | 'changed jar' | ['com.google.guava:guava:19.0']      | ['com.google.guava:guava:20.0']
-        'testImplementation' | 'added jar'   | []                                   | ['com.google.guava:guava:20.0']
-        'testImplementation' | 'removed jar' | ['com.google.guava:guava:20.0']      | []
 
         'testRuntimeOnly'    | 'changed jpi' | ['org.jenkins-ci.plugins:git:4.0.0'] | ['org.jenkins-ci.plugins:git:4.0.1']
         'testRuntimeOnly'    | 'added jpi'   | []                                   | ['org.jenkins-ci.plugins:git:4.0.1']
         'testRuntimeOnly'    | 'removed jpi' | ['org.jenkins-ci.plugins:git:4.0.0'] | []
-        'testRuntimeOnly'    | 'changed jar' | ['com.google.guava:guava:19.0']      | ['com.google.guava:guava:20.0']
-        'testRuntimeOnly'    | 'added jar'   | []                                   | ['com.google.guava:guava:20.0']
-        'testRuntimeOnly'    | 'removed jar' | ['com.google.guava:guava:20.0']      | []
     }
 
     @Unroll
@@ -253,6 +244,18 @@ class InstallJenkinsServerPluginsTaskSpec extends IntegrationSpec {
         'testCompileOnly'    | 'changed jar' | ['com.google.guava:guava:19.0']      | ['com.google.guava:guava:20.0']
         'testCompileOnly'    | 'added jar'   | []                                   | ['com.google.guava:guava:20.0']
         'testCompileOnly'    | 'removed jar' | ['com.google.guava:guava:20.0']      | []
+
+        'jenkinsServer'      | 'changed jar' | ['com.google.guava:guava:19.0']      | ['com.google.guava:guava:20.0']
+        'jenkinsServer'      | 'added jar'   | []                                   | ['com.google.guava:guava:20.0']
+        'jenkinsServer'      | 'removed jar' | ['com.google.guava:guava:20.0']      | []
+
+        'testImplementation' | 'changed jar' | ['com.google.guava:guava:19.0']      | ['com.google.guava:guava:20.0']
+        'testImplementation' | 'added jar'   | []                                   | ['com.google.guava:guava:20.0']
+        'testImplementation' | 'removed jar' | ['com.google.guava:guava:20.0']      | []
+
+        'testRuntimeOnly'    | 'changed jar' | ['com.google.guava:guava:19.0']      | ['com.google.guava:guava:20.0']
+        'testRuntimeOnly'    | 'added jar'   | []                                   | ['com.google.guava:guava:20.0']
+        'testRuntimeOnly'    | 'removed jar' | ['com.google.guava:guava:20.0']      | []
     }
 
     def 'should rerun if workDir changes'() {
