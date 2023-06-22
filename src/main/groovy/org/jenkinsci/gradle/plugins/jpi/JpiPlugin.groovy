@@ -198,6 +198,7 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
             it.dependsOn(installPlugins)
             it.jenkinsServerRuntime.set(serverRuntime)
             it.jenkinsHome.set(ext.workDir)
+            it.mainClassPropertyAvailable.set(current >= GradleVersion.version('6.4'))
             def sysPropPort = System.getProperty('jenkins.httpPort')
             if (sysPropPort) {
                 it.port.convention(sysPropPort)
