@@ -533,7 +533,7 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
                         artifactId jpiExtension.shortName
                         from(project.components.java)
 
-                        new JpiPomCustomizer(project, jpiExtension).customizePom(pom)
+                        new JpiPomCustomizer(project).customizePom(pom)
                     }
                 }
                 publishingExtension.repositories {

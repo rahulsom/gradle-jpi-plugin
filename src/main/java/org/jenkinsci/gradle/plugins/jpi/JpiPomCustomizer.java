@@ -36,14 +36,13 @@ import static org.gradle.api.artifacts.ArtifactRepositoryContainer.DEFAULT_MAVEN
  */
 public class JpiPomCustomizer {
     private final Project project;
-    private final JpiExtensionBridge jpiExtension;
 
-    public JpiPomCustomizer(Project project, JpiExtensionBridge jpiExtension) {
+    public JpiPomCustomizer(Project project) {
         this.project = project;
-        this.jpiExtension = jpiExtension;
     }
 
     void customizePom(MavenPom pom) {
+        JpiExtensionBridge jpiExtension = project.getExtensions().getByType(JpiExtensionBridge.class);
         pom.setPackaging(jpiExtension.getExtension().get());
         pom.getName().set(jpiExtension.getHumanReadableName());
         pom.getUrl().set(jpiExtension.getHomePage().map(URI::toString));
