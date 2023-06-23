@@ -608,6 +608,8 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
         project.tasks.named('generatedJenkinsTest', Test).configure {
             it.inputs.files(generateTestHplTask)
             it.classpath += project.files(outputDir.get().asFile)
+            it.systemProperty 'javax.xml.parsers.SAXParserFactory',
+                    'com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl'
         }
 
         project.tasks.register('generate-test-hpl') {
