@@ -41,7 +41,7 @@ public class JpiPomCustomizer {
         this.project = project;
     }
 
-    void customizePom(MavenPom pom) {
+    public void customizePom(MavenPom pom) {
         JpiExtensionBridge jpiExtension = project.getExtensions().getByType(JpiExtensionBridge.class);
         pom.setPackaging(jpiExtension.getExtension().get());
         pom.getName().set(jpiExtension.getHumanReadableName());
