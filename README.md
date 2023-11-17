@@ -35,7 +35,7 @@ Add the following to your build.gradle:
 
 ```groovy
 plugins {
-  id 'org.jenkins-ci.jpi' version '0.47.0'
+  id 'org.jenkins-ci.jpi' version '0.50.0'
 }
 
 group = 'org.jenkins-ci.plugins'
