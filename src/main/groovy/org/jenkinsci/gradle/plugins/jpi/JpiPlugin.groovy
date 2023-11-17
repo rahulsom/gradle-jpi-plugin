@@ -37,7 +37,6 @@ import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.plugins.GroovyPlugin
 import org.gradle.api.plugins.JavaLibraryPlugin
 import org.gradle.api.plugins.JavaPlugin
-import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
@@ -101,6 +100,9 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
         } else if (current < GradleVersion.version('6.3')) {
             throw new GradleException('This version of the JPI plugin requires Gradle 6.3 or later.' +
                     'For older Gradle versions, please use version 0.46.0 of the JPI plugin.')
+        } else if (current < GradleVersion.version('7.1')) {
+            throw new GradleException('This version of the JPI plugin requires Gradle 6.3 or later.' +
+                    'For older Gradle versions, please use version 0.46.0 of the JPI plugin.')
         }
         UnsupportedGradleConfigurationVerifier.configureDeprecatedConfigurations(gradleProject)
 
@@ -147,8 +149,8 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
             t.group = LifecycleBasePlugin.VERIFICATION_GROUP
             t.description = 'Validate '
 
-            def javaPluginConvention = project.convention.getPlugin(JavaPluginConvention)
-            def classDirs = javaPluginConvention.sourceSets.getByName(MAIN_SOURCE_SET_NAME).output.classesDirs
+            def javaPluginExtension = project.extensions.getByType(JavaPluginExtension)
+            def classDirs = javaPluginExtension.sourceSets.getByName(MAIN_SOURCE_SET_NAME).output.classesDirs
             t.classesDirs.set(classDirs)
             t.outputFile.set(project.layout.buildDirectory.file('check-overlap/discovered.txt'))
             t.dependsOn(gradleProject.tasks.getByName('classes'))
@@ -391,7 +393,7 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
         project.dependencies.components.all(JpiVariantRule)
         project.dependencies.components.withModule(JenkinsWarRule.JENKINS_WAR_COORDINATES, JenkinsWarRule)
 
-        JavaPluginConvention javaConvention = project.convention.getPlugin(JavaPluginConvention)
+        JavaPluginExtension javaPluginExtension = project.extensions.getByType(JavaPluginExtension)
         AdhocComponentWithVariants component = project.components.java
 
         Configuration jenkinsServer =
@@ -432,7 +434,7 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
                         it.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
                                 project.objects.named(LibraryElements, JPI))
                         it.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE,
-                                javaConvention.targetCompatibility.majorVersion.toInteger())
+                                javaPluginExtension.targetCompatibility.majorVersion.toInteger())
                     }
                     runtimeElements.outgoing.capabilities.each {
                         runtimeElementsJenkins.outgoing.capability(it)

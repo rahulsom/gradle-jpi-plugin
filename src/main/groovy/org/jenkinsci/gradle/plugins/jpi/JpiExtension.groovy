@@ -21,7 +21,7 @@ import groovy.transform.CompileStatic
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.model.ReplacedBy
-import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.plugins.quality.Checkstyle
 import org.gradle.api.plugins.quality.CheckstyleExtension
 import org.gradle.api.plugins.quality.CheckstylePlugin
@@ -460,7 +460,7 @@ class JpiExtension implements JpiExtensionBridge {
      */
     @Deprecated
     SourceSet mainSourceTree() {
-        project.convention.getPlugin(JavaPluginConvention).sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME)
+        project.extensions.getByType(JavaPluginExtension).sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME)
     }
 
     /**
@@ -468,7 +468,7 @@ class JpiExtension implements JpiExtensionBridge {
      */
     @Deprecated
     SourceSet testSourceTree() {
-        project.convention.getPlugin(JavaPluginConvention).sourceSets.getByName(SourceSet.TEST_SOURCE_SET_NAME)
+        project.extensions.getByType(JavaPluginExtension).sourceSets.getByName(SourceSet.TEST_SOURCE_SET_NAME)
     }
 
     @Override

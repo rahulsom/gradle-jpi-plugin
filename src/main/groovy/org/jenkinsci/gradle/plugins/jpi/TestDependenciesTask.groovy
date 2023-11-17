@@ -1,7 +1,7 @@
 package org.jenkinsci.gradle.plugins.jpi
 
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Copy
 
@@ -22,8 +22,8 @@ class TestDependenciesTask extends Copy {
         include('*.jpi')
 
         into {
-            JavaPluginConvention javaConvention = project.convention.getPlugin(JavaPluginConvention)
-            new File(javaConvention.sourceSets.test.output.resourcesDir, 'test-dependencies')
+            JavaPluginExtension javaPluginExtension = project.extensions.getByType(JavaPluginExtension)
+            new File(javaPluginExtension.sourceSets.test.output.resourcesDir, 'test-dependencies')
         }
 
         rename { mapping[it] }

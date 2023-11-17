@@ -15,6 +15,8 @@
  */
 package org.jenkinsci.gradle.plugins.jpi
 
+import org.gradle.internal.deprecation.DeprecationLogger
+
 import java.util.jar.JarFile
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
@@ -94,7 +96,10 @@ class ServerTask extends DefaultTask {
         // copy the resolved HPI/JPI files to the plugins directory
         def workDir = project.extensions.getByType(JpiExtension).workDir
         artifacts.findAll { it.extension in ['hpi', 'jpi'] }.each {
-            GFileUtils.copyFile(it.file, new File(workDir, "plugins/${it.name}.${it.extension}"))
+            // Disable the deprecation since this artifact is already deprecated anyway
+            DeprecationLogger.whileDisabled {
+                GFileUtils.copyFile(it.file, new File(workDir, "plugins/${it.name}.${it.extension}"))
+            }
         }
     }
 
