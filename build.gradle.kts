@@ -124,7 +124,10 @@ publishing {
 }
 
 signing {
-    useGpgCmd()
+    val signingKeyId: String? by project
+    val signingKey: String? by project
+    val signingPassword: String? by project
+    useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
     setRequired { setOf("jenkins.username", "jenkins.password").all { project.hasProperty(it) } }
 }
 
