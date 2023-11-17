@@ -23,7 +23,9 @@ Plugins not hosted by the Jenkins infra team (internal-only plugins) are not imp
 
 ## Compatibility with Gradle versions
 
-The latest version of the JPI plugin requires **Gradle 6.3 or later** to make use of advanced dependency management features.
+The latest version of the JPI plugin requires **Gradle 7.1 or later** to make use of modern Gradle APIs.
+
+For Gradle versions 6.3-6.9.x, please use version `0.50.0` of the JPI plugin.
 
 For Gradle versions 6.0-6.2.1, please use version `0.46.0` of the JPI plugin.
 
