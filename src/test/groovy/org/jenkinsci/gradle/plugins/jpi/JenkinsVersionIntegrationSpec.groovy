@@ -1,6 +1,7 @@
 package org.jenkinsci.gradle.plugins.jpi
 
 import org.gradle.testkit.runner.TaskOutcome
+import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -42,6 +43,7 @@ class JenkinsVersionIntegrationSpec extends IntegrationSpec {
 
     @Unroll
     @Issue('JENKINS-26331')
+    @Ignore('Sunset: workaround last applied to version released in 2014')
     def 'should handle target directory creation for #version'(String version, boolean targetShouldExist) {
         given:
         build << """

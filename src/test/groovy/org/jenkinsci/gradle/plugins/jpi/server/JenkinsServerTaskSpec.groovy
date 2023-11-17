@@ -56,7 +56,6 @@ class JenkinsServerTaskSpec extends IntegrationSpec {
 
         where:
         jenkinsVersion | additionalPlugin
-        '1.580.1'      | ''
         '2.64'         | ''
         '2.64'         | "id 'org.jetbrains.kotlin.jvm' version '1.6.10'"
     }
