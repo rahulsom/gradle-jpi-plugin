@@ -34,6 +34,7 @@ import org.gradle.api.attributes.java.TargetJvmVersion
 import org.gradle.api.component.AdhocComponentWithVariants
 import org.gradle.api.execution.TaskExecutionGraph
 import org.gradle.api.plugins.BasePlugin
+import org.gradle.api.plugins.BasePluginExtension
 import org.gradle.api.plugins.GroovyPlugin
 import org.gradle.api.plugins.JavaLibraryPlugin
 import org.gradle.api.plugins.JavaPlugin
@@ -242,9 +243,7 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
         configurePublishing(gradleProject)
         configureTestHpl(gradleProject)
         configureGenerateGitVersion(gradleProject)
-        gradleProject.afterEvaluate {
-            gradleProject.setProperty('archivesBaseName', ext.shortName)
-        }
+        gradleProject.extensions.getByType(BasePluginExtension).archivesName.set(ext.pluginId)
     }
 
     @SuppressWarnings('ClassForName')
