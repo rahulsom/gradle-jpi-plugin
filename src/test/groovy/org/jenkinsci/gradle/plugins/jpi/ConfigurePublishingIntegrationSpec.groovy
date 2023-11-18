@@ -217,18 +217,12 @@ class ConfigurePublishingIntegrationSpec extends IntegrationSpec {
             }
             version = '$version'
             """.stripIndent()
-        def expected = ['mavenJpi': [
-                'groupId'     : '',
-                'artifactId'  : projectName,
-                'version'     : version,
-                'pomPackaging': 'hpi',
-                'artifacts'   : [
-                        ['classifier': null, 'extension': 'jar', 'file': inBuildLibs("${projectName}-${version}.jar")],
-                        ['classifier': null, 'extension': 'hpi', 'file': inBuildLibs("${projectName}.hpi")],
-                        ['classifier': 'sources', 'extension': 'jar', 'file': inBuildLibs("${projectName}-${version}-sources.jar")],
-                        ['classifier': 'javadoc', 'extension': 'jar', 'file': inBuildLibs("${projectName}-${version}-javadoc.jar")],
-                ]
-        ]]
+        def expectedArtifacts = [
+                ['classifier': null, 'extension': 'jar', 'file': inBuildLibs("${projectName}-${version}.jar")],
+                ['classifier': null, 'extension': 'hpi', 'file': inBuildLibs("${projectName}.hpi")],
+                ['classifier': 'sources', 'extension': 'jar', 'file': inBuildLibs("${projectName}-${version}-sources.jar")],
+                ['classifier': 'javadoc', 'extension': 'jar', 'file': inBuildLibs("${projectName}-${version}-javadoc.jar")],
+        ] as Set
 
         when:
         def result = gradleRunner()
@@ -237,7 +231,11 @@ class ConfigurePublishingIntegrationSpec extends IntegrationSpec {
         def actual = deserializePublicationsFrom(result)
 
         then:
-        actual == expected
+        actual['mavenJpi']['groupId'].isEmpty()
+        actual['mavenJpi']['artifactId'] as String == projectName
+        actual['mavenJpi']['version'] as String == version
+        actual['mavenJpi']['pomPackaging'] as String == 'hpi'
+        actual['mavenJpi']['artifacts'] as Set == expectedArtifacts
 
         where:
         declaration << [null, 'configurePublishing = true']
