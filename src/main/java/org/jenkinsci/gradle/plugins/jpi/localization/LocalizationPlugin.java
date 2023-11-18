@@ -6,11 +6,10 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.BasePlugin;
-import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskContainer;
@@ -26,8 +25,8 @@ public class LocalizationPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project target) {
-        JavaPluginConvention javaConvention = target.getConvention().getPlugin(JavaPluginConvention.class);
-        SourceSetContainer sourceSets = javaConvention.getSourceSets();
+        JavaPluginExtension ext = target.getExtensions().getByType(JavaPluginExtension.class);
+        SourceSetContainer sourceSets = ext.getSourceSets();
         SourceSet main = sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME);
         SourceDirectorySet mainResources = main.getResources();
         TaskContainer tasks = target.getTasks();
