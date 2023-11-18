@@ -40,6 +40,14 @@ class IntegrationSpec extends Specification {
         gradleVersionForTest < GradleVersion.version('6.6')
     }
 
+    static boolean isBeforeJavaConventionDeprecation() {
+        gradleVersionForTest < GradleVersion.version('8.2')
+    }
+
+    static boolean isAfterJavaConventionDeprecation() {
+        !isBeforeJavaConventionDeprecation()
+    }
+
     static boolean isWindows() {
         System.getProperty('os.name').toLowerCase().contains('windows')
     }

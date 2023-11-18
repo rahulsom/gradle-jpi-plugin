@@ -3,6 +3,7 @@ package org.jenkinsci.gradle.plugins.jpi
 import groovy.transform.CompileStatic
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.TaskOutcome
+import spock.lang.Requires
 import spock.lang.Unroll
 
 import java.util.jar.JarInputStream
@@ -190,10 +191,56 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
         actual['Compatible-Since-Version'] == expected
     }
 
-    def 'should populate Minimum-Java-Version from targetCompatibility (case: #input)'(String input, String expected) {
+    @Requires({ isBeforeJavaConventionDeprecation() })
+    def 'should populate Minimum-Java-Version from convention targetCompatibility (case: #input)'(String input, String expected) {
         given:
         build << """\
             targetCompatibility = $input
+            jenkinsPlugin {
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+            }
+            """.stripIndent()
+
+        expect:
+        def actual = generateManifestThroughGradle()
+        actual['Minimum-Java-Version'] == expected
+
+        where:
+        input                     | expected
+        '\'1.8\''                 | '1.8'
+        'JavaVersion.VERSION_1_8' | '1.8'
+        '\'11\''                  | '11'
+        'JavaVersion.VERSION_11'  | '11'
+    }
+
+    @Requires({ isAfterJavaConventionDeprecation() })
+    def 'should populate Minimum-Java-Version from convention targetCompatibility allowed warnings (case: #input)'(String input, String expected) {
+        given:
+        build << """\
+            targetCompatibility = $input
+            jenkinsPlugin {
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+            }
+            """.stripIndent()
+
+        expect:
+        def actual = generateManifestThroughGradleAllowingWarnings()
+        actual['Minimum-Java-Version'] == expected
+
+        where:
+        input                     | expected
+        '\'1.8\''                 | '1.8'
+        'JavaVersion.VERSION_1_8' | '1.8'
+        '\'11\''                  | '11'
+        'JavaVersion.VERSION_11'  | '11'
+    }
+
+    def 'should populate Minimum-Java-Version from targetCompatibility (case: #input)'(String input, String expected) {
+        given:
+        build << """\
+            java {
+                targetCompatibility = $input
+            }
             jenkinsPlugin {
                 jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
             }
@@ -572,12 +619,12 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
     }
 
     @CompileStatic
-    BuildResult runTask(String overrideVersion = projectVersion) {
+    BuildResult runTask(String overrideVersion = projectVersion, WarningMode warningMode = WarningMode.FAIL) {
         List<String> args = ['-s', taskToRun()]
         if (overrideVersion) {
             args.add('-Pversion=' + overrideVersion)
         }
-        gradleRunner()
+        gradleRunner(warningMode)
                 .withArguments(args)
                 .build()
     }
@@ -594,6 +641,17 @@ abstract class AbstractManifestIntegrationSpec extends IntegrationSpec {
                 fileName = fileName.replace(projectVersion, overrideVersion)
             }
         }
+        def producedJar = "build/libs/${fileName}"
+        new JarInputStream(inProjectDir(producedJar).newInputStream())
+                .manifest
+                .mainAttributes
+                .collectEntries { [(it.key.toString()): it.value.toString()] } as Map<String, String>
+    }
+
+    @CompileStatic
+    Map<String, String> generateManifestThroughGradleAllowingWarnings() {
+        runTask(projectVersion, WarningMode.ALL)
+        String fileName = generatedFileName()
         def producedJar = "build/libs/${fileName}"
         new JarInputStream(inProjectDir(producedJar).newInputStream())
                 .manifest
