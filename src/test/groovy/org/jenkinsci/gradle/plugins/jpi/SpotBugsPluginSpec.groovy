@@ -31,7 +31,7 @@ class SpotBugsPluginSpec extends IntegrationSpec {
         }""".stripIndent()
 
         when:
-        def result = gradleRunner()
+        def result = gradleRunner(WarningMode.ALL) // spotbugs plugin 5.x uses deprecated org.gradle.util.ClosureBackedAction
             .withArguments('build')
             .build()
 
@@ -50,7 +50,7 @@ class SpotBugsPluginSpec extends IntegrationSpec {
             }""".stripIndent()
 
         when:
-        def result = gradleRunner()
+        def result = gradleRunner(WarningMode.ALL) // spotbugs plugin 5.x uses deprecated org.gradle.util.ClosureBackedAction
             .withArguments('build')
             .build()
 
@@ -81,7 +81,7 @@ class SpotBugsPluginSpec extends IntegrationSpec {
             """.stripIndent()
 
         when:
-        def result = gradleRunner()
+        def result = gradleRunner(WarningMode.ALL) // spotbugs plugin 5.x uses deprecated org.gradle.util.ClosureBackedAction
             .withArguments('build')
             .build()
 

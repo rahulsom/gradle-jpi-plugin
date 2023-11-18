@@ -13,11 +13,11 @@ class IntegrationSpec extends Specification {
     @TempDir
     protected File projectDir
 
-    protected GradleRunner gradleRunner() {
+    protected GradleRunner gradleRunner(WarningMode warningMode = WarningMode.FAIL) {
         def gradleProperties = inProjectDir('gradle.properties')
         if (!existsRelativeToProjectDir('gradle.properties')) {
             def props = new Properties()
-            props.setProperty('org.gradle.warning.mode', 'fail')
+            props.setProperty('org.gradle.warning.mode', warningMode.name().toLowerCase(Locale.US))
             gradleProperties.withOutputStream {
                 props.store(it, 'IntegrationSpec default generated values')
             }
