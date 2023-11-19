@@ -30,7 +30,7 @@ jobs:
         key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle.kts') }}
         restore-keys: ${{ runner.os }}-gradle 
     - name: Build
-      run: ./gradlew clean build testGradle7.4
+      run: ./gradlew clean build testGradle8.4
     - name: Archive Codenarc Report
       uses: actions/upload-artifact@v3
       if: ${{ always() }}
