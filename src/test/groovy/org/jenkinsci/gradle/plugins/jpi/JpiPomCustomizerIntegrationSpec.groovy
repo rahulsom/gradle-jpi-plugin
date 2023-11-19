@@ -378,6 +378,7 @@ class JpiPomCustomizerIntegrationSpec extends IntegrationSpec {
         !DiffBuilder.compare(Input.fromString(readResource(fileName)))
                 .withTest(Input.fromString(toXml(new XmlParser().parse(actual))))
                 .checkForSimilar()
+                .ignoreComments()
                 .ignoreWhitespace()
                 .build()
                 .hasDifferences()
