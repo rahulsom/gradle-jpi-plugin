@@ -33,16 +33,13 @@ java {
     }
 }
 
-val sezpoz = "net.java.sezpoz:sezpoz:1.13"
-val jgit = "org.eclipse.jgit:org.eclipse.jgit:5.13.1.202206130422-r"
-
 dependencies {
     compileOnly("org.kohsuke:access-modifier-checker:1.27")
-    annotationProcessor(sezpoz)
+    annotationProcessor(libs.sezpoz)
     implementation(gradleApi())
-    compileOnly(jgit)
-    testImplementation(jgit)
-    compileOnly("com.squareup:javapoet:1.13.0") {
+    compileOnly(libs.jgit)
+    testImplementation(libs.jgit)
+    compileOnly(libs.javapoet) {
         because("used for GenerateTestTask")
     }
     compileOnly("org.jenkins-ci.main:jenkins-test-harness:${stringProp("deps.jenkinsTestHarness")}") {
@@ -51,25 +48,25 @@ dependencies {
     }
     compileOnly("org.jvnet.localizer:maven-localizer-plugin:1.24")
     implementation("com.github.spotbugs.snom:spotbugs-gradle-plugin:5.0.13")
-    implementation(sezpoz)
+    implementation(libs.sezpoz)
     implementation(localGroovy())
-    testAnnotationProcessor(sezpoz)
-    testCompileOnly("junit:junit:4.13") {
+    testAnnotationProcessor(libs.sezpoz)
+    testCompileOnly(libs.junit4) {
         because("used for generated tests with javapoet")
     }
     testImplementation("org.spockframework:spock-core:2.1-groovy-3.0")
-    testImplementation("org.xmlunit:xmlunit-core:2.8.3")
-    testImplementation("org.apache.commons:commons-text:1.10.0")
-    testImplementation("com.squareup:javapoet:1.13.0")
+    testImplementation(libs.xmlunit)
+    testImplementation(libs.commons.text)
+    testImplementation(libs.javapoet)
     testImplementation("org.kohsuke:access-modifier-checker:1.27")
     testImplementation("org.jenkins-ci.main:jenkins-core:2.263.3") {
         exclude(module = "groovy-all")
     }
-    testImplementation(platform("org.junit:junit-bom:5.8.1"))
-    testImplementation("org.junit.jupiter:junit-jupiter-api")
-    testImplementation("org.assertj:assertj-core:3.21.0")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
-    testRuntimeOnly("org.junit.vintage:junit-vintage-engine")
+    testImplementation(platform(libs.junit5.bom))
+    testImplementation(libs.junit5.api)
+    testImplementation(libs.assertj.core)
+    testRuntimeOnly(libs.junit5.jupiter)
+    testRuntimeOnly(libs.junit5.vintage)
 }
 
 publishing {
