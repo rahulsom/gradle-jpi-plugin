@@ -3,6 +3,8 @@ package org.jenkinsci.gradle.plugins.jpi
 import groovy.json.JsonSlurper
 import org.xmlunit.builder.DiffBuilder
 import org.xmlunit.builder.Input
+import org.xmlunit.diff.DefaultNodeMatcher
+import org.xmlunit.diff.ElementSelectors
 
 class JpiPomCustomizerIntegrationSpec extends IntegrationSpec {
     private File settings
@@ -377,6 +379,7 @@ class JpiPomCustomizerIntegrationSpec extends IntegrationSpec {
     private static void compareXml(String fileName, File actual) {
         def diff = DiffBuilder.compare(Input.fromString(readResource(fileName)))
                 .withTest(Input.fromString(toXml(new XmlParser().parse(actual))))
+                .withNodeMatcher(new DefaultNodeMatcher(ElementSelectors.byNameAndText))
                 .checkForSimilar()
                 .ignoreComments()
                 .ignoreWhitespace()
