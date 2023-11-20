@@ -374,14 +374,14 @@ class JpiPomCustomizerIntegrationSpec extends IntegrationSpec {
         compareJson('compile-dependencies-with-excludes-module.json', actualModule())
     }
 
-    private static boolean compareXml(String fileName, File actual) {
-        !DiffBuilder.compare(Input.fromString(readResource(fileName)))
+    private static void compareXml(String fileName, File actual) {
+        def diff = DiffBuilder.compare(Input.fromString(readResource(fileName)))
                 .withTest(Input.fromString(toXml(new XmlParser().parse(actual))))
                 .checkForSimilar()
                 .ignoreComments()
                 .ignoreWhitespace()
                 .build()
-                .hasDifferences()
+        assert !diff.hasDifferences() : diff.fullDescription()
     }
 
     private static boolean compareJson(String fileName, File actual) {
