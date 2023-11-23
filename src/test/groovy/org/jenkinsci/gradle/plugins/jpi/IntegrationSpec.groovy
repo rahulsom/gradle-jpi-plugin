@@ -36,10 +36,6 @@ class IntegrationSpec extends Specification {
         System.getProperty('gradle.under.test')?.with { GradleVersion.version(delegate) } ?: GradleVersion.current()
     }
 
-    static boolean isBeforeConfigurationCache() {
-        gradleVersionForTest < GradleVersion.version('6.6')
-    }
-
     static boolean isBeforeJavaConventionDeprecation() {
         gradleVersionForTest < GradleVersion.version('8.2')
     }

@@ -5,7 +5,6 @@ import org.gradle.testkit.runner.TaskOutcome
 import org.jenkinsci.gradle.plugins.jpi.IntegrationSpec
 import org.jenkinsci.gradle.plugins.jpi.TestDataGenerator
 import org.jenkinsci.gradle.plugins.jpi.TestSupport
-import spock.lang.IgnoreIf
 import spock.lang.PendingFeature
 import spock.lang.Unroll
 
@@ -140,7 +139,6 @@ class CopyGeneratedJenkinsTestPluginDependenciesTaskIntegrationSpec extends Inte
         'testRuntimeOnly'    | [ANT_1_10]         | []                 | 'removed plugin'  | SUCCESS      | []
     }
 
-    @IgnoreIf({ isBeforeConfigurationCache() })
     def 'should work with configuration cache'() {
         given:
         def made = template.make([

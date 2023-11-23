@@ -9,7 +9,6 @@ import org.gradle.testkit.runner.TaskOutcome
 import org.jenkinsci.gradle.plugins.jpi.IntegrationSpec
 import org.jenkinsci.gradle.plugins.jpi.TestDataGenerator
 import org.jenkinsci.gradle.plugins.jpi.TestSupport
-import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
 import javax.lang.model.element.Modifier
@@ -165,7 +164,6 @@ class GenerateSupportDynamicLoadingManifestTaskIntegrationSpec extends Integrati
         actualManifest() == expected
     }
 
-    @IgnoreIf({ isBeforeConfigurationCache() })
     def 'should support configuration cache'() {
         given:
         def plugin = TypeSpec.classBuilder('TestPlugin')

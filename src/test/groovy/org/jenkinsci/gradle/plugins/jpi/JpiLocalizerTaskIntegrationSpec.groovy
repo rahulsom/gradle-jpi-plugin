@@ -1,7 +1,6 @@
 package org.jenkinsci.gradle.plugins.jpi
 
 import org.gradle.testkit.runner.TaskOutcome
-import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
 /**
@@ -56,7 +55,6 @@ class JpiLocalizerTaskIntegrationSpec extends IntegrationSpec {
         "'foo'" | 'foo'
     }
 
-    @IgnoreIf({ isBeforeConfigurationCache() })
     def 'should support configuration cache'() {
         given:
         touchInProjectDir('build.gradle') << """\

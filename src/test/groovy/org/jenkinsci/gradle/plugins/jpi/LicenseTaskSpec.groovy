@@ -3,7 +3,6 @@ package org.jenkinsci.gradle.plugins.jpi
 import org.gradle.testkit.runner.TaskOutcome
 import org.xmlunit.builder.DiffBuilder
 import org.xmlunit.builder.Input
-import spock.lang.IgnoreIf
 import spock.lang.PendingFeature
 import spock.lang.Unroll
 
@@ -35,7 +34,6 @@ class LicenseTaskSpec extends IntegrationSpec {
     }
 
     @PendingFeature
-    @IgnoreIf({ isBeforeConfigurationCache() })
     def 'support configuration cache'() {
         given:
         File projectFolder = mkDirInProjectDir('bar')

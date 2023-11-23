@@ -7,7 +7,6 @@ import org.gradle.testkit.runner.TaskOutcome
 import org.jenkinsci.gradle.plugins.jpi.IntegrationSpec
 import org.jenkinsci.gradle.plugins.jpi.TestDataGenerator
 import org.jenkinsci.gradle.plugins.jpi.TestSupport
-import spock.lang.IgnoreIf
 
 import java.nio.file.Path
 import java.util.jar.Manifest
@@ -137,7 +136,6 @@ class GeneratePluginClassManifestTaskIntegrationSpec extends IntegrationSpec {
         result.output.contains('Must not have more than 1 legacy hudson.Plugin subclass')
     }
 
-    @IgnoreIf({ isBeforeConfigurationCache() })
     def 'should support configuration cache'() {
         given:
         def plugin = TypeSpec.classBuilder('TestPlugin')

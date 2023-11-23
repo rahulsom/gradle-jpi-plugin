@@ -3,7 +3,6 @@ package org.jenkinsci.gradle.plugins.jpi.localization
 import org.gradle.testkit.runner.TaskOutcome
 import org.jenkinsci.gradle.plugins.jpi.IntegrationSpec
 import org.jenkinsci.gradle.plugins.jpi.TestSupport
-import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
 class LocalizationTaskIntegrationSpec extends IntegrationSpec {
@@ -81,7 +80,6 @@ class LocalizationTaskIntegrationSpec extends IntegrationSpec {
         "'foo'" | 'foo'
     }
 
-    @IgnoreIf({ isBeforeConfigurationCache() })
     def 'should support configuration cache'() {
         given:
         touchInProjectDir('build.gradle') << """\

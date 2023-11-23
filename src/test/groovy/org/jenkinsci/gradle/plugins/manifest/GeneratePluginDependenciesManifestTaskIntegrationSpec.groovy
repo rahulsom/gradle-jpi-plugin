@@ -147,7 +147,6 @@ class GeneratePluginDependenciesManifestTaskIntegrationSpec extends IntegrationS
     }
 
     @PendingFeature
-    @IgnoreIf({ isBeforeConfigurationCache() })
     def 'should support configuration cache'() {
         given:
         build.text = """\
