@@ -18,7 +18,6 @@ plugins {
     `java-gradle-plugin`
     id("com.github.sghill.distribution-sha") version "0.4.0"
 }
-plugins.apply(internal.DependenciesComparisonPlugin::class.java)
 
 repositories {
     maven {
