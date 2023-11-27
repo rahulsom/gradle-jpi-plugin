@@ -35,7 +35,8 @@ open class JpiTestingPlugin : Plugin<Project> {
             isCanBeResolved = true
         }
         val javapoet = target.dependencies.create("com.squareup:javapoet:1.13.0")
-        val jenkinsTestHarness = target.dependencies.create("org.jenkins-ci.main:jenkins-test-harness:1529.v4fd5bafdcd33")
+        val jenkinsTestHarness = target.dependencies.create("org.jenkins-ci.main:jenkins-test-harness:2112.ve584e0edc63b_")
+        val jaxBPlugin = target.dependencies.create("io.jenkins.plugins:jaxb:2.3.9-1")
         val jenkinsTestGeneration = target.configurations.create("jenkinsTestGeneration") {
             attributes {
                 attribute(Usage.USAGE_ATTRIBUTE, target.objects.named(Usage.JAVA_RUNTIME))
@@ -46,6 +47,7 @@ open class JpiTestingPlugin : Plugin<Project> {
             withDependencies {
                 add(javapoet)
                 add(jenkinsTestHarness)
+                add(jaxBPlugin)
             }
         }
         val generatedTestsDir = target.layout.buildDirectory.dir("inject-tests")

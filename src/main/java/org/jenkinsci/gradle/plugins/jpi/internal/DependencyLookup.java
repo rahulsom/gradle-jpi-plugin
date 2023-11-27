@@ -79,7 +79,7 @@ public class DependencyLookup {
     }
 
     private static DependencyFactory testHarnessFor(VersionNumber version) {
-        String testHarness = "org.jenkins-ci.main:jenkins-test-harness:1837.vb_6efb_1790942";
+        String testHarness = "org.jenkins-ci.main:jenkins-test-harness:2112.ve584e0edc63b_";
         if (version.isOlderThan(new VersionNumber("2.64"))) {
             testHarness = "org.jenkins-ci.main:jenkins-test-harness:2.0";
         }
