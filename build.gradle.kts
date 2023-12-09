@@ -61,7 +61,7 @@ dependencies {
     testImplementation(libs.commons.text)
     testImplementation(libs.javapoet)
     testImplementation(libs.accessmodifier.checker)
-    testImplementation("org.jenkins-ci.main:jenkins-core:2.263.3") {
+    testImplementation(libs.jenkins.core) {
         exclude(module = "groovy-all")
     }
     testImplementation(platform(libs.junit5.bom))

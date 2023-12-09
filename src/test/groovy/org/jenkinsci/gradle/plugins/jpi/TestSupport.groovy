@@ -15,7 +15,7 @@ class TestSupport {
     static final EMBEDDED_IVY_URL = "${System.getProperty('user.dir')}/src/test/repo"
             .replace('\\', '/')
 
-    static final RECENT_JENKINS_VERSION = '2.222.3'
+    static final RECENT_JENKINS_VERSION = '2.401.3'
 
     static final TypeSpec CALCULATOR_CLASS = TypeSpec.classBuilder('Calculator')
             .addModifiers(Modifier.PUBLIC)

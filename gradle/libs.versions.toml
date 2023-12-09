@@ -3,6 +3,7 @@ accessmodifier = "1.33"
 assertj = "3.21.0"
 commons-text = "1.10.0"
 javapoet = "1.13.0"
+jenkins = "2.401.3"
 jenkins-test-harness = "2112.ve584e0edc63b_"
 jgit = "5.13.1.202206130422-r"
 junit4 = "4.13"
@@ -16,6 +17,7 @@ accessmodifier-checker = { module = "org.kohsuke:access-modifier-checker", versi
 assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 commons-text = { module = "org.apache.commons:commons-text", version.ref = "commons-text" }
 javapoet = { module = "com.squareup:javapoet", version.ref = "javapoet" }
+jenkins-core = { module = "org.jenkins-ci.main:jenkins-core", version.ref = "jenkins" }
 jenkins-test-harness = { module = "org.jenkins-ci.main:jenkins-test-harness", version.ref = "jenkins-test-harness" }
 jgit = { module = "org.eclipse.jgit:org.eclipse.jgit", version.ref = "jgit" }
 junit4 = { module = "junit:junit", version.ref = "junit4" }
