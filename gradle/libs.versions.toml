@@ -1,22 +1,30 @@
 [versions]
+accessmodifier = "1.33"
 assertj = "3.21.0"
 commons-text = "1.10.0"
 javapoet = "1.13.0"
+jenkins = "2.401.3"
+jenkins-test-harness = "2112.ve584e0edc63b_"
 jgit = "5.13.1.202206130422-r"
 junit4 = "4.13"
 junit5 = "5.8.1"
+localizer = "1.31"
 sezpoz = "1.13"
 xmlunit = "2.8.3"
 
 [libraries]
+accessmodifier-checker = { module = "org.kohsuke:access-modifier-checker", version.ref = "accessmodifier" }
 assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 commons-text = { module = "org.apache.commons:commons-text", version.ref = "commons-text" }
 javapoet = { module = "com.squareup:javapoet", version.ref = "javapoet" }
+jenkins-core = { module = "org.jenkins-ci.main:jenkins-core", version.ref = "jenkins" }
+jenkins-test-harness = { module = "org.jenkins-ci.main:jenkins-test-harness", version.ref = "jenkins-test-harness" }
 jgit = { module = "org.eclipse.jgit:org.eclipse.jgit", version.ref = "jgit" }
 junit4 = { module = "junit:junit", version.ref = "junit4" }
 junit5-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit5" }
 junit5-bom = { module = "org.junit:junit-bom", version.ref = "junit5" }
 junit5-jupiter = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit5" }
 junit5-vintage = { module = "org.junit.vintage:junit-vintage-engine", version.ref = "junit5" }
+localizer-maven = { module = "org.jvnet.localizer:localizer-maven-plugin", version.ref = "localizer" }
 sezpoz = { module = "net.java.sezpoz:sezpoz", version.ref = "sezpoz" }
 xmlunit = { module = "org.xmlunit:xmlunit-core", version.ref = "xmlunit" }

@@ -32,7 +32,7 @@ public class LocalizationPlugin implements Plugin<Project> {
         TaskContainer tasks = target.getTasks();
         ObjectFactory objects = target.getObjects();
 
-        Dependency localizer = target.getDependencies().create("org.jvnet.localizer:maven-localizer-plugin:1.24");
+        Dependency localizer = target.getDependencies().create("org.jvnet.localizer:localizer-maven-plugin:1.31");
         Configuration localizeMessagesRuntimeClasspath = target.getConfigurations().create(CONFIGURATION_NAME, c -> {
             c.attributes(container -> container.attribute(USAGE_ATTRIBUTE, objects.named(Usage.class, JAVA_RUNTIME)));
             c.setVisible(false);

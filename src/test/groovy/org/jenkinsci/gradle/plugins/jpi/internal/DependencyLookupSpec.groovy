@@ -11,7 +11,7 @@ class DependencyLookupSpec extends Specification {
     private static final MavenDependency GOOGLE_FINDBUGS = new MavenDependency('com.google.code.findbugs:annotations:3.0.0')
     private static final MavenDependency FINDBUGS_1 = new MavenDependency('findbugs:annotations:1.0.0')
     private static final MavenDependency SPOTBUGS = new MavenDependency('com.github.spotbugs:spotbugs-annotations')
-    private static final MavenDependency JENKINS_TEST_HARNESS = jenkinsTestHarness('1837.vb_6efb_1790942')
+    private static final MavenDependency JENKINS_TEST_HARNESS = jenkinsTestHarness('2112.ve584e0edc63b_')
     private final DependencyLookup lookup = new DependencyLookup()
 
     @Unroll

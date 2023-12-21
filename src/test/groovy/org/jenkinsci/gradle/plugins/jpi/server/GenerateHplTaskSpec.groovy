@@ -36,7 +36,7 @@ abstract class GenerateHplTaskSpec extends IntegrationSpec {
                 'Resource-Path'          : realProjectDir.resolve('src/main/webapp').toString(),
                 'Libraries'              : '',
                 'Plugin-Version'         : '6.0.13',
-                'Jenkins-Version'        : '2.222.3',
+                'Jenkins-Version'        : '2.401.3',
                 'Extension-Name'         : 'strawberry',
                 'Manifest-Version'       : '1.0',
                 'Short-Name'             : 'strawberry',

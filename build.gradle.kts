@@ -28,12 +28,12 @@ repositories {
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(8))
+        languageVersion.set(JavaLanguageVersion.of(11))
     }
 }
 
 dependencies {
-    compileOnly("org.kohsuke:access-modifier-checker:1.27")
+    compileOnly(libs.accessmodifier.checker)
     annotationProcessor(libs.sezpoz)
     implementation(gradleApi())
     compileOnly(libs.jgit)
@@ -41,11 +41,14 @@ dependencies {
     compileOnly(libs.javapoet) {
         because("used for GenerateTestTask")
     }
-    compileOnly("org.jenkins-ci.main:jenkins-test-harness:${stringProp("deps.jenkinsTestHarness")}") {
+    compileOnly(libs.jenkins.test.harness) {
         because("used for GenerateTestTask")
         isTransitive = false
     }
-    compileOnly("org.jvnet.localizer:maven-localizer-plugin:1.24")
+    compileOnly(libs.junit4) {
+        because("used for GenerateTest")
+    }
+    compileOnly(libs.localizer.maven)
     implementation("com.github.spotbugs.snom:spotbugs-gradle-plugin:5.0.13")
     implementation(libs.sezpoz)
     implementation(localGroovy())
@@ -57,8 +60,8 @@ dependencies {
     testImplementation(libs.xmlunit)
     testImplementation(libs.commons.text)
     testImplementation(libs.javapoet)
-    testImplementation("org.kohsuke:access-modifier-checker:1.27")
-    testImplementation("org.jenkins-ci.main:jenkins-core:2.263.3") {
+    testImplementation(libs.accessmodifier.checker)
+    testImplementation(libs.jenkins.core) {
         exclude(module = "groovy-all")
     }
     testImplementation(platform(libs.junit5.bom))
@@ -131,7 +134,7 @@ tasks.addRule("Pattern: testGradle<ID>") {
     val taskName = this
     if (!taskName.startsWith("testGradle")) return@addRule
     val task = tasks.register(taskName)
-    for (javaVersion in listOf(8, 11)) {
+    for (javaVersion in listOf(11)) {
         val javaSpecificTask = tasks.register<Test>("${taskName}onJava${javaVersion}") {
             val gradleVersion = taskName.substringAfter("testGradle")
             systemProperty("gradle.under.test", gradleVersion)
@@ -144,17 +147,6 @@ tasks.addRule("Pattern: testGradle<ID>") {
             dependsOn(javaSpecificTask)
         }
     }
-}
-
-val integrationTestOnJava11 = tasks.register<Test>("integrationTestOnJava11") {
-    systemProperty("gradle.under.test", "7.5.1")
-    setTestNameIncludePatterns(listOf("*IntegrationSpec"))
-    javaLauncher.set(javaToolchains.launcherFor {
-        languageVersion.set(JavaLanguageVersion.of(11))
-    })
-}
-tasks.check {
-    dependsOn(integrationTestOnJava11)
 }
 
 tasks.withType<Test>().configureEach {
