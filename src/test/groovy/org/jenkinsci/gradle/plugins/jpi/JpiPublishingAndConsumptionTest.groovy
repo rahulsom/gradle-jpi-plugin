@@ -177,6 +177,7 @@ class JpiPublishingAndConsumptionTest extends IntegrationSpec {
                 'display-url-api-0.2.hpi',
                 'junit-1.3.hpi',
                 'script-security-1.13.hpi',
+                'jenkins-war-1.580.1.war',
         ] as Set
     }
 
@@ -219,7 +220,9 @@ class JpiPublishingAndConsumptionTest extends IntegrationSpec {
         resolveConsumer('jenkinsRuntime') == [ 'producer-1.0.hpi', 'ant-1.2.hpi' ] as Set
         resolveConsumer('jenkinsTestRuntime') == [
                 'producer-1.0.hpi',
-                'ant-1.2.hpi' ] as Set
+                'ant-1.2.hpi',
+                'jenkins-war-1.580.1.war',
+        ] as Set
 
         when:
         consumerBuild << """
@@ -246,7 +249,9 @@ class JpiPublishingAndConsumptionTest extends IntegrationSpec {
         resolveConsumer('jenkinsTestRuntime') ==
                 [ 'producer-1.0.hpi',
                   'ant-1.2.hpi',
-                  'credentials-1.9.4.hpi' ] as Set
+                  'credentials-1.9.4.hpi',
+                  'jenkins-war-1.580.1.war',
+                ] as Set
 
         manifestEntry('consumer', 'Plugin-Dependencies') ==
                 'producer:1.0,credentials:1.9.4'
@@ -281,7 +286,7 @@ class JpiPublishingAndConsumptionTest extends IntegrationSpec {
         resolveConsumer('compile') == JENKINS_CORE_DEPS + [ 'producer-1.0.jar' ] as Set
         resolveConsumer('runtime') == [ 'producer-1.0.jar' ] as Set
         resolveConsumer('jenkinsRuntime') == [ 'producer-1.0.hpi' ] as Set
-        resolveConsumer('jenkinsTestRuntime') == [ 'producer-1.0.hpi' ] as Set
+        resolveConsumer('jenkinsTestRuntime') == [ 'producer-1.0.hpi', 'jenkins-war-1.580.1.war' ] as Set
     }
 
     private void publishProducer() {
