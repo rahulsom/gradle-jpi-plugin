@@ -28,9 +28,9 @@ jobs:
         cache: "gradle"
     - name: Test ${{ matrix.gradle_version }}
       run: ./gradlew testGradle${{ matrix.gradle_version }}
-    - name: Archive Test Results
+    - name: Archive Test Results on Failure
       uses: actions/upload-artifact@v4
-      if: ${{ always() }}
+      if: ${{ failure() }}
       with:
-        name: test-results
+        name: ${{ matrix.os }}-${{ matrix.gradle_version }}-test-results
         path: build/reports/tests
