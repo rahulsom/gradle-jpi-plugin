@@ -142,6 +142,7 @@ class TestTaskIntegrationSpec extends IntegrationSpec {
                 implementation 'org.jenkins-ci.plugins:gradle:1.35'
                 implementation 'org.jenkins-ci.plugins:junit:1.20'
                 runtimeOnly 'io.jenkins.plugins:javax-mail-api:1.6.2-10'
+                runtimeOnly 'org.jenkins-ci.plugins:script-security:1172.v35f6a_0b_8207e'
             }
             """.stripIndent()
         def srcTestJava = inProjectDir('src/test/java')
