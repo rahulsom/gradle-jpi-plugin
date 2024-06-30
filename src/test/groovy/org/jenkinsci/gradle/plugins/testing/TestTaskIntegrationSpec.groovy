@@ -55,11 +55,13 @@ class TestTaskIntegrationSpec extends IntegrationSpec {
 
         when:
         def result = gradleRunner()
-                .withArguments(taskPath, '-s')
+                .withArguments(taskPath, '-is')
                 .build()
 
         then:
         result.task(taskPath).outcome == TaskOutcome.NO_SOURCE
+        !result.output.contains('java.lang.ClassNotFoundException')
+        !result.output.contains('No SLF4J providers were found.')
     }
 
     def 'should work out of the box with JenkinsRule'() {
@@ -122,6 +124,8 @@ class TestTaskIntegrationSpec extends IntegrationSpec {
 
         then:
         result.task(taskPath).outcome == TaskOutcome.SUCCESS
+        !result.output.contains('java.lang.ClassNotFoundException')
+        !result.output.contains('No SLF4J providers were found.')
     }
 
     def 'should be installed by default'() {
@@ -137,6 +141,7 @@ class TestTaskIntegrationSpec extends IntegrationSpec {
             dependencies {
                 implementation 'org.jenkins-ci.plugins:gradle:1.35'
                 implementation 'org.jenkins-ci.plugins:junit:1.20'
+                runtimeOnly 'io.jenkins.plugins:javax-mail-api:1.6.2-10'
             }
             """.stripIndent()
         def srcTestJava = inProjectDir('src/test/java')
@@ -171,10 +176,12 @@ class TestTaskIntegrationSpec extends IntegrationSpec {
 
         when:
         def result = gradleRunner()
-                .withArguments(taskPath, '-s')
+                .withArguments(taskPath, '-is')
                 .build()
 
         then:
         result.task(taskPath).outcome == TaskOutcome.SUCCESS
+        !result.output.contains('java.lang.ClassNotFoundException')
+        !result.output.contains('No SLF4J providers were found.')
     }
 }
