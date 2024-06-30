@@ -45,7 +45,7 @@ public class DependencyLookup {
                 deps.add(testHarness);
                 return deps;
             case "declaredJenkinsWar":
-                deps.add(new MavenDependency("org.jenkins-ci.main:jenkins-war:" + jenkinsVersion + "@war"));
+                deps.add(new MavenDependency("org.jenkins-ci.main:jenkins-war:" + jenkinsVersion));
                 return deps;
         }
         return deps;

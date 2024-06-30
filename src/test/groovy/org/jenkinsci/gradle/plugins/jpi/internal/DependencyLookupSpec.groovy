@@ -92,7 +92,7 @@ class DependencyLookupSpec extends Specification {
 
         then:
         actual == ([
-                new MavenDependency("org.jenkins-ci.main:jenkins-war:${version}@war"),
+                new MavenDependency("org.jenkins-ci.main:jenkins-war:${version}"),
         ] as Set)
 
         where:
