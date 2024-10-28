@@ -234,6 +234,10 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
             groovyOptions.javaAnnotationProcessing = true
         }
 
+        gradleProject.tasks.withType(JavaCompile).configureEach {
+            it.options.compilerArgs << '-parameters'
+        }
+
         gradleProject.plugins.apply(DependenciesPlugin)
         configureRepositories(gradleProject)
         configureJpi(gradleProject, current >= GradleVersion.version('6.6'))
