@@ -659,4 +659,27 @@ class JpiIntegrationSpec extends IntegrationSpec {
         "'https://maven.example.org/'" | 'https://maven.example.org/'
     }
 
+    def 'should configure Java compile task'() {
+        given:
+        build << """\
+            jenkinsPlugin {
+                jenkinsVersion = '${TestSupport.RECENT_JENKINS_VERSION}'
+            }
+            tasks.withType(JavaCompile).configureEach {
+                doLast {
+                    println "compiler args=\${it.options.compilerArgs}"
+                }
+            }
+            """.stripIndent()
+        TestSupport.CALCULATOR.writeTo(inProjectDir('src/main/java'))
+
+        when:
+        def result = gradleRunner()
+            .withArguments('jpi', '-q')
+            .build()
+
+        then:
+        result.output.contains('compiler args=[-Asezpoz.quiet=true, -parameters]')
+    }
+
 }
