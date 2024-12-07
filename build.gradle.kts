@@ -18,6 +18,7 @@ plugins {
     id("com.gradle.plugin-publish") version "1.2.0"
     `java-gradle-plugin`
     id("com.github.sghill.distribution-sha") version "0.4.0"
+    id("nebula.release") version "19.0.10"
 }
 
 repositories {
@@ -215,3 +216,20 @@ tasks.register("shadeLatestVersionNumber") {
         }
     }
 }
+
+val checkPhase = tasks.named("check")
+val publishToJenkins = tasks.named("publishPluginMavenPublicationToJenkinsCommunityRepository")
+publishToJenkins.configure {
+    dependsOn(checkPhase)
+}
+val publishToGradle = tasks.named("publishPlugins")
+publishToGradle.configure {
+    dependsOn(checkPhase)
+}
+
+tasks.named("postRelease").configure {
+    dependsOn(publishToJenkins, publishToGradle)
+}
+
+
+
