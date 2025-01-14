@@ -6,6 +6,7 @@ import spock.lang.Unroll
 
 class DependencyLookupSpec extends Specification {
     private static final MavenDependency JCIP_ANNOTATIONS = new MavenDependency('net.jcip:jcip-annotations:1.0')
+    private static final MavenDependency SERVLET_5_0 = new MavenDependency('jakarta.servlet:jakarta.servlet-api:5.0.0')
     private static final MavenDependency SERVLET_3_1 = new MavenDependency('javax.servlet:javax.servlet-api:3.1.0')
     private static final MavenDependency SERVLET_2_4 = new MavenDependency('javax.servlet:servlet-api:2.4')
     private static final MavenDependency GOOGLE_FINDBUGS = new MavenDependency('com.google.code.findbugs:annotations:3.0.0')
@@ -28,6 +29,8 @@ class DependencyLookupSpec extends Specification {
         '2.222.3'                       | [jenkinsBom('2.222.3'), jenkinsCore('2.222.3'), SERVLET_3_1] as Set
         '2.361.2-rc32710.c1a_5e8c179f6' | [jenkinsBom('2.361.2-rc32710.c1a_5e8c179f6'), jenkinsCore('2.361.2-rc32710.c1a_5e8c179f6'), SERVLET_3_1] as Set
         '2.369-rc32854.076293e36922'    | [jenkinsBom('2.369-rc32854.076293e36922'), jenkinsCore('2.369-rc32854.076293e36922'), SERVLET_3_1] as Set
+        '2.475'                         | [jenkinsBom('2.475'), jenkinsCore('2.475'), SERVLET_5_0] as Set
+        '2.479.2'                       | [jenkinsBom('2.479.2'), jenkinsCore('2.479.2'), SERVLET_5_0] as Set
     }
 
     @Unroll

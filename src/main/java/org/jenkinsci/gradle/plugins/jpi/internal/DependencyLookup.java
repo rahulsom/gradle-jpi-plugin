@@ -73,9 +73,13 @@ public class DependencyLookup {
     }
 
     private static DependencyFactory servletFor(VersionNumber version) {
-        boolean isBefore2 = version.isOlderThan(new VersionNumber("2.0"));
-        String notation = isBefore2 ? "javax.servlet:servlet-api:2.4" : "javax.servlet:javax.servlet-api:3.1.0";
-        return new MavenDependency(notation);
+        if (version.isOlderThan(new VersionNumber("2.0"))) {
+            return new MavenDependency("javax.servlet:servlet-api:2.4");
+        } else if (version.isOlderThan(new VersionNumber("2.475"))) {
+            return new MavenDependency("javax.servlet:javax.servlet-api:3.1.0");
+        } else {
+            return new MavenDependency("jakarta.servlet:jakarta.servlet-api:5.0.0");
+        }
     }
 
     private static DependencyFactory testHarnessFor(VersionNumber version) {
