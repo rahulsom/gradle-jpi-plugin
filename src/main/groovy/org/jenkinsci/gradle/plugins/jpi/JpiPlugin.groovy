@@ -129,10 +129,10 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
 
         gradleProject.plugins.apply(JavaLibraryPlugin)
         gradleProject.plugins.apply(GroovyPlugin)
-        gradleProject.plugins.apply(Jdk17Plugin)
         gradleProject.plugins.apply(kotlinPlugin('org.jenkinsci.gradle.plugins.accmod.AccessModifierPlugin'))
         gradleProject.plugins.apply(kotlinPlugin('org.jenkinsci.gradle.plugins.manifest.JenkinsManifestPlugin'))
         gradleProject.plugins.apply(kotlinPlugin('org.jenkinsci.gradle.plugins.testing.JpiTestingPlugin'))
+        gradleProject.plugins.apply(Jdk17Plugin)
 
         gradleProject.plugins.apply(LegacyWorkaroundsPlugin)
         gradleProject.plugins.apply(LocalizationPlugin)
