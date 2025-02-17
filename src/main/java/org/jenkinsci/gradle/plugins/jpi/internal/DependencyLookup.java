@@ -59,6 +59,7 @@ public class DependencyLookup {
         configurations.add("annotationProcessor");
         configurations.add("compileOnly");
         configurations.add("declaredJenkinsWar");
+        configurations.add("testAnnotationProcessor");
         configurations.add("testCompileOnly");
         configurations.add("testImplementation");
         configurations.add("generatedJenkinsTestImplementation");
