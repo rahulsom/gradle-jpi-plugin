@@ -13,11 +13,12 @@ class LicenseTaskSpec extends IntegrationSpec {
         given:
         File projectFolder = mkDirInProjectDir('bar')
         new File(projectFolder, 'build.gradle') << getClass().getResource(buildFile).text
+        def embeddedRepo = EmbeddedRepoBuilder.makeEmbeddedRepo()
 
         when:
         def result = gradleRunner()
                 .withProjectDir(projectFolder)
-                .withArguments('generateLicenseInfo', "-PembeddedIvyUrl=${TestSupport.EMBEDDED_IVY_URL}")
+                .withArguments('generateLicenseInfo', "-PembeddedIvyUrl=${embeddedRepo}")
                 .build()
 
         then:
