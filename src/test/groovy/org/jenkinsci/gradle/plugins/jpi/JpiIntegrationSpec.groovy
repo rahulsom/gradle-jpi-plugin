@@ -388,6 +388,8 @@ class JpiIntegrationSpec extends IntegrationSpec {
 
     def 'handles dependencies coming from ivy repository and do not fail with variants'() {
         given:
+        def embeddedRepo = EmbeddedRepoBuilder.makeEmbeddedRepo()
+
         build.text = """
             plugins {
                 id 'org.jenkins-ci.jpi'
@@ -400,7 +402,7 @@ class JpiIntegrationSpec extends IntegrationSpec {
             repositories {
                 ivy {
                     name 'EmbeddedIvy'
-                    url '${TestSupport.EMBEDDED_IVY_URL}'
+                    url '${embeddedRepo}'
                     layout 'maven'
                 }
             }
