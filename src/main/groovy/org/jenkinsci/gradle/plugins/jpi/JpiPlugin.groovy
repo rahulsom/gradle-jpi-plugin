@@ -96,16 +96,19 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
 
     void apply(final Project gradleProject) {
         def current = GradleVersion.current()
-        if (current < GradleVersion.version('6.0')) {
-            throw new GradleException('This version of the JPI plugin requires Gradle 6+.' +
-                    'For older Gradle versions, please use version 0.38.0 of the JPI plugin.')
-        } else if (current < GradleVersion.version('6.3')) {
-            throw new GradleException('This version of the JPI plugin requires Gradle 6.3 or later.' +
-                    'For older Gradle versions, please use version 0.46.0 of the JPI plugin.')
-        } else if (current < GradleVersion.version('7.1')) {
-            throw new GradleException('This version of the JPI plugin requires Gradle 7.1 or later.' +
-                    'For older Gradle versions, please use version 0.50.0 of the JPI plugin.')
+        def versionRecommendation = [
+                '6.0': '0.38.0',
+                '6.3': '0.46.0',
+                '7.1': '0.50.0',
+                '7.3': '0.53.0',
+        ]
+        versionRecommendation.each {
+            if (current < GradleVersion.version(it.key)) {
+                throw new GradleException("This version of the JPI plugin requires Gradle ${it.key}. " +
+                        "For older Gradle versions, please use version ${it.value} of the JPI plugin.")
+            }
         }
+
         UnsupportedGradleConfigurationVerifier.configureDeprecatedConfigurations(gradleProject)
 
         dependencyAnalysis = new DependencyAnalysis(gradleProject)
@@ -381,8 +384,8 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
                 project.repositories {
                     mavenCentral()
                     maven {
-                        name 'jenkins'
-                        url('https://repo.jenkins-ci.org/public/')
+                        name = 'jenkins'
+                        url = 'https://repo.jenkins-ci.org/public/'
                     }
                 }
             }
@@ -537,7 +540,7 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
                 PublishingExtension publishingExtension = project.extensions.getByType(PublishingExtension)
                 publishingExtension.publications {
                     mavenJpi(MavenPublication) {
-                        artifactId jpiExtension.shortName
+                        artifactId = jpiExtension.shortName
                         from(project.components.java)
 
                         new JpiPomCustomizer(project).customizePom(pom)
@@ -545,16 +548,16 @@ class JpiPlugin implements Plugin<Project>, PluginDependencyProvider {
                 }
                 publishingExtension.repositories {
                     maven {
-                        name 'jenkins'
+                        name = 'jenkins'
                         if (project.version.toString().endsWith('-SNAPSHOT')) {
-                            url jpiExtension.snapshotRepoUrl
+                            url = jpiExtension.snapshotRepoUrl
                         } else {
-                            url jpiExtension.repoUrl
+                            url = jpiExtension.repoUrl
                         }
                     }
                     maven {
-                        name 'jenkinsIncrementals'
-                        url(jpiExtension.incrementalsRepoUrl.get() ?: jpiExtension.JENKINS_INCREMENTALS_REPO)
+                        name = 'jenkinsIncrementals'
+                        url = jpiExtension.incrementalsRepoUrl.get() ?: jpiExtension.JENKINS_INCREMENTALS_REPO
                     }
                 }
 
