@@ -54,6 +54,7 @@ dependencies {
     implementation("com.github.spotbugs.snom:spotbugs-gradle-plugin:5.0.13")
     implementation(libs.sezpoz)
     implementation(localGroovy())
+    implementation(libs.commons.io)
     testAnnotationProcessor(libs.sezpoz)
     testCompileOnly(libs.junit4) {
         because("used for generated tests with javapoet")
@@ -69,6 +70,7 @@ dependencies {
     testImplementation(platform(libs.junit5.bom))
     testImplementation(libs.junit5.api)
     testImplementation(libs.assertj.core)
+    testImplementation(libs.awaitility)
     testRuntimeOnly(libs.junit5.jupiter)
     testRuntimeOnly(libs.junit5.vintage)
 }
@@ -179,6 +181,11 @@ gradlePlugin {
         create("pluginMaven") {
             id = "org.jenkins-ci.jpi"
             implementationClass = "org.jenkinsci.gradle.plugins.jpi.JpiPlugin"
+            displayName = "A plugin for building Jenkins plugins"
+        }
+        create("pluginV2") {
+            id = "org.jenkins-ci.jpi2"
+            implementationClass = "org.jenkinsci.gradle.plugins.jpi2.V2JpiPlugin"
             displayName = "A plugin for building Jenkins plugins"
         }
     }
