@@ -19,13 +19,13 @@ import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.bundling.War;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("Convert2Lambda")
 public class V2JpiPlugin implements Plugin<Project> {
 
     public static final String JENKINS_PLUGIN = "jenkinsPlugin";
@@ -103,18 +103,17 @@ public class V2JpiPlugin implements Plugin<Project> {
         final var projectRoot = project.getLayout().getProjectDirectory().getAsFile().getAbsolutePath();
 
         final var prepareServer = project.getTasks()
-                .register("prepareServer", PrepareServerTask.class, new Action<>() {
+                .register("prepareServer", Copy.class, new Action<>() {
                     @Override
-                    public void execute(@NotNull PrepareServerTask serverTask) {
+                    public void execute(@NotNull Copy copy) {
                         var war = project.getTasks().getByName("war");
-                        serverTask.setProjectRoot(projectRoot);
-                        serverTask.setServerPluginsClasspath(serverJenkinsPlugin);
 
-                        serverTask.setJpi(war.getOutputs().getFiles().getSingleFile());
+                        copy.from(war.getOutputs().getFiles().getSingleFile())
+                                .into(projectRoot + "/work/plugins");
 
-                        serverTask.getInputs().files(serverJenkinsPlugin);
-                        serverTask.getInputs().files(war.getOutputs().getFiles());
-                        serverTask.getOutputs().dir(new File(projectRoot + "/work/plugins"));
+                        copy.from(serverJenkinsPlugin)
+                                .include("**/*.jpi", "**/*.hpi")
+                                .into(projectRoot + "/work/plugins");
                     }
                 });
 
