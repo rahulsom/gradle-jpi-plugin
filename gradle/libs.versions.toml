@@ -1,13 +1,15 @@
 [versions]
 accessmodifier = "1.33"
 assertj = "3.21.0"
+awaitility = "4.3.0"
+commons-io = "2.15.1"
 commons-text = "1.10.0"
 javapoet = "1.13.0"
 jenkins = "2.401.3"
 jenkins-test-harness = "2112.ve584e0edc63b_"
 jgit = "5.13.1.202206130422-r"
 junit4 = "4.13"
-junit5 = "5.8.1"
+junit5 = "5.12.2"
 localizer = "1.31"
 sezpoz = "1.13"
 xmlunit = "2.8.3"
@@ -15,6 +17,8 @@ xmlunit = "2.8.3"
 [libraries]
 accessmodifier-checker = { module = "org.kohsuke:access-modifier-checker", version.ref = "accessmodifier" }
 assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertj" }
+awaitility = { module = "org.awaitility:awaitility", version.ref = "awaitility" }
+commons-io = { module = "commons-io:commons-io", version.ref = "commons-io" }
 commons-text = { module = "org.apache.commons:commons-text", version.ref = "commons-text" }
 javapoet = { module = "com.squareup:javapoet", version.ref = "javapoet" }
 jenkins-core = { module = "org.jenkins-ci.main:jenkins-core", version.ref = "jenkins" }

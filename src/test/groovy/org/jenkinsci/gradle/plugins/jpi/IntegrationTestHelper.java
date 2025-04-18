@@ -18,6 +18,10 @@ public class IntegrationTestHelper {
         this.projectDir = projectDir;
     }
 
+    public GradleRunner gradleRunner() throws IOException {
+        return gradleRunner(WarningMode.ALL);
+    }
+
     public GradleRunner gradleRunner(WarningMode warningMode) throws IOException {
         var gradleProperties = inProjectDir("gradle.properties");
         if (!existsRelativeToProjectDir("gradle.properties")) {
