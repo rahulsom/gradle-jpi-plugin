@@ -16,13 +16,11 @@ import org.gradle.api.plugins.WarPlugin;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.JavaExec;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.War;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("Convert2Lambda")
@@ -45,22 +43,86 @@ public class V2JpiPlugin implements Plugin<Project> {
         project.getPlugins().apply(WarPlugin.class);
 
         var jenkinsPlugin = project.getConfigurations().create(JENKINS_PLUGIN_CONFIGURATION);
-        var jenkinsPluginCompileOnly = project.getConfigurations().create(JENKINS_PLUGIN_COMPILE_ONLY_CONFIGURATION, new Action<>() {
+        var jenkinsPluginCompileOnly = createJavaPluginsCompileOnlyConfiguration(project, jenkinsPlugin);
+        project.getConfigurations().getByName(COMPILE_ONLY_CONFIGURATION).extendsFrom(jenkinsPluginCompileOnly);
+
+        var serverJenkinsPlugin = createServerJenkinsPluginConfiguration(project, jenkinsPlugin);
+        var serverTaskClasspath = createServerTaskClasspathConfiguration(project);
+
+        var jpiTask = configureJpiTask(project, jenkinsPlugin);
+
+        final var projectRoot = project.getLayout().getProjectDirectory().getAsFile().getAbsolutePath();
+        final var prepareServer = createPrepareServerTask(project, projectRoot, serverJenkinsPlugin);
+        var serverTask = createServerTask(project, serverTaskClasspath, projectRoot, prepareServer);
+    }
+
+    @NotNull
+    private static TaskProvider<JavaExec> createServerTask(@NotNull Project project, Configuration serverTaskClasspath, String projectRoot, TaskProvider<Copy> prepareServer) {
+        return project.getTasks().register("server", JavaExec.class, new Action<>() {
             @Override
-            public void execute(@NotNull Configuration c) {
-                c.withDependencies(new Action<>() {
+            public void execute(@NotNull JavaExec spec) {
+                spec.classpath(serverTaskClasspath);
+                spec.setStandardOutput(System.out);
+                spec.setErrorOutput(System.err);
+                spec.args(List.of(
+                        "--webroot=" + projectRoot + "/build/jenkins/war",
+                        "--pluginroot=" + projectRoot + "/build/jenkins/plugins",
+                        "--extractedFilesFolder=" + projectRoot + "/build/jenkins/extracted",
+                        "--commonLibFolder=" + projectRoot + "/work/lib"
+                ));
+                spec.environment("JENKINS_HOME", projectRoot + "/work");
+
+                spec.dependsOn(prepareServer);
+
+                spec.getOutputs().upToDateWhen(new Spec<>() {
                     @Override
-                    public void execute(@NotNull DependencySet dependencies) {
-                        addJarDependenciesFromJpis(project, jenkinsPlugin, dependencies);
-                        dependencies.add(project.getDependencies()
-                                .create("org.jenkins-ci.main:jenkins-core:" + project.getProperties().get(JENKINS_VERSION_PROPERTY)));
+                    public boolean isSatisfiedBy(Task element) {
+                        return false;
                     }
                 });
             }
         });
-        project.getConfigurations().getByName(COMPILE_ONLY_CONFIGURATION).extendsFrom(jenkinsPluginCompileOnly);
+    }
 
-        var serverJenkinsPlugin = project.getConfigurations().create(SERVER_JENKINS_PLUGIN_CONFIGURATION, new Action<>() {
+    @NotNull
+    private static TaskProvider<Copy> createPrepareServerTask(@NotNull Project project, String projectRoot, Configuration serverJenkinsPlugin) {
+        return project.getTasks()
+                .register("prepareServer", Copy.class, new Action<>() {
+                    @Override
+                    public void execute(@NotNull Copy copy) {
+                        var war = project.getTasks().getByName(JPI_TASK);
+
+                        copy.from(war.getOutputs().getFiles().getSingleFile())
+                                .into(projectRoot + "/work/plugins");
+
+                        copy.from(serverJenkinsPlugin)
+                                .include("**/*.jpi", "**/*.hpi")
+                                .into(projectRoot + "/work/plugins");
+                    }
+                });
+    }
+
+    @NotNull
+    private static Configuration createServerTaskClasspathConfiguration(@NotNull Project project) {
+        return project.getConfigurations().create(SERVER_TASK_CLASSPATH_CONFIGURATION, new Action<>() {
+            @Override
+            public void execute(@NotNull Configuration c) {
+                c.setCanBeConsumed(false);
+                c.setTransitive(false);
+                c.withDependencies(new Action<>() {
+                    @Override
+                    public void execute(@NotNull DependencySet dependencies) {
+                        dependencies.add(project.getDependencies()
+                                .create("org.jenkins-ci.main:jenkins-war:" + project.getProperties().get(JENKINS_VERSION_PROPERTY)));
+                    }
+                });
+            }
+        });
+    }
+
+    @NotNull
+    private static Configuration createServerJenkinsPluginConfiguration(@NotNull Project project, Configuration jenkinsPlugin) {
+        return project.getConfigurations().create(SERVER_JENKINS_PLUGIN_CONFIGURATION, new Action<>() {
             @Override
             public void execute(@NotNull Configuration c) {
                 c.extendsFrom(jenkinsPlugin);
@@ -89,60 +151,19 @@ public class V2JpiPlugin implements Plugin<Project> {
                 });
             }
         });
-        var serverTaskClasspath = project.getConfigurations().create(SERVER_TASK_CLASSPATH_CONFIGURATION, new Action<>() {
+    }
+
+    @NotNull
+    private Configuration createJavaPluginsCompileOnlyConfiguration(@NotNull Project project, Configuration jenkinsPlugin) {
+        return project.getConfigurations().create(JENKINS_PLUGIN_COMPILE_ONLY_CONFIGURATION, new Action<>() {
             @Override
             public void execute(@NotNull Configuration c) {
-                c.setCanBeConsumed(false);
-                c.setTransitive(false);
                 c.withDependencies(new Action<>() {
                     @Override
                     public void execute(@NotNull DependencySet dependencies) {
+                        addJarDependenciesFromJpis(project, jenkinsPlugin, dependencies);
                         dependencies.add(project.getDependencies()
-                                .create("org.jenkins-ci.main:jenkins-war:" + project.getProperties().get(JENKINS_VERSION_PROPERTY)));
-                    }
-                });
-            }
-        });
-
-        configureWarTask(project, jenkinsPlugin);
-
-        final var projectRoot = project.getLayout().getProjectDirectory().getAsFile().getAbsolutePath();
-
-        final var prepareServer = project.getTasks()
-                .register("prepareServer", Copy.class, new Action<>() {
-                    @Override
-                    public void execute(@NotNull Copy copy) {
-                        var war = project.getTasks().getByName(JPI_TASK);
-
-                        copy.from(war.getOutputs().getFiles().getSingleFile())
-                                .into(projectRoot + "/work/plugins");
-
-                        copy.from(serverJenkinsPlugin)
-                                .include("**/*.jpi", "**/*.hpi")
-                                .into(projectRoot + "/work/plugins");
-                    }
-                });
-
-        project.getTasks().register("server", JavaExec.class, new Action<>() {
-            @Override
-            public void execute(@NotNull JavaExec spec) {
-                spec.classpath(serverTaskClasspath);
-                spec.setStandardOutput(System.out);
-                spec.setErrorOutput(System.err);
-                spec.args(List.of(
-                        "--webroot=" + projectRoot + "/build/jenkins/war",
-                        "--pluginroot=" + projectRoot + "/build/jenkins/plugins",
-                        "--extractedFilesFolder=" + projectRoot + "/build/jenkins/extracted",
-                        "--commonLibFolder=" + projectRoot + "/work/lib"
-                ));
-                spec.environment("JENKINS_HOME", projectRoot + "/work");
-
-                spec.dependsOn(prepareServer);
-
-                spec.getOutputs().upToDateWhen(new Spec<>() {
-                    @Override
-                    public boolean isSatisfiedBy(Task element) {
-                        return false;
+                                .create("org.jenkins-ci.main:jenkins-core:" + project.getProperties().get(JENKINS_VERSION_PROPERTY)));
                     }
                 });
             }
@@ -164,7 +185,7 @@ public class V2JpiPlugin implements Plugin<Project> {
                 });
     }
 
-    private static void configureWarTask(@NotNull Project project, Configuration jenkinsPlugin/*, Configuration jpi*/) {
+    private static TaskProvider<War> configureJpiTask(@NotNull Project project, Configuration jenkinsPlugin/*, Configuration jpi*/) {
         project.getTasks().register(EXPLODED_JPI_TASK, Copy.class, new Action<>() {
             @Override
             public void execute(@NotNull Copy sync) {
@@ -172,20 +193,25 @@ public class V2JpiPlugin implements Plugin<Project> {
                 sync.with((War) project.getTasks().getByName(JPI_TASK));
             }
         });
-        project.getTasks().withType(War.class).configureEach(war -> {
-            war.getArchiveExtension().set("jpi");
-            configureManifest(project, jenkinsPlugin, war);
-            war.from(project.getTasks().named("jar"), new Action<>() {
-                @Override
-                public void execute(@NotNull CopySpec copySpec) {
-                    copySpec.into("WEB-INF/lib");
-                }
-            });
-            var classpath = Optional.ofNullable(war.getClasspath()).map(FileCollection::getFiles).orElse(Set.of());
-            classpath.removeIf(it -> !it.getName().endsWith(".jar"));
-            war.setClasspath(classpath);
-            war.finalizedBy(EXPLODED_JPI_TASK);
+        var jpiTask = project.getTasks().named(JPI_TASK, War.class);
+        jpiTask.configure(new Action<>() {
+            @Override
+            public void execute(@NotNull War jpi) {
+                jpi.getArchiveExtension().set("jpi");
+                configureManifest(project, jenkinsPlugin, jpi);
+                jpi.from(project.getTasks().named("jar"), new Action<>() {
+                    @Override
+                    public void execute(@NotNull CopySpec copySpec) {
+                        copySpec.into("WEB-INF/lib");
+                    }
+                });
+                var classpath = new HashSet<>(Optional.ofNullable(jpi.getClasspath()).map(FileCollection::getFiles).orElse(Set.of()));
+                classpath.removeIf(it -> !it.getName().endsWith(".jar"));
+                jpi.setClasspath(classpath);
+                jpi.finalizedBy(EXPLODED_JPI_TASK);
+            }
         });
+        return jpiTask;
     }
 
     private static void configureManifest(@NotNull Project project, Configuration jenkinsPlugin, War war) {
