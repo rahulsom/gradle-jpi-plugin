@@ -36,6 +36,7 @@ public class V2JpiPlugin implements Plugin<Project> {
     public static final String JPI_TASK = "war";
 
     public static final String JENKINS_VERSION_PROPERTY = "jenkins.version";
+    public static final String DEFAULT_JENKINS_VERSION = "2.492.3";
 
     @Override
     public void apply(@NotNull Project project) {
@@ -125,7 +126,7 @@ public class V2JpiPlugin implements Plugin<Project> {
         if (projectProperties.containsKey(JENKINS_VERSION_PROPERTY)) {
             return projectProperties.get(JENKINS_VERSION_PROPERTY).toString();
         } else {
-            return "latest.release";
+            return DEFAULT_JENKINS_VERSION;
         }
     }
 
