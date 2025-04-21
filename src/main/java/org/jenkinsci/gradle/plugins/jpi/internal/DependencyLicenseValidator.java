@@ -6,11 +6,25 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
 
+/**
+ * Validates that all requested dependencies have their licenses resolved through their POMs.
+ * <p>
+ * This class compares requested dependencies against resolved dependencies and generates
+ * appropriate messages for any unresolved licenses.
+ */
 public class DependencyLicenseValidator {
     private static final String HEADER = "Could not resolve license(s) via POM for %d %s:%n";
     private static final String DEPENDENCY = "\t- %s%n";
     private static final String FOOTER = "The above will be missing from %s%n";
     
+    /**
+     * Validates that all requested dependencies have their licenses resolved.
+     *
+     * @param requested The set of requested dependency identifiers
+     * @param resolved The set of resolved dependency identifiers
+     * @param destination The destination path where license information will be written
+     * @return A result object containing validation status and message
+     */
     static Result validate(Set<String> requested, Set<String> resolved, Path destination) {
         Set<String> unresolvable = new HashSet<>();
         for (String req : requested) {
@@ -28,19 +42,41 @@ public class DependencyLicenseValidator {
         return new Result(unresolvable.size() > 0, sb.toString());
     }
     
+    /**
+     * Represents the result of a dependency license validation.
+     * <p>
+     * Contains information about whether any licenses were unresolved and
+     * a message describing the unresolved licenses.
+     */
     public static class Result {
         private final boolean unresolved;
         private final String message;
 
+        /**
+         * Constructs a new validation result.
+         *
+         * @param unresolved Whether any licenses were unresolved
+         * @param message A message describing the unresolved licenses
+         */
         public Result(boolean unresolved, String message) {
             this.unresolved = unresolved;
             this.message = message;
         }
 
+        /**
+         * Checks if any licenses were unresolved.
+         *
+         * @return true if any licenses were unresolved, false otherwise
+         */
         public boolean isUnresolved() {
             return unresolved;
         }
 
+        /**
+         * Gets the message describing the unresolved licenses.
+         *
+         * @return A message describing the unresolved licenses
+         */
         public String getMessage() {
             return message;
         }

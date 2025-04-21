@@ -8,5 +8,10 @@ import org.gradle.api.Action;
  * serialize as a task input
  */
 public interface PluginDeveloperSpec {
+    /**
+     * Configures a developer for the plugin.
+     *
+     * @param action The configuration action to apply to the developer
+     */
     void developer(Action<? super PluginDeveloper> action);
 }

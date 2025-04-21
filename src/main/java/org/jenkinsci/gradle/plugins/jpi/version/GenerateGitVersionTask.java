@@ -21,26 +21,59 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+/**
+ * Gradle task that generates a version string based on Git repository information.
+ * <p>
+ * This task uses Git commands to determine the current version based on tags,
+ * commits, and other repository information. The generated version is written
+ * to an output file.
+ */
 public abstract class GenerateGitVersionTask extends DefaultTask {
 
+    /** The name of this task as registered in the Gradle build. */
     public static final String TASK_NAME = "generateGitVersion";
 
     private final GitVersionExtension gitVersionExtension;
 
+    /**
+     * Gets the classpath used for executing the Git version generation.
+     *
+     * @return A collection of files representing the classpath
+     */
     @Classpath
     public abstract ConfigurableFileCollection getClasspath();
 
+    /**
+     * Gets the output file where the generated version will be written.
+     *
+     * @return A property containing the output file location
+     */
     @OutputFile
     public RegularFileProperty getOutputFile() {
         return gitVersionExtension.getOutputFile();
     }
 
+    /**
+     * Gets the worker executor used for running the version generation in isolation.
+     *
+     * @return The worker executor
+     */
     @Inject
     abstract public WorkerExecutor getWorkerExecutor();
 
+    /**
+     * Gets the project layout for accessing project directories.
+     *
+     * @return The project layout
+     */
     @Inject
     abstract public ProjectLayout getProjectLayout();
 
+    /**
+     * Constructs a new task with the given Git version extension.
+     *
+     * @param gitVersionExtension The extension containing Git version configuration
+     */
     @Inject
     public GenerateGitVersionTask(GitVersionExtension gitVersionExtension) {
         this.gitVersionExtension = gitVersionExtension;
@@ -48,6 +81,12 @@ public abstract class GenerateGitVersionTask extends DefaultTask {
         getOutputs().upToDateWhen(t -> false);
     }
 
+    /**
+     * Executes the task to generate the Git version.
+     * <p>
+     * This method submits a worker action to generate the version in a separate
+     * classloader to isolate the Git operations.
+     */
     @TaskAction
     public void generate() {
         WorkQueue queue = getWorkerExecutor().classLoaderIsolation(classLoaderWorkerSpec -> {
@@ -64,23 +103,69 @@ public abstract class GenerateGitVersionTask extends DefaultTask {
         });
     }
 
+    /**
+     * Parameters for the Git version generation worker action.
+     * <p>
+     * This interface defines the inputs needed for generating a Git version.
+     */
     public interface GenerateGitVersionParameters extends WorkParameters {
 
+        /**
+         * Gets the root directory of the Git repository.
+         *
+         * @return A property containing the Git root directory
+         */
         DirectoryProperty getGitRoot();
 
+        /**
+         * Gets the prefix to use for the version string.
+         *
+         * @return A property containing the version prefix
+         */
         Property<String> getVersionPrefix();
 
+        /**
+         * Gets the format string for the version.
+         *
+         * @return A property containing the version format
+         */
         Property<String> getVersionFormat();
 
+        /**
+         * Gets whether to sanitize the version string.
+         *
+         * @return A property indicating whether to sanitize the version
+         */
         Property<Boolean> getSanitize();
 
+        /**
+         * Gets whether to allow dirty working directory.
+         *
+         * @return A property indicating whether to allow dirty working directory
+         */
         Property<Boolean> getAllowDirty();
 
+        /**
+         * Gets the abbreviation length for commit hashes.
+         *
+         * @return A property containing the abbreviation length
+         */
         Property<Integer> getAbbrevLength();
 
+        /**
+         * Gets the output file where the generated version will be written.
+         *
+         * @return A property containing the output file location
+         */
         RegularFileProperty getOutputFile();
     }
 
+    /**
+     * Worker action that generates the Git version.
+     * <p>
+     * This action runs in a separate classloader and generates a version string
+     * based on the Git repository information.
+     */
     public abstract static class GenerateGitVersion implements WorkAction<GenerateGitVersionParameters> {
         @Override
         public void execute() {

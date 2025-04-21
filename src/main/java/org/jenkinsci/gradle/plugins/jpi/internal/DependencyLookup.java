@@ -5,8 +5,21 @@ import shaded.hudson.util.VersionNumber;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Provides dependency lookup functionality for Jenkins plugins based on Jenkins version.
+ * <p>
+ * This class determines the appropriate dependencies for different Gradle configurations
+ * based on the specified Jenkins version, handling version-specific dependencies.
+ */
 public class DependencyLookup {
 
+    /**
+     * Finds the appropriate dependencies for a given configuration and Jenkins version.
+     *
+     * @param configuration The Gradle configuration name
+     * @param jenkinsVersion The Jenkins version string
+     * @return A set of dependency factories for the specified configuration
+     */
     public Set<DependencyFactory> find(String configuration, String jenkinsVersion) {
         VersionNumber version = new VersionNumber(jenkinsVersion);
         boolean beforeBomExists = JenkinsVersions.beforeBomExists(jenkinsVersion);
@@ -54,6 +67,11 @@ public class DependencyLookup {
         return deps;
     }
 
+    /**
+     * Gets the set of Gradle configurations that this lookup supports.
+     *
+     * @return A set of configuration names
+     */
     public Set<String> configurations() {
         Set<String> configurations = new HashSet<>();
         configurations.add("annotationProcessor");
@@ -66,6 +84,13 @@ public class DependencyLookup {
         return configurations;
     }
 
+    /**
+     * Determines the appropriate FindBugs/SpotBugs dependency for the given Jenkins version.
+     *
+     * @param version The Jenkins version
+     * @param beforeBomExists Whether the version is before Jenkins BOM was introduced
+     * @return A dependency factory for the appropriate FindBugs/SpotBugs dependency
+     */
     private static DependencyFactory findbugsFor(VersionNumber version, boolean beforeBomExists) {
         if (version.compareTo(new VersionNumber("1.618")) < 0) {
             return new MavenDependency("findbugs:annotations:1.0.0");
@@ -76,6 +101,12 @@ public class DependencyLookup {
         }
     }
 
+    /**
+     * Determines the appropriate Servlet API dependency for the given Jenkins version.
+     *
+     * @param version The Jenkins version
+     * @return A dependency factory for the appropriate Servlet API dependency
+     */
     private static DependencyFactory servletFor(VersionNumber version) {
         if (version.isOlderThan(new VersionNumber("2.0"))) {
             return new MavenDependency("javax.servlet:servlet-api:2.4");
@@ -86,6 +117,12 @@ public class DependencyLookup {
         }
     }
 
+    /**
+     * Determines the appropriate Jenkins test harness dependency for the given Jenkins version.
+     *
+     * @param version The Jenkins version
+     * @return A dependency factory for the appropriate test harness dependency
+     */
     private static DependencyFactory testHarnessFor(VersionNumber version) {
         if (version.isOlderThanOrEqualTo(new VersionNumber("1.644"))) {
             return new MavenDependency("org.jenkins-ci.main:jenkins-test-harness:" + version);
