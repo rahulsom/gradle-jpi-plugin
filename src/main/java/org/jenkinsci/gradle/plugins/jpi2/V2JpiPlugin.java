@@ -11,6 +11,8 @@ import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.java.archives.Manifest;
+import org.gradle.api.plugins.GroovyBasePlugin;
+import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaLibraryPlugin;
 import org.gradle.api.plugins.WarPlugin;
 import org.gradle.api.specs.Spec;
@@ -18,6 +20,8 @@ import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.War;
+import org.gradle.api.tasks.compile.GroovyCompile;
+import org.gradle.api.tasks.compile.JavaCompile;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -26,6 +30,7 @@ import java.util.stream.Collectors;
 @SuppressWarnings("Convert2Lambda")
 public class V2JpiPlugin implements Plugin<Project> {
 
+    public static final String ANNOTATION_PROCESSOR_CONFIGURATION = "annotationProcessor";
     public static final String COMPILE_ONLY_CONFIGURATION = "compileOnly";
     public static final String JENKINS_PLUGIN_COMPILE_ONLY_CONFIGURATION = "jenkinsPluginCompileOnly";
     public static final String JENKINS_PLUGIN_CONFIGURATION = "jenkinsPlugin";
@@ -55,6 +60,47 @@ public class V2JpiPlugin implements Plugin<Project> {
         final var projectRoot = project.getLayout().getProjectDirectory().getAsFile().getAbsolutePath();
         final var prepareServer = createPrepareServerTask(project, projectRoot, serverJenkinsPlugin);
         var serverTask = createServerTask(project, serverTaskClasspath, projectRoot, prepareServer);
+        configureSezpoz(project);
+    }
+
+    private static void configureSezpoz(@NotNull Project project) {
+        project.getPlugins().withType(JavaBasePlugin.class, new Action<>() {
+            @Override
+            public void execute(@NotNull JavaBasePlugin plugin) {
+                project.getTasks().named("compileJava", JavaCompile.class).configure(new Action<>() {
+                    @Override
+                    public void execute(@NotNull JavaCompile javaCompile) {
+                        javaCompile.getOptions().getCompilerArgs().add("-Asezpoz.quiet=true");
+                    }
+                });
+                project.getTasks().withType(JavaCompile.class, new Action<>() {
+                    @Override
+                    public void execute(@NotNull JavaCompile javaCompile) {
+                        javaCompile.getOptions().getCompilerArgs().add("-parameters");
+                    }
+                });
+            }
+        });
+
+        project.getPlugins().withType(GroovyBasePlugin.class, new Action<>() {
+            @Override
+            public void execute(@NotNull GroovyBasePlugin plugin) {
+                project.getTasks().named("compileGroovy", GroovyCompile.class).configure(new Action<>() {
+                    @Override
+                    public void execute(@NotNull GroovyCompile groovyCompile) {
+                        groovyCompile.getOptions().getCompilerArgs().add("-Asezpoz.quiet=true");
+                    }
+                });
+                project.getTasks().withType(GroovyCompile.class, new Action<>() {
+                    @Override
+                    public void execute(@NotNull GroovyCompile groovyCompile) {
+                        groovyCompile.getGroovyOptions().setJavaAnnotationProcessing(true);
+                    }
+                });
+            }
+        });
+
+        project.getDependencies().add(ANNOTATION_PROCESSOR_CONFIGURATION, project.getDependencies().create("net.java.sezpoz:sezpoz:1.13"));
     }
 
     @NotNull
