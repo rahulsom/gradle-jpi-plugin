@@ -182,20 +182,21 @@ gradlePlugin {
             id = "org.jenkins-ci.jpi"
             implementationClass = "org.jenkinsci.gradle.plugins.jpi.JpiPlugin"
             displayName = "A plugin for building Jenkins plugins"
+            website.set("https://wiki.jenkins-ci.org/display/JENKINS/Gradle+JPI+Plugin")
+            vcsUrl.set("https://github.com/jenkinsci/gradle-jpi-plugin")
+            description = "A plugin for building Jenkins plugins"
+            tags.set(listOf("jenkins"))
         }
         create("pluginV2") {
             id = "org.jenkins-ci.jpi2"
             implementationClass = "org.jenkinsci.gradle.plugins.jpi2.V2JpiPlugin"
             displayName = "A plugin for building Jenkins plugins"
+            website.set("https://github.com/jenkinsci/gradle-jpi-plugin")
+            vcsUrl.set("https://github.com/jenkinsci/gradle-jpi-plugin")
+            description = "A plugin for building Jenkins plugins with Gradle 8+"
+            tags.set(listOf("jenkins"))
         }
     }
-}
-
-pluginBundle {
-    website = "https://wiki.jenkins-ci.org/display/JENKINS/Gradle+JPI+Plugin"
-    vcsUrl = "https://github.com/jenkinsci/gradle-jpi-plugin"
-    description = "A plugin for building Jenkins plugins"
-    tags = listOf("jenkins")
 }
 
 fun Project.stringProp(named: String): String? = findProperty(named) as String?
