@@ -24,7 +24,11 @@ import org.gradle.api.tasks.compile.GroovyCompile;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("Convert2Lambda")
@@ -274,9 +278,10 @@ public class V2JpiPlugin implements Plugin<Project> {
         war.manifest(new Action<>() {
             @Override
             public void execute(@NotNull Manifest manifest) {
-                var pluginDependencies = jenkinsPlugin.getDependencies()
+                var pluginDependencies = jenkinsPlugin.getResolvedConfiguration()
+                        .getFirstLevelModuleDependencies()
                         .stream()
-                        .map(it -> it.getName() + ":" + it.getVersion())
+                        .map(it -> it.getModuleName() + ":" + it.getModuleVersion())
                         .collect(Collectors.joining(","));
 
                 manifest.getAttributes()
