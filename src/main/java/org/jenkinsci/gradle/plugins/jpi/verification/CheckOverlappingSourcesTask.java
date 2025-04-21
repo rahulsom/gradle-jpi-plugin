@@ -26,15 +26,42 @@ import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 import static java.util.stream.Collectors.joining;
 
+/**
+ * Gradle task that checks for overlapping source files in a Jenkins plugin project.
+ * <p>
+ * This task validates that there are no duplicate Sezpoz annotation files or
+ * multiple plugin implementation files across different class directories.
+ * Overlapping files can cause issues with plugin functionality.
+ */
 public abstract class CheckOverlappingSourcesTask extends DefaultTask {
+    /** The name of this task as registered in the Gradle build. */
     public static final String TASK_NAME = "checkOverlappingSources";
 
+    /**
+     * Gets the directories containing compiled classes to check for overlaps.
+     *
+     * @return A property containing the collection of class directories
+     */
     @InputFiles
     public abstract Property<FileCollection> getClassesDirs();
 
+    /**
+     * Gets the output file where discovered files will be listed.
+     *
+     * @return A property containing the output file location
+     */
     @OutputFile
     public abstract RegularFileProperty getOutputFile();
 
+    /**
+     * Executes the task to validate that there are no overlapping source files.
+     * <p>
+     * This method checks for duplicate Sezpoz annotation files and multiple plugin
+     * implementation files across different class directories. If any overlaps are
+     * found, a GradleException is thrown.
+     *
+     * @throws GradleException if overlapping files are found
+     */
     @TaskAction
     public void validate() {
         List<File> discovered = new LinkedList<>();

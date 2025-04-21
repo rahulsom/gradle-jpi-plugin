@@ -12,7 +12,21 @@ import org.gradle.api.provider.Provider;
 
 import java.util.Set;
 
+/**
+ * Gradle plugin that manages dependencies for Jenkins plugins.
+ * <p>
+ * This plugin automatically adds required dependencies based on the Jenkins core version
+ * and configures component metadata rules for Jenkins core dependencies.
+ */
 public class DependenciesPlugin implements Plugin<Project> {
+    /**
+     * Applies this plugin to the given project.
+     * <p>
+     * This method configures the project with Jenkins-specific dependencies and
+     * component metadata rules based on the Jenkins core version.
+     *
+     * @param project The project to apply the plugin to
+     */
     @Override
     public void apply(Project project) {
         ConfigurationContainer configurations = project.getConfigurations();
