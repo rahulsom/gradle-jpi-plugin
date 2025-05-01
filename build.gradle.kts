@@ -71,6 +71,7 @@ dependencies {
     testImplementation(libs.junit5.api)
     testImplementation(libs.assertj.core)
     testImplementation(libs.awaitility)
+    testImplementation("org.apache.maven:maven-model:3.9.9")
     testRuntimeOnly(libs.junit5.jupiter)
     testRuntimeOnly(libs.junit5.vintage)
 }

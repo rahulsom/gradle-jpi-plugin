@@ -1,7 +1,15 @@
 package org.jenkinsci.gradle.plugins.jpi2;
 
 import com.google.common.io.Files;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.maven.model.Repository;
+import org.assertj.core.groups.Tuple;
 import org.awaitility.Awaitility;
+import org.apache.maven.model.Dependency;
+import org.apache.maven.model.Model;
+import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
+import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.GradleRunner;
 import org.jenkinsci.gradle.plugins.jpi.IntegrationTestHelper;
@@ -13,19 +21,44 @@ import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.jar.Manifest;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Timeout(value = 2, unit = TimeUnit.MINUTES)
 @DisabledOnOs(value = OS.WINDOWS, disabledReason = "TempDir doesn't appear to work correctly on Windows")
 class V2IntegrationTest {
+
+    @TempDir File tempDir;
+
+    @NotNull
+    private static String getPublishingConfig() {
+        return /* language=kotlin */ """
+                group = "com.example"
+                version = "1.0.0"
+                publishing {
+                    repositories {
+                        maven {
+                            name = "local"
+                            url = uri("${rootDir}/build/repo")
+                        }
+                    }
+                }
+                """;
+    }
+
+    @NotNull
     private static String getBasePluginConfig() {
         return String.format(/* language=kotlin */ """
                 plugins {
@@ -34,33 +67,40 @@ class V2IntegrationTest {
                 repositories {
                     mavenCentral()
                     maven {
+                        name = "jenkins-releases"
                         url = uri("https://repo.jenkins-ci.org/releases/")
                     }
                 }
                 tasks.named<JavaExec>("server") {
                     args("--httpPort=%d")
                 }
-                """, RandomPortProvider.findFreePort());
+                """, RandomPortProvider.findFreePort()) + getPublishingConfig();
     }
 
+    @NotNull
     private static String getBaseLibraryConfig() {
         return /* language=kotlin */ """
                 plugins {
                     id("java-library")
+                    id("maven-publish")
                 }
                 repositories {
                     mavenCentral()
                 }
-                """;
+                publishing {
+                    publications {
+                        create<MavenPublication>("mavenJava") {
+                            from(components["java"])
+                        }
+                    }
+                }
+                """ + getPublishingConfig();
     }
 
     private static void initBuild(IntegrationTestHelper ith) throws IOException {
         Files.write(/* language=kotlin */ """
                 rootProject.name = "test-plugin"
                 """.getBytes(StandardCharsets.UTF_8), ith.inProjectDir("settings.gradle.kts"));
-        Files.write(/* language=properties */ """
-                jenkins.version=2.492.3
-                """.getBytes(StandardCharsets.UTF_8), ith.inProjectDir("gradle.properties"));
     }
 
     static class TapWriter extends Writer {
@@ -73,9 +113,9 @@ class V2IntegrationTest {
         }
 
         @Override
-        public void write(@NotNull char[] cbuf, int off, int len) throws IOException {
-            writer1.write(cbuf, off, len);
-            writer2.write(cbuf, off, len);
+        public void write(@NotNull char[] bytes, int off, int len) throws IOException {
+            writer1.write(bytes, off, len);
+            writer2.write(bytes, off, len);
         }
 
         @Override
@@ -123,7 +163,8 @@ class V2IntegrationTest {
                 });
 
         serverThread.shutdown();
-        serverThread.awaitTermination(1, TimeUnit.MINUTES);
+        boolean terminatedSafely = serverThread.awaitTermination(1, TimeUnit.MINUTES);
+        assertThat(terminatedSafely).isTrue();
         assertThat(buildResult.get()).isNull();
         assertThat(stderr2.toString()).contains("Jenkins is fully up and running");
     }
@@ -134,7 +175,7 @@ class V2IntegrationTest {
     }
 
     @Test
-    void simpleGradleBuildShouldBuild(@TempDir File tempDir) throws IOException {
+    void simpleGradleBuildShouldBuild() throws IOException {
         // given
         var ith = new IntegrationTestHelper(tempDir);
         configureSimpleBuild(ith);
@@ -143,8 +184,8 @@ class V2IntegrationTest {
         ith.gradleRunner().withArguments("build").build();
 
         // then
-        var jpi = ith.inProjectDir("build/libs/test-plugin.jpi");
-        var jar = ith.inProjectDir("build/libs/test-plugin.jar");
+        var jpi = ith.inProjectDir("build/libs/test-plugin-1.0.0.jpi");
+        var jar = ith.inProjectDir("build/libs/test-plugin-1.0.0.jar");
         var explodedWar = ith.inProjectDir("build/jpi");
 
         assertThat(jpi).exists();
@@ -153,17 +194,22 @@ class V2IntegrationTest {
 
         var manifest = new File(explodedWar, "META-INF/MANIFEST.MF");
         assertThat(manifest).exists();
-        var manifestData = Files.readLines(manifest, StandardCharsets.UTF_8);
+        var manifestData = new Manifest(manifest.toURI().toURL().openStream()).getMainAttributes();
+        assertThat(manifest).isNotNull().isNotEmpty();
 
-        assertThat(manifestData)
-                .contains("Jenkins-Version: 2.492.3");
+        assertThat(manifestData.getValue("Jenkins-Version"))
+                .isEqualTo("2.492.3");
 
-        var jarFileInJpi = new File(explodedWar, "WEB-INF/lib/test-plugin.jar");
-        assertThat(jarFileInJpi).exists();
+        var jpiLibsDir = new File(explodedWar, "WEB-INF/lib");
+        assertThat(jpiLibsDir).exists();
+
+        var jpiLibs = jpiLibsDir.list();
+        assertThat(jpiLibs).isNotNull()
+                .containsExactlyInAnyOrder("test-plugin-1.0.0.jar");
     }
 
     @Test
-    void simpleGradleBuildShouldLaunchServer(@TempDir File tempDir) throws IOException, InterruptedException {
+    void simpleGradleBuildShouldLaunchServer() throws IOException, InterruptedException {
         // given
         var ith = new IntegrationTestHelper(tempDir);
         configureSimpleBuild(ith);
@@ -176,15 +222,15 @@ class V2IntegrationTest {
 
     private static void configureBuildWithOssPluginDependency(IntegrationTestHelper ith) throws IOException {
         initBuild(ith);
-        Files.write((getBasePluginConfig() + /* language=kotlin */ """
-                dependencies {
-                    jenkinsPlugin("org.jenkins-ci.plugins:git:5.7.0")
-                }
-                """).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
+    Files.write((getBasePluginConfig() + /* language=kotlin */ """
+            dependencies {
+                implementation("org.jenkins-ci.plugins:git:5.7.0")
+            }
+            """).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
     }
 
     @Test
-    void gradleBuildWithOssPluginDependencyShouldBuild(@TempDir File tempDir) throws IOException {
+    void gradleBuildWithOssPluginDependencyShouldBuild() throws IOException {
         // given
         var ith = new IntegrationTestHelper(tempDir);
         configureBuildWithOssPluginDependency(ith);
@@ -193,8 +239,8 @@ class V2IntegrationTest {
         ith.gradleRunner().withArguments("build").build();
 
         // then
-        var jpi = ith.inProjectDir("build/libs/test-plugin.jpi");
-        var jar = ith.inProjectDir("build/libs/test-plugin.jar");
+        var jpi = ith.inProjectDir("build/libs/test-plugin-1.0.0.jpi");
+        var jar = ith.inProjectDir("build/libs/test-plugin-1.0.0.jar");
         var explodedWar = ith.inProjectDir("build/jpi");
 
         assertThat(jpi).exists();
@@ -203,15 +249,22 @@ class V2IntegrationTest {
 
         var manifest = new File(explodedWar, "META-INF/MANIFEST.MF");
         assertThat(manifest).exists();
-        var manifestData = Files.readLines(manifest, StandardCharsets.UTF_8);
+        var manifestData = new Manifest(manifest.toURI().toURL().openStream()).getMainAttributes();
+        assertThat(manifest).isNotNull().isNotEmpty();
 
-        assertThat(manifestData)
-                .contains("Jenkins-Version: 2.492.3")
-                .contains("Plugin-Dependencies: git:5.7.0");
+        assertThat(manifestData.getValue("Jenkins-Version")).isEqualTo("2.492.3");
+        assertThat(manifestData.getValue("Plugin-Dependencies")).isEqualTo("git:5.7.0");
+
+        var jpiLibsDir = new File(explodedWar, "WEB-INF/lib");
+        assertThat(jpiLibsDir).exists();
+
+        var jpiLibs = jpiLibsDir.list();
+        assertThat(jpiLibs).isNotNull()
+                .containsExactlyInAnyOrder("test-plugin-1.0.0.jar");
     }
 
     @Test
-    void gradleBuildWithOssPluginDependencyShouldLaunchServer(@TempDir File tempDir) throws IOException, InterruptedException {
+    void gradleBuildWithOssPluginDependencyShouldLaunchServer() throws IOException, InterruptedException {
         // given
         var ith = new IntegrationTestHelper(tempDir);
         configureBuildWithOssPluginDependency(ith);
@@ -222,12 +275,38 @@ class V2IntegrationTest {
         testServerStarts(gradleRunner, "server");
 
         // the selected plugin
-        var gitPlugin = ith.inProjectDir("work/plugins/git-5.7.0.hpi");
-        // a transitive dependency
-        var gitClientPlugin = ith.inProjectDir("work/plugins/git-client-6.1.0.hpi");
+        var pluginsDir = ith.inProjectDir("work/plugins");
+        assertThat(pluginsDir).exists();
 
-        assertThat(gitPlugin).exists();
-        assertThat(gitClientPlugin).exists();
+        var files = Arrays.stream(pluginsDir.list()).sorted().toList();
+        assertThat(files).isNotNull()
+                .containsExactly(
+                        "apache-httpcomponents-client-4-api.jpi",
+                        "asm-api.jpi",
+                        "bouncycastle-api.jpi",
+                        "caffeine-api.jpi",
+                        "credentials-binding.jpi",
+                        "credentials.jpi",
+                        "display-url-api.jpi",
+                        "git-client.jpi",
+                        "git.jpi",
+                        "gson-api.jpi",
+                        "instance-identity.jpi",
+                        "jakarta-activation-api.jpi",
+                        "jakarta-mail-api.jpi",
+                        "mailer.jpi",
+                        "mina-sshd-api-common.jpi",
+                        "mina-sshd-api-core.jpi",
+                        "plain-credentials.jpi",
+                        "scm-api.jpi",
+                        "script-security.jpi",
+                        "ssh-credentials.jpi",
+                        "structs.jpi",
+                        "test-plugin-1.0.0.jpi",
+                        "variant.jpi",
+                        "workflow-scm-step.jpi",
+                        "workflow-step-api.jpi"
+                );
     }
 
     private static void configureBuildWithOssLibraryDependency(IntegrationTestHelper ith) throws IOException {
@@ -240,17 +319,17 @@ class V2IntegrationTest {
     }
 
     @Test
-    void gradleBuildWithOssLibraryDependencyShouldBuild(@TempDir File tempDir) throws IOException {
+    void gradleBuildWithOssLibraryDependencyShouldBuild() throws IOException {
         // given
         var ith = new IntegrationTestHelper(tempDir);
         configureBuildWithOssLibraryDependency(ith);
 
         // when
-        ith.gradleRunner().withArguments("build").build();
+        ith.gradleRunner().withArguments("build", "publish").build();
 
         // then
-        var jpi = ith.inProjectDir("build/libs/test-plugin.jpi");
-        var jar = ith.inProjectDir("build/libs/test-plugin.jar");
+        var jpi = ith.inProjectDir("build/libs/test-plugin-1.0.0.jpi");
+        var jar = ith.inProjectDir("build/libs/test-plugin-1.0.0.jar");
         var explodedWar = ith.inProjectDir("build/jpi");
 
         assertThat(jpi).exists();
@@ -259,21 +338,24 @@ class V2IntegrationTest {
 
         var manifest = new File(explodedWar, "META-INF/MANIFEST.MF");
         assertThat(manifest).exists();
-        var manifestData = Files.readLines(manifest, StandardCharsets.UTF_8);
+        var manifestData = new Manifest(manifest.toURI().toURL().openStream()).getMainAttributes();
+        assertThat(manifest).isNotNull().isNotEmpty();
 
-        assertThat(manifestData)
-                .contains("Jenkins-Version: 2.492.3");
+        assertThat(manifestData.getValue("Jenkins-Version")).isEqualTo("2.492.3");
 
-        var jarFileInJpi = new File(explodedWar, "WEB-INF/lib/test-plugin.jar");
-        assertThat(jarFileInJpi).exists();
+        var jpiLibsDir = new File(explodedWar, "WEB-INF/lib");
+        assertThat(jpiLibsDir).exists();
 
-        var dependencyJar = new File(explodedWar, "WEB-INF/lib/nothing-java-0.2.0.jar");
-        assertThat(dependencyJar).exists();
-
+        var jpiLibs = jpiLibsDir.list();
+        assertThat(jpiLibs).isNotNull()
+                .containsExactlyInAnyOrder("nothing-java-0.2.0.jar",
+                        "test-plugin-1.0.0.jar",
+                        "commons-math3-3.6.1.jar",
+                        "commons-lang3-3.12.0.jar");
     }
 
     @Test
-    void gradleBuildWithOssLibraryDependencyShouldLaunchServer(@TempDir File tempDir) throws IOException, InterruptedException {
+    void gradleBuildWithOssLibraryDependencyShouldLaunchServer() throws IOException, InterruptedException {
         // given
         var ith = new IntegrationTestHelper(tempDir);
         configureBuildWithOssLibraryDependency(ith);
@@ -285,15 +367,14 @@ class V2IntegrationTest {
     }
 
     @Test
-    void generatesExtensionsWithSezpoz(@TempDir File tempDir) throws IOException {
+    void generatesExtensionsWithSezpoz() throws IOException {
         // given
         var ith = new IntegrationTestHelper(tempDir);
         initBuild(ith);
         Files.write((getBasePluginConfig()).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
         ith.mkDirInProjectDir("src/main/java/com/example/plugin");
-        Files.write(("""
+        Files.write((/* language=java */ """
                 package com.example.plugin;
-                
                 @hudson.Extension
                 public class SomeExtension {
                     public static void init() {
@@ -312,13 +393,12 @@ class V2IntegrationTest {
         assertThat(extensionsList).exists();
 
         var lines = Files.readLines(extensionsList, StandardCharsets.UTF_8);
-        assertThat(lines).contains("com.example.plugin.SomeExtension");
+        assertThat(lines.subList(1, lines.size())).containsExactlyInAnyOrder("com.example.plugin.SomeExtension");
     }
 
     private static void configureModuleWithNestedDependencies(IntegrationTestHelper ith) throws IOException {
         Files.write(/* language=kotlin */ """
                 rootProject.name = "test-plugin"
-                
                 include("library-one", "library-two", "plugin-three", "plugin-four")
                 """.getBytes(StandardCharsets.UTF_8), ith.inProjectDir("settings.gradle.kts"));
         Files.write(/* language=properties */ """
@@ -361,14 +441,23 @@ class V2IntegrationTest {
         Files.write((getBasePluginConfig() + /* language=kotlin */ """
                 dependencies {
                     implementation(project(":library-two"))
-                    jenkinsPlugin("org.jenkins-ci.plugins:git:5.7.0")
+                    implementation("org.jenkins-ci.plugins:git:5.7.0")
                 }
                 """).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("plugin-three/build.gradle.kts"));
         ith.mkDirInProjectDir("plugin-three/src/main/java/com/example/plugin3");
         Files.write((/* language=java */ """
                 package com.example.plugin3;
                 import com.example.lib2.ExampleTwo;
+                /** Example simple class. */
                 public class ExampleThree {
+                    /** Example simple constructor. */
+                    public ExampleThree() {
+                        System.out.println("Hello from ExampleThree");
+                    }
+                    /**
+                     * Example simple method.
+                     * @return a hello string
+                     */
                     public String hello() {
                         return new ExampleTwo().hello();
                     }
@@ -376,38 +465,24 @@ class V2IntegrationTest {
                 """).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("plugin-three/src/main/java/com/example/plugin3/ExampleThree.java"));
         ith.mkDirInProjectDir("plugin-four");
         Files.write((getBasePluginConfig() + /* language=kotlin */ """
-                                dependencies {
-                                    jenkinsPlugin(project(":plugin-three"))
-                                }
-                                tasks.named("compileJava") {
-                                    dependsOn(":plugin-three:war") // TODO: This should not be required
-                                    /*
-                                        This is what we see when running the same from outside the test with the task-graph plugin
-                                       \s
-                                        :plugin-four:classes
-                                        +--- :plugin-four:compileJava
-                                        |    \\--- :plugin-three:jar
-                                        |         +--- :plugin-three:classes
-                                        |         |    +--- :plugin-three:compileJava
-                                        |         |    |    \\--- :library-two:compileJava
-                                        |         |    |         \\--- :library-one:compileJava
-                                        |         |    \\--- :plugin-three:processResources
-                                        |         \\--- :plugin-three:compileJava *
-                                        \\--- :plugin-four:processResources
-                                       \s
-                                        This iw what we see when running the same from inside the test
-                                       \s
-                                        :plugin-four:classes
-                                        +--- :plugin-four:compileJava
-                                        \\--- :plugin-four:processResources
-                                     */
-                                }
+                dependencies {
+                    implementation(project(":plugin-three"))
+                }
                 """).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("plugin-four/build.gradle.kts"));
         ith.mkDirInProjectDir("plugin-four/src/main/java/com/example/plugin4");
         Files.write((/* language=java */ """
                 package com.example.plugin4;
                 import com.example.plugin3.ExampleThree;
+                /** Example simple class. */
                 public class ExampleFour {
+                    /** Example simple constructor. */
+                    public ExampleFour() {
+                        System.out.println("Hello from ExampleFour");
+                    }
+                    /**
+                     * Example simple method.
+                     * @return a hello string
+                     */
                     public String hello() {
                         return new ExampleThree().hello();
                     }
@@ -416,19 +491,19 @@ class V2IntegrationTest {
     }
 
     @Test
-    void multiModuleWithNestedDependenciesShouldBuild(@TempDir File tempDir) throws IOException {
+    void multiModuleWithNestedDependenciesShouldBuild() throws IOException, XmlPullParserException {
         // given
         var ith = new IntegrationTestHelper(tempDir);
         configureModuleWithNestedDependencies(ith);
 
         // when
         ith.gradleRunner()
-                .withArguments("build")
+                .withArguments("build", "publish")
                 .build();
 
         // then
-        var jpi = ith.inProjectDir("plugin-four/build/libs/plugin-four.jpi");
-        var jar = ith.inProjectDir("plugin-four/build/libs/plugin-four.jar");
+        var jpi = ith.inProjectDir("plugin-four/build/libs/plugin-four-1.0.0.jpi");
+        var jar = ith.inProjectDir("plugin-four/build/libs/plugin-four-1.0.0.jar");
         var explodedWar = ith.inProjectDir("plugin-four/build/jpi");
 
         assertThat(jpi).exists();
@@ -437,19 +512,42 @@ class V2IntegrationTest {
 
         var manifest = new File(explodedWar, "META-INF/MANIFEST.MF");
         assertThat(manifest).exists();
-        var manifestData = Files.readLines(manifest, StandardCharsets.UTF_8);
+        var manifestData = new Manifest(manifest.toURI().toURL().openStream()).getMainAttributes();
+        assertThat(manifest).isNotNull().isNotEmpty();
 
-        assertThat(manifestData)
-                .contains("Jenkins-Version: 2.492.3")
-                .contains("Plugin-Dependencies: plugin-three:unspecified");
+        assertThat(manifestData.getValue("Jenkins-Version")).isEqualTo("2.492.3");
+        assertThat(manifestData.getValue("Plugin-Dependencies")).isEqualTo("plugin-three:1.0.0");
 
-        var jarFileInJpi = new File(explodedWar, "WEB-INF/lib/plugin-four.jar");
-        assertThat(jarFileInJpi).exists();
+        var jpiLibsDir = new File(explodedWar, "WEB-INF/lib");
+        assertThat(jpiLibsDir).exists();
+
+        var jpiLibs = jpiLibsDir.list();
+        assertThat(jpiLibs).isNotNull()
+                .containsExactlyInAnyOrder("plugin-four-1.0.0.jar");
+
+        var pom = ith.inProjectDir("build/repo/com/example/plugin-four/1.0.0/plugin-four-1.0.0.pom");
+
+        MavenXpp3Reader reader = new MavenXpp3Reader();
+        Model model = reader.read(new FileReader(pom));
+
+        assertThat(model).isNotNull();
+
+        assertThat(model.getGroupId()).isEqualTo("com.example");
+        assertThat(model.getArtifactId()).isEqualTo("plugin-four");
+        assertThat(model.getVersion()).isEqualTo("1.0.0");
+        assertThat(model.getPackaging()).isEqualTo("jpi");
+
+        var dependencies = model.getDependencies();
+        assertThat(dependencies)
+                .extracting(Dependency::getGroupId, Dependency::getArtifactId, Dependency::getVersion, Dependency::getScope)
+                .containsExactlyInAnyOrder(
+                        new Tuple("com.example", "plugin-three", "1.0.0", "runtime")
+                );
 
     }
 
     @Test
-    void multiModuleWithNestedDependenciesShouldLaunchServer(@TempDir File tempDir) throws IOException, InterruptedException {
+    void multiModuleWithNestedDependenciesShouldLaunchServer() throws IOException, InterruptedException {
         // given
         var ith = new IntegrationTestHelper(tempDir);
         configureModuleWithNestedDependencies(ith);
@@ -461,18 +559,18 @@ class V2IntegrationTest {
     }
 
     @Test
-    void manifestContainsVersionWhenUsingResolution(@TempDir File tempDir) throws IOException {
+    void manifestContainsVersionWhenUsingForce() throws IOException {
         // given
         var ith = new IntegrationTestHelper(tempDir);
         initBuild(ith);
         Files.write((getBasePluginConfig() + /* language=kotlin */ """
                 configurations.configureEach {
                     resolutionStrategy {
-                        force("org.jenkins-ci.plugins:git:5.7.0")                        
+                        force("org.jenkins-ci.plugins:git:5.7.0")
                     }
                 }
                 dependencies {
-                    jenkinsPlugin("org.jenkins-ci.plugins:git")
+                    implementation("org.jenkins-ci.plugins:git")
                 }
                 """).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
 
@@ -485,37 +583,102 @@ class V2IntegrationTest {
         var manifest = ith.inProjectDir("build/jpi/META-INF/MANIFEST.MF");
         assertThat(manifest).exists();
 
-        var manifestData = Files.readLines(manifest, StandardCharsets.UTF_8);
-        assertThat(manifestData)
-                .contains("Jenkins-Version: 2.492.3")
-                .contains("Plugin-Dependencies: git:5.7.0");
-
+        var manifestData = new Manifest(manifest.toURI().toURL().openStream()).getMainAttributes();
+        assertThat(manifestData).isNotNull().isNotEmpty();
+        assertThat(manifestData.getValue("Jenkins-Version")).isEqualTo("2.492.3");
+        assertThat(manifestData.getValue("Plugin-Dependencies")).isEqualTo("git:5.7.0");
     }
 
     @Test
-    void shouldHaveTestDependencies(@TempDir File tempDir) throws IOException {
+    void manifestContainsVersionWhenUsingBom() throws IOException, XmlPullParserException {
         // given
         var ith = new IntegrationTestHelper(tempDir);
         initBuild(ith);
-        Files.write((getBasePluginConfig() + """
+        ith.mkDirInProjectDir("src-repo/com/example/bom/bom/1.0.0");
+        Files.write(/* language=xml */ """
+                <project xmlns="http://maven.apache.org/POM/4.0.0"
+                        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+                    <modelVersion>4.0.0</modelVersion>
+                    <groupId>com.example.bom</groupId>
+                    <artifactId>bom</artifactId>
+                    <version>1.0.0</version>
+                    <packaging>pom</packaging>
+                    <dependencyManagement>
+                        <dependencies>
+                            <dependency>
+                                <groupId>org.jenkins-ci.plugins</groupId>
+                                <artifactId>git</artifactId>
+                                <version>5.7.0</version>
+                            </dependency>
+                        </dependencies>
+                    </dependencyManagement>
+                </project>
+                """.getBytes(StandardCharsets.UTF_8), ith.inProjectDir("src-repo/com/example/bom/bom/1.0.0/bom-1.0.0.pom"));
+        Files.write((getBasePluginConfig() + /* language=kotlin */ """
+                repositories {
+                    maven {
+                        url = uri("${rootDir}/src-repo")
+                    }
+                }
                 dependencies {
-                    testImplementation("org.jenkins-ci.main:jenkins-test-harness:2414.+")
+                    implementation(platform("com.example.bom:bom:1.0.0"))
+                    api("org.jenkins-ci.plugins:git")
                 }
                 """).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
+
+        GradleRunner gradleRunner = ith.gradleRunner();
+
+        // when
+        var result = gradleRunner.withArguments("build", "publish").build();
+
+        // then
+        assertThat(result.getOutput()).doesNotContain("Dependency resolution rules will not be applied to configuration");
+        var manifest = ith.inProjectDir("build/jpi/META-INF/MANIFEST.MF");
+        assertThat(manifest).exists();
+
+        var manifestData = new Manifest(manifest.toURI().toURL().openStream()).getMainAttributes();
+        assertThat(manifestData).isNotNull().isNotEmpty();
+        assertThat(manifestData.getValue("Jenkins-Version")).isEqualTo("2.492.3");
+        assertThat(manifestData.getValue("Plugin-Dependencies")).isEqualTo("git:5.7.0");
+
+        var pom = ith.inProjectDir("build/repo/com/example/test-plugin/1.0.0/test-plugin-1.0.0.pom");
+        MavenXpp3Reader reader = new MavenXpp3Reader();
+        Model model = reader.read(new FileReader(pom));
+        assertThat(model).isNotNull();
+
+        assertThat(model.getGroupId()).isEqualTo("com.example");
+        assertThat(model.getArtifactId()).isEqualTo("test-plugin");
+        assertThat(model.getVersion()).isEqualTo("1.0.0");
+        assertThat(model.getPackaging()).isEqualTo("jpi");
+        var dependencies = model.getDependencies();
+        assertThat(dependencies)
+                .extracting(Dependency::getGroupId, Dependency::getArtifactId, Dependency::getVersion, Dependency::getScope)
+                .containsExactlyInAnyOrder(
+                        new Tuple("org.jenkins-ci.plugins", "git", "5.7.0", "compile")
+                );
+    }
+
+    @Test
+    void shouldHaveTestDependencies() throws IOException {
+        // given
+        var ith = new IntegrationTestHelper(tempDir);
+        initBuild(ith);
+        Files.write((getBasePluginConfig()).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
         ith.mkDirInProjectDir("src/test/java/com/example/plugin");
-        Files.write((/* language=java */"""
+        Files.write((/* language=java */ """
                 package com.example.plugin;
                 import org.junit.jupiter.api.Test;
                 import org.jvnet.hudson.test.JenkinsRule;
                 import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
-
                 import static org.junit.jupiter.api.Assertions.*;
-                
                 @WithJenkins
                 public class PluginTest {
+                    /** @noinspection JUnitMalformedDeclaration*/
                     @Test
                     void test(JenkinsRule j) {
                         var injector = j.jenkins.getInjector();
+                        //noinspection DataFlowIssue
                         assertNotNull(injector);
                     }
                 }
@@ -528,6 +691,401 @@ class V2IntegrationTest {
 
         // then
         assertThat(result.getOutput()).contains("BUILD SUCCESSFUL");
+
+        // when
+        result = gradleRunner.withArguments("dependencies", "--configuration=testCompileClasspath").build();
+
+        // then
+        assertThat(result.getOutput())
+                .contains("org.jenkins-ci.main:jenkins-test-harness:2414.v185474555e66")
+                .contains("org.jenkins-ci.main:jenkins-core:2.492.3");
+    }
+
+    @Test
+    void testCanAccessJpiDependencies() throws IOException {
+        // given
+        var ith = new IntegrationTestHelper(tempDir);
+        initBuild(ith);
+        Files.write((getBasePluginConfig() + /* language=kotlin */ """
+                dependencies {
+                    implementation("org.jenkins-ci.plugins:git:5.7.0")
+                }
+                """).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
+        ith.mkDirInProjectDir("src/test/java/com/example/plugin");
+        Files.write((/* language=java */ """
+                package com.example.plugin;
+                import org.junit.jupiter.api.Test;
+                import static org.junit.jupiter.api.Assertions.*;
+                import hudson.plugins.git.Branch;
+                public class PluginTest {
+                    @Test
+                    void test() {
+                        Branch branch = null;
+                        assertNull(branch);
+                    }
+                }
+                """).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("src/test/java/com/example/plugin/PluginTest.java"));
+
+        GradleRunner gradleRunner = ith.gradleRunner();
+
+        // when
+        var result = gradleRunner.withArguments("test").build();
+
+        // then
+        assertThat(result.getOutput()).contains("BUILD SUCCESSFUL");
+
+        // when
+        result = gradleRunner.withArguments("dependencies", "--configuration=testCompileClasspath").build();
+
+        // then
+        assertThat(result.getOutput())
+                .contains("org.jenkins-ci.main:jenkins-test-harness:2414.v185474555e66")
+                .contains("org.jenkins-ci.main:jenkins-core:2.492.3");
+    }
+
+    @Test
+    void shouldCustomizeJenkinsVersionAndTestHarnessVersion() throws IOException {
+        // given
+        var ith = new IntegrationTestHelper(tempDir);
+        initBuild(ith);
+        Files.write(/* language=properties */ """
+                jenkins.version=2.492.1
+                jenkins.testharness.version=2411.v1e79b_0dc94b_7
+                """.getBytes(StandardCharsets.UTF_8), ith.inProjectDir("gradle.properties"));
+        Files.write((getBasePluginConfig()).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
+        ith.mkDirInProjectDir("src/test/java/com/example/plugin");
+        Files.write((/* language=java */ """
+                package com.example.plugin;
+                import org.junit.jupiter.api.Test;
+                import org.jvnet.hudson.test.JenkinsRule;
+                import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
+                import static org.junit.jupiter.api.Assertions.*;
+                @WithJenkins
+                public class PluginTest {
+                    /** @noinspection JUnitMalformedDeclaration*/
+                    @Test
+                    void test(JenkinsRule j) {
+                        var injector = j.jenkins.getInjector();
+                        //noinspection DataFlowIssue,ObviousNullCheck
+                        assertNotNull(injector);
+                    }
+                }
+                """).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("src/test/java/com/example/plugin/PluginTest.java"));
+
+        GradleRunner gradleRunner = ith.gradleRunner();
+
+        // when
+        var result = gradleRunner.withArguments("test").build();
+
+        // then
+        assertThat(result.getOutput()).contains("BUILD SUCCESSFUL");
+
+        // when
+        result = gradleRunner.withArguments("dependencies", "--configuration=testCompileClasspath").build();
+
+        // then
+        assertThat(result.getOutput())
+                .contains("org.jenkins-ci.main:jenkins-test-harness:2411.v1e79b_0dc94b_7")
+                .contains("org.jenkins-ci.main:jenkins-core:2.492.1");
+    }
+
+    @Test
+    void publishesJarAndJpi() throws IOException, XmlPullParserException {
+        // given
+        var ith = new IntegrationTestHelper(tempDir);
+        initBuild(ith);
+        Files.write((getBasePluginConfig() + /* language=kotlin */ """
+                dependencies {
+                    api("org.jenkins-ci.plugins:jackson2-api:2.18.3-402.v74c4eb_f122b_2")
+                    implementation("com.github.rahulsom:nothing-java:0.2.0")
+                }
+                """).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
+
+        // when
+        var gradleRunner = ith.gradleRunner();
+        gradleRunner.withArguments("publish").build();
+
+        // then
+        var jpi = ith.inProjectDir("build/repo/com/example/test-plugin/1.0.0/test-plugin-1.0.0.jpi");
+        var jar = ith.inProjectDir("build/repo/com/example/test-plugin/1.0.0/test-plugin-1.0.0.jar");
+        var sourcesJar = ith.inProjectDir("build/repo/com/example/test-plugin/1.0.0/test-plugin-1.0.0-sources.jar");
+        var javadocJar = ith.inProjectDir("build/repo/com/example/test-plugin/1.0.0/test-plugin-1.0.0-javadoc.jar");
+        var pom = ith.inProjectDir("build/repo/com/example/test-plugin/1.0.0/test-plugin-1.0.0.pom");
+        var module = ith.inProjectDir("build/repo/com/example/test-plugin/1.0.0/test-plugin-1.0.0.module");
+
+        assertThat(jpi).exists();
+        assertThat(jar).exists();
+        assertThat(sourcesJar).exists();
+        assertThat(javadocJar).exists();
+        assertThat(pom).exists();
+        assertThat(module).exists();
+
+        MavenXpp3Reader reader = new MavenXpp3Reader();
+        Model model = reader.read(new FileReader(pom));
+
+        assertThat(model).isNotNull();
+
+        assertThat(model.getGroupId()).isEqualTo("com.example");
+        assertThat(model.getArtifactId()).isEqualTo("test-plugin");
+        assertThat(model.getVersion()).isEqualTo("1.0.0");
+        assertThat(model.getPackaging()).isEqualTo("jpi");
+
+        var dependencies = model.getDependencies();
+        assertThat(dependencies)
+                .extracting(Dependency::getGroupId, Dependency::getArtifactId, Dependency::getVersion, Dependency::getScope)
+                .containsExactlyInAnyOrder(
+                        new Tuple("org.jenkins-ci.plugins", "jackson2-api", "2.18.3-402.v74c4eb_f122b_2", "compile"),
+                        new Tuple("com.github.rahulsom", "nothing-java", "0.2.0", "runtime")
+                );
+
+        var repositories = model.getRepositories();
+        assertThat(repositories)
+                .extracting(Repository::getId, Repository::getUrl)
+                .containsExactlyInAnyOrder(
+                        new Tuple("MavenRepo", "https://repo.maven.apache.org/maven2/"),
+                        new Tuple("jenkins-releases", "https://repo.jenkins-ci.org/releases/")
+                );
+        var explodedWar = ith.inProjectDir("build/jpi");
+
+        var jpiLibsDir = new File(explodedWar, "WEB-INF/lib");
+        assertThat(jpiLibsDir).exists();
+
+        var jpiLibs = jpiLibsDir.list();
+        assertThat(jpiLibs).isNotNull()
+                .containsExactlyInAnyOrder("nothing-java-0.2.0.jar",
+                        "test-plugin-1.0.0.jar",
+                        "commons-math3-3.6.1.jar",
+                        "commons-lang3-3.12.0.jar");
+    }
+
+    @Test
+    void consumesJpisWithJars() throws IOException {
+        // given
+        var ith = new IntegrationTestHelper(tempDir);
+        initBuild(ith);
+        Files.write((getBasePluginConfig() + /* language=kotlin */ """
+                dependencies {
+                    implementation("org.jenkins-ci.plugins:jackson2-api:2.18.3-402.v74c4eb_f122b_2")
+                }
+                """).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
+
+        ith.mkDirInProjectDir("src/main/java/com/example/plugin");
+        Files.write(/* language=java */ """
+                package com.example.plugin;
+                import com.fasterxml.jackson.databind.ObjectMapper;
+                public class Plugin {
+                    public static void main(String[] args) {
+                        var o = new ObjectMapper();
+                    }
+                }
+                """.getBytes(StandardCharsets.UTF_8), ith.inProjectDir("src/main/java/com/example/plugin/Plugin.java"));
+
+        // when
+        var gradleRunner = ith.gradleRunner();
+        var result = gradleRunner.withArguments("build").build();
+
+        // then
+        assertThat(result.getOutput()).contains("BUILD SUCCESSFUL");
+
+        var explodedWar = ith.inProjectDir("build/jpi");
+
+        var jpiLibsDir = new File(explodedWar, "WEB-INF/lib");
+        assertThat(jpiLibsDir).exists();
+
+        var jpiLibs = jpiLibsDir.list();
+        assertThat(jpiLibs).isNotNull()
+                .containsExactlyInAnyOrder("test-plugin-1.0.0.jar");
+
+    }
+
+    @Test
+    void playsWellWithLombok() throws IOException {
+        // given
+        var ith = new IntegrationTestHelper(tempDir);
+        initBuild(ith);
+        Files.write((getBasePluginConfig() +/* language=kotlin */ """
+                dependencies {
+                    annotationProcessor("org.projectlombok:lombok:1.18.38")
+                    compileOnly("org.projectlombok:lombok:1.18.38")
+                }
+                """).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
+        ith.mkDirInProjectDir("src/main/java/com/example/plugin");
+        Files.write(/* language=java */ """
+                package com.example.plugin;
+                import lombok.*;
+                import hudson.Extension;
+                import jakarta.inject.Inject;
+                import hudson.model.RootAction;
+                @Extension
+                @NoArgsConstructor
+                public class PluginAction implements RootAction {
+                    private String name;
+                    @Inject
+                    public PluginAction(String name) {
+                        this.name = name;
+                    }
+                    public String getUrlName() { return "example"; }
+                    public String getDisplayName() { return "Example plugin"; }
+                    public String getIconFileName() { return null; }
+                }
+                """.getBytes(StandardCharsets.UTF_8), ith.inProjectDir("src/main/java/com/example/plugin/PluginAction.java"));
+
+        // when
+        var gradleRunner = ith.gradleRunner();
+        var result = gradleRunner.withArguments("build").build();
+
+        // then
+        assertThat(result.getOutput()).contains("BUILD SUCCESSFUL");
+
+        var explodedWar = ith.inProjectDir("build/jpi");
+
+        var jpiLibsDir = new File(explodedWar, "WEB-INF/lib");
+        assertThat(jpiLibsDir).exists();
+
+        var jpiLibs = jpiLibsDir.list();
+        assertThat(jpiLibs).isNotNull()
+                .containsExactlyInAnyOrder("test-plugin-1.0.0.jar");
+    }
+
+
+    @Test
+    void playsWellWithGitPlugin() throws IOException {
+        // given
+        var ith = new IntegrationTestHelper(tempDir);
+        initBuild(ith);
+        Files.write((getBasePluginConfig() + /* language=kotlin */ """
+                dependencies {
+                    implementation("org.jenkins-ci.plugins:git:5.7.0")
+                }
+                """).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
+        ith.mkDirInProjectDir("src/main/java/com/example/plugin");
+        Files.write(/* language=java */ """
+                package com.example.plugin;
+                import hudson.plugins.git.Branch;
+                public class PluginAction {
+                    private String name;
+                    public PluginAction(String name) {
+                        Branch branch;
+                        this.name = name;
+                    }
+                }
+                """.getBytes(StandardCharsets.UTF_8), ith.inProjectDir("src/main/java/com/example/plugin/PluginAction.java"));
+
+        // when
+        var gradleRunner = ith.gradleRunner();
+        var result = gradleRunner.withArguments("build").build();
+
+        // then
+        assertThat(result.getOutput()).contains("BUILD SUCCESSFUL");
+
+        var explodedWar = ith.inProjectDir("build/jpi");
+
+        var jpiLibsDir = new File(explodedWar, "WEB-INF/lib");
+        assertThat(jpiLibsDir).exists();
+
+        var jpiLibs = jpiLibsDir.list();
+        assertThat(jpiLibs).isNotNull()
+                .containsExactlyInAnyOrder("test-plugin-1.0.0.jar");
+    }
+
+    @Test
+    void dependencyTreeIsCorrectForRuntimeClasspath() throws IOException {
+        // given
+        var ith = new IntegrationTestHelper(tempDir);
+        initBuild(ith);
+        Files.write((getBasePluginConfig() + /* language=kotlin */ """
+                dependencies {
+                    implementation("org.jenkins-ci.plugins:git:5.7.0")
+                    implementation("com.github.rahulsom:nothing-java:0.2.0")
+                }
+                """).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
+
+        var gradleRunner = ith.gradleRunner();
+
+        // when
+        var result = gradleRunner.withArguments("dependencies", "--configuration=runtimeClasspath").build();
+
+        // then
+        var expected = getClass().getClassLoader().getResourceAsStream("org/jenkinsci/gradle/plugins/jpi2/runtimeClasspath.txt");
+
+        List<String> actualList = Arrays.stream(result.getOutput().split("\n")).toList();
+        List<String> expectedList = IOUtils.readLines(expected, StandardCharsets.UTF_8);
+        assertThat(actualList.subList(0, actualList.size() - 2).stream().collect(Collectors.joining("\n")))
+                .isEqualTo(expectedList.subList(0, expectedList.size() - 2).stream().collect(Collectors.joining("\n")));
+        assertThat(result.getOutput()).contains("BUILD SUCCESSFUL");
+    }
+
+    @Test
+    void dependencyTreeIsCorrectForCompileClasspath() throws IOException {
+        // given
+        var ith = new IntegrationTestHelper(tempDir);
+        initBuild(ith);
+        Files.write((getBasePluginConfig() + /* language=kotlin */ """
+                dependencies {
+                    implementation("org.jenkins-ci.plugins:git:5.7.0")
+                    implementation("com.github.rahulsom:nothing-java:0.2.0")
+                }
+                """).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
+
+        var gradleRunner = ith.gradleRunner();
+
+        // when
+        var result = gradleRunner.withArguments("dependencies", "--configuration=compileClasspath").build();
+
+        // then
+        var expected = getClass().getClassLoader().getResourceAsStream("org/jenkinsci/gradle/plugins/jpi2/compileClasspath.txt");
+
+        List<String> actualList = Arrays.stream(result.getOutput().split("\n")).toList();
+        List<String> expectedList = IOUtils.readLines(expected, StandardCharsets.UTF_8);
+        assertThat(actualList.subList(0, actualList.size() - 2).stream().collect(Collectors.joining("\n")))
+                .isEqualTo(expectedList.subList(0, expectedList.size() - 2).stream().collect(Collectors.joining("\n")));
+        assertThat(result.getOutput()).contains("BUILD SUCCESSFUL");
+    }
+
+    @Test
+    void respectsExclusions() throws IOException {
+        // given
+        var ith = new IntegrationTestHelper(tempDir);
+        initBuild(ith);
+        Files.write((getBasePluginConfig() + /* language=kotlin */ """
+                dependencies {
+                    implementation("com.github.rahulsom:nothing-java:0.2.0") {
+                        exclude(group = "org.apache.commons", module = "commons-lang3")
+                    }
+                }
+                """).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
+
+        var gradleRunner = ith.gradleRunner();
+
+        // when
+        var result = gradleRunner.withArguments("jpi").build();
+
+        // then
+        assertThat(result.getOutput()).contains("BUILD SUCCESSFUL");
+        var libs = ith.inProjectDir("build/jpi/WEB-INF/lib");
+
+        assertThat(libs).exists();
+
+        var jpiLibs = libs.list();
+        assertThat(jpiLibs).isNotNull()
+                .containsExactlyInAnyOrder("nothing-java-0.2.0.jar",
+                        "test-plugin-1.0.0.jar",
+                        "commons-math3-3.6.1.jar");
+    }
+
+    @SuppressWarnings("unused") // Can be used to reproduce issues
+    private static File repro() {
+        var file = new File("/tmp/repro");
+        if (file.exists()) {
+            try {
+                FileUtils.deleteDirectory(file);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        boolean successful = file.mkdirs();
+        assertThat(successful).isTrue();
+        return file;
     }
 
 }
