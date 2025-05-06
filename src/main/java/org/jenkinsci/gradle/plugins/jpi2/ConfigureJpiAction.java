@@ -42,7 +42,7 @@ class ConfigureJpiAction implements Action<War> {
             }
         });
 
-        var directJarDependencies = getDirectJarDependencies();
+        var directJarDependencies = getDirectJarDependencies(configuration);
         var detachedConfiguration = project.getConfigurations().detachedConfiguration(directJarDependencies.toArray(new Dependency[0]));
         detachedConfiguration.shouldResolveConsistentlyWith(configuration);
 
@@ -51,7 +51,7 @@ class ConfigureJpiAction implements Action<War> {
     }
 
     @NotNull
-    private ArrayList<Dependency> getDirectJarDependencies() {
+    private ArrayList<Dependency> getDirectJarDependencies(Configuration configuration) {
         var directJarDependencies = new ArrayList<Dependency>();
 
         var requestedDependencies = configuration.getAllDependencies();

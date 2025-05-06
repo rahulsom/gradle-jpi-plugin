@@ -5,9 +5,16 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
+import org.gradle.api.artifacts.repositories.RepositoryContentDescriptor;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.attributes.Usage;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.GroovyBasePlugin;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaLibraryPlugin;
+import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.PublishingExtension;
@@ -21,11 +28,21 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
+import java.util.List;
+
 @SuppressWarnings({
         "Convert2Lambda", // Gradle doesn't like lambdas
         "unused" // This is tested in an acceptance test
 })
-public class V2JpiPlugin implements Plugin<Project> {
+public abstract class V2JpiPlugin implements Plugin<Project> {
+
+    @Inject
+    public V2JpiPlugin() {
+    }
+
+    @Inject
+    public abstract ObjectFactory getObjectFactory();
 
     private static final Logger log = LoggerFactory.getLogger(V2JpiPlugin.class);
 
@@ -40,7 +57,7 @@ public class V2JpiPlugin implements Plugin<Project> {
 
     @Override
     public void apply(@NotNull Project project) {
-        project.getPlugins().apply(JavaLibraryPlugin.class);
+        project.getPlugins().apply(JavaPlugin.class);
         project.getPlugins().apply(MavenPublishPlugin.class);
 
         var configurations = project.getConfigurations();
@@ -52,7 +69,22 @@ public class V2JpiPlugin implements Plugin<Project> {
 
         var runtimeClasspath = configurations.getByName("runtimeClasspath");
 
-        var jpiTask = project.getTasks().register(JPI_TASK, War.class, new ConfigureJpiAction(project, runtimeClasspath, jenkinsVersion));
+        var defaultRuntime = project.getConfigurations().create("defaultRuntime", new Action<>() {
+            @Override
+            public void execute(@NotNull Configuration c) {
+                c.extendsFrom(runtimeClasspath);
+                c.attributes(new Action<>() {
+                    @Override
+                    public void execute(@NotNull AttributeContainer attributeContainer) {
+                        attributeContainer.attribute(Usage.USAGE_ATTRIBUTE, getObjectFactory().named(Usage.class, HpiMetadataRule.DEFAULT_USAGE));
+                    }
+                });
+            }
+        });
+
+        configureRepositoriesWithoutMetadata(project);
+
+        var jpiTask = project.getTasks().register(JPI_TASK, War.class, new ConfigureJpiAction(project, defaultRuntime, jenkinsVersion));
         project.getTasks().register(EXPLODED_JPI_TASK, Sync.class, new Action<>() {
             @Override
             public void execute(@NotNull Sync sync) {
@@ -67,15 +99,8 @@ public class V2JpiPlugin implements Plugin<Project> {
             }
         });
 
-        project.getTasks().named("assemble", new Action<>() {
-            @Override
-            public void execute(@NotNull Task task) {
-                task.dependsOn(jpiTask);
-            }
-        });
-
         final var projectRoot = project.getLayout().getProjectDirectory().getAsFile().getAbsolutePath();
-        final var prepareServer = createPrepareServerTask(project, projectRoot, configurations.getByName("runtimeClasspath"), jpiTask);
+        final var prepareServer = createPrepareServerTask(project, projectRoot, defaultRuntime, jpiTask);
 
         var serverTask = project.getTasks().register("server", JavaExec.class, new ServerAction(serverTaskClasspath, projectRoot, prepareServer));
         project.getPlugins().withType(JavaBasePlugin.class, new SezpozJavaAction(project));
@@ -98,7 +123,50 @@ public class V2JpiPlugin implements Plugin<Project> {
         dependencies.add("testImplementation", "org.jenkins-ci.main:jenkins-test-harness:" + testHarnessVersion);
 
         dependencies.getComponents().all(HpiMetadataRule.class);
-        configurePublishing(project, jpiTask, configurations.getByName("runtimeClasspath"));
+        configurePublishing(project, jpiTask, runtimeClasspath);
+    }
+
+    private static void configureRepositoriesWithoutMetadata(@NotNull Project project) {
+        var groupsWithBadMetadata = List.of(
+                "com.github.ben-manes.caffeine"
+        );
+
+        project.afterEvaluate(new Action<>() {
+            @Override
+            public void execute(@NotNull Project project1) {
+                RepositoryHandler repositories = project1.getRepositories();
+                repositories.stream().toList().forEach(repository -> {
+                    if (repository instanceof MavenArtifactRepository originalRepository) {
+                        repository.content(new Action<>() {
+                            @Override
+                            public void execute(@NotNull RepositoryContentDescriptor descriptor) {
+                                groupsWithBadMetadata.forEach(descriptor::excludeGroup);
+                            }
+                        });
+                        var repositoryWithoutMetadata = repositories.add(repositories.maven(new Action<>() {
+                            @Override
+                            public void execute(@NotNull MavenArtifactRepository mavenArtifactRepository) {
+                                mavenArtifactRepository.setUrl(originalRepository.getUrl());
+                                mavenArtifactRepository.setName(originalRepository.getName() + "WithoutMetadata");
+                                mavenArtifactRepository.content(new Action<>() {
+                                    @Override
+                                    public void execute(@NotNull RepositoryContentDescriptor descriptor) {
+                                        groupsWithBadMetadata.forEach(descriptor::includeGroup);
+                                    }
+                                });
+                                mavenArtifactRepository.metadataSources(new Action<>() {
+                                    @Override
+                                    public void execute(@NotNull MavenArtifactRepository.MetadataSources metadataSources) {
+                                        metadataSources.ignoreGradleMetadataRedirection();
+                                        metadataSources.mavenPom();
+                                    }
+                                });
+                            }
+                        }));
+                    }
+                });
+            }
+        });
     }
 
     private static void configurePublishing(@NotNull Project project, TaskProvider<?> jpiTask, Configuration runtimeClasspath) {
