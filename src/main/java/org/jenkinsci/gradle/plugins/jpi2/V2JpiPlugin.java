@@ -101,7 +101,7 @@ public class V2JpiPlugin implements Plugin<Project> {
         configurePublishing(project, jpiTask, configurations.getByName("runtimeClasspath"));
     }
 
-    private static void configurePublishing(@NotNull Project project, TaskProvider<War> jpiTask, Configuration runtimeClasspath) {
+    private static void configurePublishing(@NotNull Project project, TaskProvider<?> jpiTask, Configuration runtimeClasspath) {
         var publishingExtension = project.getExtensions().getByType(PublishingExtension.class);
         var existingPublication = !publishingExtension.getPublications().isEmpty() ? publishingExtension.getPublications().iterator().next() : null;
         var javaPlugin = project.getExtensions().getByType(JavaPluginExtension.class);
@@ -120,14 +120,14 @@ public class V2JpiPlugin implements Plugin<Project> {
         }
     }
 
-    private static void configurePublication(@NotNull MavenPublication publication, TaskProvider<War> jpiTask, Configuration runtimeClasspath, Project project) {
+    private static void configurePublication(@NotNull MavenPublication publication, TaskProvider<?> jpiTask, Configuration runtimeClasspath, Project project) {
         publication.artifact(jpiTask);
         publication.getPom().setPackaging("jpi");
         publication.getPom().withXml(new PomBuilder(runtimeClasspath, project));
     }
 
     @NotNull
-    private static TaskProvider<?> createPrepareServerTask(@NotNull Project project, String projectRoot, Configuration serverJenkinsPlugin, TaskProvider<War> jpiTaskProvider) {
+    private static TaskProvider<?> createPrepareServerTask(@NotNull Project project, String projectRoot, Configuration serverJenkinsPlugin, TaskProvider<?> jpiTaskProvider) {
         return project.getTasks().register("prepareServer", Sync.class, new ConfigurePrepareServerAction(jpiTaskProvider, projectRoot, serverJenkinsPlugin, project));
     }
 

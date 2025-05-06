@@ -9,22 +9,20 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.TaskProvider;
-import org.gradle.api.tasks.bundling.War;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;
-import java.util.Optional;
 
 /**
  * Action to configure the prepareServer task.
  */
 class ConfigurePrepareServerAction implements Action<Sync> {
-    private final TaskProvider<War> jpiTaskProvider;
+    private final TaskProvider<?> jpiTaskProvider;
     private final String projectRoot;
     private final Configuration serverJenkinsPlugin;
     private final Project project;
 
-    public ConfigurePrepareServerAction(TaskProvider<War> jpiTaskProvider, String projectRoot, Configuration serverJenkinsPlugin, Project project) {
+    public ConfigurePrepareServerAction(TaskProvider<?> jpiTaskProvider, String projectRoot, Configuration serverJenkinsPlugin, Project project) {
         this.jpiTaskProvider = jpiTaskProvider;
         this.projectRoot = projectRoot;
         this.serverJenkinsPlugin = serverJenkinsPlugin;
@@ -64,8 +62,11 @@ class ConfigurePrepareServerAction implements Action<Sync> {
                         System.err.println("Dependency project: " + p.getProjectPath());
                         var dependencyProject = project.getRootProject().getAllprojects().stream()
                                 .filter(c -> c.getPath().equals(p.getProjectPath()))
-                                .findFirst().get();
-                        var jpiTask = dependencyProject.getTasks().findByName("jpi");
+                                .findFirst();
+
+                        assert dependencyProject.isPresent();
+
+                        var jpiTask = dependencyProject.get().getTasks().findByName("jpi");
                         if (jpiTask != null) {
                             sync.from(jpiTask.getOutputs().getFiles())
                                     .into(projectRoot + "/work/plugins");
