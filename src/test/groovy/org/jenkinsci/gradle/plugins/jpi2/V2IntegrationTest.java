@@ -3,17 +3,18 @@ package org.jenkinsci.gradle.plugins.jpi2;
 import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.maven.model.Repository;
-import org.assertj.core.groups.Tuple;
-import org.awaitility.Awaitility;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
+import org.apache.maven.model.Repository;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
+import org.assertj.core.groups.Tuple;
+import org.awaitility.Awaitility;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.GradleRunner;
 import org.jenkinsci.gradle.plugins.jpi.IntegrationTestHelper;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.condition.DisabledOnOs;
@@ -28,11 +29,11 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.jar.Manifest;
-import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -278,7 +279,7 @@ class V2IntegrationTest {
         var pluginsDir = ith.inProjectDir("work/plugins");
         assertThat(pluginsDir).exists();
 
-        var files = Arrays.stream(pluginsDir.list()).sorted().toList();
+        var files = Arrays.stream(Objects.requireNonNull(pluginsDir.list())).sorted().toList();
         assertThat(files).isNotNull()
                 .containsExactly(
                         "apache-httpcomponents-client-4-api.jpi",
@@ -1009,9 +1010,10 @@ class V2IntegrationTest {
         var expected = getClass().getClassLoader().getResourceAsStream("org/jenkinsci/gradle/plugins/jpi2/runtimeClasspath.txt");
 
         List<String> actualList = Arrays.stream(result.getOutput().split("\n")).toList();
+        Assertions.assertNotNull(expected);
         List<String> expectedList = IOUtils.readLines(expected, StandardCharsets.UTF_8);
-        assertThat(actualList.subList(0, actualList.size() - 2).stream().collect(Collectors.joining("\n")))
-                .isEqualTo(expectedList.subList(0, expectedList.size() - 2).stream().collect(Collectors.joining("\n")));
+        assertThat(String.join("\n", actualList.subList(0, actualList.size() - 2)))
+                .isEqualTo(String.join("\n", expectedList.subList(0, expectedList.size() - 2)));
         assertThat(result.getOutput()).contains("BUILD SUCCESSFUL");
     }
 
@@ -1036,9 +1038,10 @@ class V2IntegrationTest {
         var expected = getClass().getClassLoader().getResourceAsStream("org/jenkinsci/gradle/plugins/jpi2/compileClasspath.txt");
 
         List<String> actualList = Arrays.stream(result.getOutput().split("\n")).toList();
+        Assertions.assertNotNull(expected);
         List<String> expectedList = IOUtils.readLines(expected, StandardCharsets.UTF_8);
-        assertThat(actualList.subList(0, actualList.size() - 2).stream().collect(Collectors.joining("\n")))
-                .isEqualTo(expectedList.subList(0, expectedList.size() - 2).stream().collect(Collectors.joining("\n")));
+        assertThat(String.join("\n", actualList.subList(0, actualList.size() - 2)))
+                .isEqualTo(String.join("\n", expectedList.subList(0, expectedList.size() - 2)));
         assertThat(result.getOutput()).contains("BUILD SUCCESSFUL");
     }
 
