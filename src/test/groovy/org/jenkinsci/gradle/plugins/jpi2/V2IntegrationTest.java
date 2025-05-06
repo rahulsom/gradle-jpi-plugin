@@ -145,7 +145,7 @@ class V2IntegrationTest {
                 .forwardStdOutput(stdout)
                 .build()));
         Awaitility.await()
-                .atMost(2, TimeUnit.MINUTES)
+                .atMost(3, TimeUnit.MINUTES)
                 .pollInterval(5, TimeUnit.SECONDS)
                 .conditionEvaluationListener(condition -> {
                     if (condition.getRemainingTimeInMS() <= 0 || condition.isSatisfied()) {

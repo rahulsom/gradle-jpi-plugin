@@ -50,7 +50,23 @@ public class V2JpiPlugin implements Plugin<Project> {
         String jenkinsVersion = getVersionFromProperties(project, JENKINS_VERSION_PROPERTY, DEFAULT_JENKINS_VERSION);
         String testHarnessVersion = getVersionFromProperties(project, TEST_HARNESS_VERSION_PROPERTY, DEFAULT_TEST_HARNESS_VERSION);
 
-        var jpiTask = createJpiTask(project, configurations.getByName("runtimeClasspath"), jenkinsVersion);
+        var runtimeClasspath = configurations.getByName("runtimeClasspath");
+
+        var jpiTask = project.getTasks().register(JPI_TASK, War.class, new ConfigureJpiAction(project, runtimeClasspath, jenkinsVersion));
+        project.getTasks().register(EXPLODED_JPI_TASK, Sync.class, new Action<>() {
+            @Override
+            public void execute(@NotNull Sync sync) {
+                sync.into(project.getLayout().getBuildDirectory().dir("jpi"));
+                sync.with((War) project.getTasks().getByName(JPI_TASK));
+            }
+        });
+        project.getTasks().named("assemble", new Action<>() {
+            @Override
+            public void execute(@NotNull Task task) {
+                task.dependsOn(jpiTask);
+            }
+        });
+
         project.getTasks().named("assemble", new Action<>() {
             @Override
             public void execute(@NotNull Task task) {
@@ -129,17 +145,6 @@ public class V2JpiPlugin implements Plugin<Project> {
     private static String getVersionFromProperties(@NotNull Project project, String propertyName, String defaultVersion) {
         Provider<String> myProperty = project.getProviders().gradleProperty(propertyName);
         return myProperty.getOrElse(defaultVersion);
-    }
-
-    private static TaskProvider<War> createJpiTask(@NotNull Project project, Configuration runtimeClasspath, final String jenkinsVersion) {
-        project.getTasks().register(EXPLODED_JPI_TASK, Sync.class, new Action<>() {
-            @Override
-            public void execute(@NotNull Sync sync) {
-                sync.into(project.getLayout().getBuildDirectory().dir("jpi"));
-                sync.with((War) project.getTasks().getByName(JPI_TASK));
-            }
-        });
-        return project.getTasks().register(JPI_TASK, War.class, new ConfigureJpiAction(project, runtimeClasspath, jenkinsVersion));
     }
 
 }
