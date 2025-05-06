@@ -38,7 +38,7 @@ class ConfigurePrepareServerAction implements Action<Sync> {
 
         serverJenkinsPlugin.getResolvedConfiguration().getResolvedArtifacts()
                 .stream()
-                .filter(artifact -> artifact.getExtension().equals("jpi") || artifact.getExtension().equals("hpi"))
+                .filter(artifact -> HpiMetadataRule.PLUGIN_PACKAGINGS.contains(artifact.getExtension()))
                 .sorted(Comparator.comparing(ResolvedArtifact::getName))
                 .forEach(artifact -> {
                     sync.from(artifact.getFile()).into(projectRoot + "/work/plugins").rename(new Transformer<>() {

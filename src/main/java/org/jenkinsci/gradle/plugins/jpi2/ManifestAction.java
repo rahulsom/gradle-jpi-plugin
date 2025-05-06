@@ -44,12 +44,16 @@ class ManifestAction implements Action<Manifest> {
                             .filter(p -> p.getName().equals(projectPath))
                             .findFirst();
 
+                    assert dependencyProject.isPresent();
+
                     var jpiTaskFromDependencyProject = dependencyProject.get().getTasks().findByName("jpi");
                     if (jpiTaskFromDependencyProject != null) {
                         pluginDependencies.add(resolvedDependency.getModuleName() + ":" + resolvedDependency.getModuleVersion());
                     }
                 } else if (id instanceof ModuleComponentArtifactIdentifier identifier) {
-                    if (identifier.getFileName().endsWith(".jpi") || identifier.getFileName().endsWith(".hpi")) {
+                    var byDots = identifier.getFileName().split("\\.");
+                    var extension = byDots[byDots.length - 1];
+                    if (HpiMetadataRule.PLUGIN_PACKAGINGS.contains(extension)) {
                         pluginDependencies.add(resolvedDependency.getModuleName() + ":" + resolvedDependency.getModuleVersion());
                     }
                 }
