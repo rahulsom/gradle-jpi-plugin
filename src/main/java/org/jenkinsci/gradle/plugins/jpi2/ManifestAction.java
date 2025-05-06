@@ -17,12 +17,12 @@ import java.util.Optional;
  */
 class ManifestAction implements Action<Manifest> {
     private final Project project;
-    private final Configuration runtimeClasspath;
+    private final Configuration configuration;
     private final String jenkinsVersion;
 
-    public ManifestAction(Project project, Configuration runtimeClasspath, String jenkinsVersion) {
+    public ManifestAction(Project project, Configuration configuration, String jenkinsVersion) {
         this.project = project;
-        this.runtimeClasspath = runtimeClasspath;
+        this.configuration = configuration;
         this.jenkinsVersion = jenkinsVersion;
     }
 
@@ -34,7 +34,7 @@ class ManifestAction implements Action<Manifest> {
 
         var pluginDependencies = new ArrayList<String>();
 
-        runtimeClasspath.getResolvedConfiguration().getFirstLevelModuleDependencies().forEach(resolvedDependency -> {
+        configuration.getResolvedConfiguration().getFirstLevelModuleDependencies().forEach(resolvedDependency -> {
             resolvedDependency.getModuleArtifacts().forEach(resolvedArtifact -> {
                 ComponentArtifactIdentifier id = resolvedArtifact.getId();
                 if (id instanceof PublishArtifactLocalArtifactMetadata) {
