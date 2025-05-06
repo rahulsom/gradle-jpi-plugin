@@ -58,7 +58,6 @@ class ConfigurePrepareServerAction implements Action<Sync> {
                 .forEach(it -> {
                     ComponentIdentifier componentIdentifier = it.getId().getComponentIdentifier();
                     if (componentIdentifier instanceof ProjectComponentIdentifier p) {
-                        System.err.println("Dependency project: " + p.getProjectPath());
                         var dependencyProject = project.getRootProject().getAllprojects().stream()
                                 .filter(c -> c.getPath().equals(p.getProjectPath()))
                                 .findFirst();
