@@ -33,7 +33,31 @@ import static jenkins.YesNoMaybe.MAYBE;
  * @author Kohsuke Kawaguchi
  */
 public @interface Extension {
+    /**
+     * Specifies the ordinal of this extension, which determines its sort order
+     * relative to other extensions of the same type.
+     * <p>
+     * Higher ordinal values have higher priority.
+     *
+     * @return the ordinal value (default: 0)
+     */
     double ordinal() default 0;
+
+    /**
+     * Specifies whether this extension is optional.
+     * <p>
+     * Optional extensions can be disabled by the user.
+     *
+     * @return true if this extension is optional, false otherwise
+     */
     boolean optional() default false;
+
+    /**
+     * Specifies whether this extension can be loaded dynamically.
+     * <p>
+     * This affects how the extension is loaded in Jenkins.
+     *
+     * @return the dynamic loading preference (default: MAYBE)
+     */
     YesNoMaybe dynamicLoadable() default MAYBE;
 }

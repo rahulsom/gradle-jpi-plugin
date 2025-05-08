@@ -8,5 +8,10 @@ import org.gradle.api.Action;
  * serialize as a task input
  */
 public interface PluginLicenseSpec {
+    /**
+     * Configures a license for the plugin.
+     *
+     * @param action The configuration action to apply to the license
+     */
     void license(Action<? super PluginLicense> action);
 }

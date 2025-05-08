@@ -20,16 +20,45 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 
+/**
+ * Gradle task that creates a lookup file for mapping versioned plugin filenames to versionless ones.
+ * <p>
+ * This task generates a tab-separated file that maps versioned plugin filenames (e.g., plugin-1.0.hpi)
+ * to their versionless equivalents (e.g., plugin.hpi), which is useful for deployment scenarios.
+ */
 public abstract class CreateVersionlessLookupTask extends DefaultTask {
+    /**
+     * Gets the collection of all resolved plugin files.
+     *
+     * @return A collection of plugin files
+     */
     @InputFiles
     public abstract ConfigurableFileCollection getAllResolvedPlugins();
 
+    /**
+     * Gets the mapping from versioned module names to versionless module names.
+     *
+     * @return A map property containing the versioned to versionless mapping
+     */
     @Internal
     public abstract MapProperty<String, String> getModuleVersionToModule();
 
+    /**
+     * Gets the destination file where the lookup mapping will be written.
+     *
+     * @return A property containing the output file location
+     */
     @OutputFile
     public abstract RegularFileProperty getLookupDestination();
 
+    /**
+     * Executes the task to create the versionless lookup file.
+     * <p>
+     * This method writes a tab-separated file with mappings from versioned plugin
+     * filenames to their versionless equivalents.
+     *
+     * @throws RuntimeException if an I/O error occurs while writing the file
+     */
     @TaskAction
     void create() {
         Path output = getLookupDestination().getAsFile().get().toPath();
