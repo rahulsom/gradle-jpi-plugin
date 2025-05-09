@@ -34,31 +34,30 @@ class ManifestAction implements Action<Manifest> {
 
         var pluginDependencies = new ArrayList<String>();
 
-        configuration.getResolvedConfiguration().getFirstLevelModuleDependencies().forEach(resolvedDependency -> {
-            resolvedDependency.getModuleArtifacts().forEach(resolvedArtifact -> {
-                ComponentArtifactIdentifier id = resolvedArtifact.getId();
-                if (id instanceof PublishArtifactLocalArtifactMetadata) {
-                    String projectPath = resolvedDependency.getModuleName();
-                    var dependencyProject = project.getRootProject()
-                            .getAllprojects().stream()
-                            .filter(p -> p.getName().equals(projectPath))
-                            .findFirst();
+        configuration.getResolvedConfiguration().getFirstLevelModuleDependencies().forEach(resolvedDependency ->
+                resolvedDependency.getModuleArtifacts().forEach(resolvedArtifact -> {
+                    ComponentArtifactIdentifier id = resolvedArtifact.getId();
+                    if (id instanceof PublishArtifactLocalArtifactMetadata) {
+                        String projectPath = resolvedDependency.getModuleName();
+                        var dependencyProject = project.getRootProject()
+                                .getAllprojects().stream()
+                                .filter(p -> p.getName().equals(projectPath))
+                                .findFirst();
 
-                    assert dependencyProject.isPresent();
+                        assert dependencyProject.isPresent();
 
-                    var jpiTaskFromDependencyProject = dependencyProject.get().getTasks().findByName("jpi");
-                    if (jpiTaskFromDependencyProject != null) {
-                        pluginDependencies.add(resolvedDependency.getModuleName() + ":" + resolvedDependency.getModuleVersion());
+                        var jpiTaskFromDependencyProject = dependencyProject.get().getTasks().findByName("jpi");
+                        if (jpiTaskFromDependencyProject != null) {
+                            pluginDependencies.add(resolvedDependency.getModuleName() + ":" + resolvedDependency.getModuleVersion());
+                        }
+                    } else if (id instanceof ModuleComponentArtifactIdentifier identifier) {
+                        var byDots = identifier.getFileName().split("\\.");
+                        var extension = byDots[byDots.length - 1];
+                        if (HpiMetadataRule.PLUGIN_PACKAGINGS.contains(extension)) {
+                            pluginDependencies.add(resolvedDependency.getModuleName() + ":" + resolvedDependency.getModuleVersion());
+                        }
                     }
-                } else if (id instanceof ModuleComponentArtifactIdentifier identifier) {
-                    var byDots = identifier.getFileName().split("\\.");
-                    var extension = byDots[byDots.length - 1];
-                    if (HpiMetadataRule.PLUGIN_PACKAGINGS.contains(extension)) {
-                        pluginDependencies.add(resolvedDependency.getModuleName() + ":" + resolvedDependency.getModuleVersion());
-                    }
-                }
-            });
-        });
+                }));
 
         if (!pluginDependencies.isEmpty()) {
             attributes.put("Plugin-Dependencies", String.join(",", pluginDependencies));

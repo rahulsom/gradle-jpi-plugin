@@ -57,27 +57,28 @@ class ConfigureJpiAction implements Action<War> {
         var requestedDependencies = configuration.getAllDependencies();
         var resolvedDependencies = configuration.getResolvedConfiguration().getFirstLevelModuleDependencies();
 
-        resolvedDependencies.forEach(dependency -> {
-            dependency.getModuleArtifacts().forEach(artifact -> {
-                if (artifact.getExtension().equals("jar")) {
-                    var requestedDependency = requestedDependencies.stream()
-                            .filter(reqDep -> matches(dependency, reqDep))
-                            .findFirst();
+        resolvedDependencies.forEach(dependency ->
+                dependency.getModuleArtifacts().forEach(artifact -> {
+                    if (artifact.getExtension().equals("jar")) {
+                        var requestedDependency = requestedDependencies.stream()
+                                .filter(reqDep -> matches(dependency, reqDep))
+                                .findFirst();
 
-                    requestedDependency.ifPresent(directJarDependencies::add);
-                }
-            });
-        });
+                        requestedDependency.ifPresent(directJarDependencies::add);
+                    }
+                }));
         return directJarDependencies;
     }
 
     private boolean matches(ResolvedDependency dependency, Dependency reqDep) {
         if (reqDep instanceof ProjectDependency projectDependency) {
             var projectPath = projectDependency.getDependencyProject().getPath();
-            Project dependencyProject = project.getRootProject().getChildProjects().values().stream()
-                    .filter(it -> it.getPath().equals(projectPath)).findFirst()
-                    .get();
-            if (dependencyProject.getTasks().findByName("jpi") == null) {
+            var dependencyProject = project.getRootProject().getChildProjects().values().stream()
+                    .filter(it -> it.getPath().equals(projectPath)).findFirst();
+
+            assert dependencyProject.isPresent();
+
+            if (dependencyProject.get().getTasks().findByName("jpi") == null) {
                 return Objects.equals(reqDep.getGroup(), dependency.getModuleGroup()) &&
                         reqDep.getName().equals(dependency.getModuleName());
             }
