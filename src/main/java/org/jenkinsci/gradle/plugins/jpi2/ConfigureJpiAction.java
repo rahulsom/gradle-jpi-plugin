@@ -22,19 +22,19 @@ import java.util.Objects;
 })
 class ConfigureJpiAction implements Action<War> {
     private final Project project;
-    private final Configuration runtimeClasspath;
+    private final Configuration configuration;
     private final String jenkinsVersion;
 
-    public ConfigureJpiAction(Project project, Configuration runtimeClasspath, String jenkinsVersion) {
+    public ConfigureJpiAction(Project project, Configuration configuration, String jenkinsVersion) {
         this.project = project;
-        this.runtimeClasspath = runtimeClasspath;
+        this.configuration = configuration;
         this.jenkinsVersion = jenkinsVersion;
     }
 
     @Override
     public void execute(@NotNull War jpi) {
         jpi.getArchiveExtension().set("jpi");
-        jpi.manifest(new ManifestAction(project, runtimeClasspath, jenkinsVersion));
+        jpi.manifest(new ManifestAction(project, configuration, jenkinsVersion));
         jpi.from(project.getTasks().named("jar"), new Action<>() {
             @Override
             public void execute(@NotNull CopySpec copySpec) {
@@ -44,7 +44,7 @@ class ConfigureJpiAction implements Action<War> {
 
         var directJarDependencies = getDirectJarDependencies();
         var detachedConfiguration = project.getConfigurations().detachedConfiguration(directJarDependencies.toArray(new Dependency[0]));
-        detachedConfiguration.shouldResolveConsistentlyWith(runtimeClasspath);
+        detachedConfiguration.shouldResolveConsistentlyWith(configuration);
 
         jpi.setClasspath(detachedConfiguration);
         jpi.finalizedBy(V2JpiPlugin.EXPLODED_JPI_TASK);
@@ -54,30 +54,31 @@ class ConfigureJpiAction implements Action<War> {
     private ArrayList<Dependency> getDirectJarDependencies() {
         var directJarDependencies = new ArrayList<Dependency>();
 
-        var requestedDependencies = runtimeClasspath.getAllDependencies();
-        var resolvedDependencies = runtimeClasspath.getResolvedConfiguration().getFirstLevelModuleDependencies();
+        var requestedDependencies = configuration.getAllDependencies();
+        var resolvedDependencies = configuration.getResolvedConfiguration().getFirstLevelModuleDependencies();
 
-        resolvedDependencies.forEach(dependency -> {
-            dependency.getModuleArtifacts().forEach(artifact -> {
-                if (artifact.getExtension().equals("jar")) {
-                    var requestedDependency = requestedDependencies.stream()
-                            .filter(reqDep -> matches(dependency, reqDep))
-                            .findFirst();
+        resolvedDependencies.forEach(dependency ->
+                dependency.getModuleArtifacts().forEach(artifact -> {
+                    if (artifact.getExtension().equals("jar")) {
+                        var requestedDependency = requestedDependencies.stream()
+                                .filter(reqDep -> matches(dependency, reqDep))
+                                .findFirst();
 
-                    requestedDependency.ifPresent(directJarDependencies::add);
-                }
-            });
-        });
+                        requestedDependency.ifPresent(directJarDependencies::add);
+                    }
+                }));
         return directJarDependencies;
     }
 
     private boolean matches(ResolvedDependency dependency, Dependency reqDep) {
         if (reqDep instanceof ProjectDependency projectDependency) {
             var projectPath = projectDependency.getDependencyProject().getPath();
-            Project dependencyProject = project.getRootProject().getChildProjects().values().stream()
-                    .filter(it -> it.getPath().equals(projectPath)).findFirst()
-                    .get();
-            if (dependencyProject.getTasks().findByName("jpi") == null) {
+            var dependencyProject = project.getRootProject().getChildProjects().values().stream()
+                    .filter(it -> it.getPath().equals(projectPath)).findFirst();
+
+            assert dependencyProject.isPresent();
+
+            if (dependencyProject.get().getTasks().findByName("jpi") == null) {
                 return Objects.equals(reqDep.getGroup(), dependency.getModuleGroup()) &&
                         reqDep.getName().equals(dependency.getModuleName());
             }

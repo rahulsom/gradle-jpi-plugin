@@ -33,8 +33,7 @@ class PomBuilder implements Action<XmlProvider> {
                 .map(it -> (((Node) it).value()))
                 .filter(it -> it instanceof List)
                 .flatMap(it -> ((List) it).stream().findFirst())
-                .filter(it -> it instanceof String)
-                .map(it -> (String) it);
+                .filter(it -> it instanceof String);
     }
 
     @Override
@@ -57,6 +56,9 @@ class PomBuilder implements Action<XmlProvider> {
             var groupId = getNodeElement(dependencyNode, "groupId");
             var artifactId = getNodeElement(dependencyNode, "artifactId");
             var version = getNodeElement(dependencyNode, "version");
+
+            assert groupId.isPresent();
+            assert artifactId.isPresent();
 
             var resolvedDependency = resolvedDependencies.stream()
                     .filter(it -> it.getModuleGroup().equals(groupId.get()) && it.getModuleName().equals(artifactId.get()))

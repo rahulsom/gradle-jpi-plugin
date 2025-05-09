@@ -10,6 +10,7 @@ import org.gradle.api.artifacts.maven.PomModuleDescriptor;
 import org.jetbrains.annotations.NotNull;
 
 import javax.inject.Inject;
+import java.util.Set;
 
 /**
  * Rule to make compile configurations use jar instead of hpi/jpi.
@@ -18,6 +19,9 @@ import javax.inject.Inject;
         "Convert2Lambda", // Gradle doesn't like lambdas
 })
 abstract class HpiMetadataRule implements ComponentMetadataRule {
+
+    public static final Set<String> PLUGIN_PACKAGINGS = Set.of("hpi", "jpi");
+
     @Inject
     public HpiMetadataRule() {
     }
@@ -28,17 +32,19 @@ abstract class HpiMetadataRule implements ComponentMetadataRule {
         if (pom == null) {
             return;
         }
-        if ("hpi".equals(pom.getPackaging()) || "jpi".equals(pom.getPackaging())) {
-            var details = componentMetadataContext.getDetails();
-            details.withVariant("compile", new JarSelectionAction(details));
+        var details = componentMetadataContext.getDetails();
+        if (PLUGIN_PACKAGINGS.contains(pom.getPackaging())) {
+            details.withVariant("compile", new DefaultSelectionAction(details, "jar"));
         }
     }
 
-    private static class JarSelectionAction implements Action<VariantMetadata> {
+    private static class DefaultSelectionAction implements Action<VariantMetadata> {
         private final ComponentMetadataDetails details;
+        private final String extension;
 
-        public JarSelectionAction(ComponentMetadataDetails details) {
+        public DefaultSelectionAction(ComponentMetadataDetails details, String extension) {
             this.details = details;
+            this.extension = extension;
         }
 
         @Override
@@ -47,7 +53,7 @@ abstract class HpiMetadataRule implements ComponentMetadataRule {
                 @Override
                 public void execute(@NotNull MutableVariantFilesMetadata mutableVariantFilesMetadata) {
                     mutableVariantFilesMetadata.removeAllFiles();
-                    mutableVariantFilesMetadata.addFile(details.getId().getName() + "-" + details.getId().getVersion() + ".jar");
+                    mutableVariantFilesMetadata.addFile(details.getId().getName() + "-" + details.getId().getVersion() + "." + extension);
                 }
             });
         }

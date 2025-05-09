@@ -50,7 +50,23 @@ public class V2JpiPlugin implements Plugin<Project> {
         String jenkinsVersion = getVersionFromProperties(project, JENKINS_VERSION_PROPERTY, DEFAULT_JENKINS_VERSION);
         String testHarnessVersion = getVersionFromProperties(project, TEST_HARNESS_VERSION_PROPERTY, DEFAULT_TEST_HARNESS_VERSION);
 
-        var jpiTask = createJpiTask(project, configurations.getByName("runtimeClasspath"), jenkinsVersion);
+        var runtimeClasspath = configurations.getByName("runtimeClasspath");
+
+        var jpiTask = project.getTasks().register(JPI_TASK, War.class, new ConfigureJpiAction(project, runtimeClasspath, jenkinsVersion));
+        project.getTasks().register(EXPLODED_JPI_TASK, Sync.class, new Action<>() {
+            @Override
+            public void execute(@NotNull Sync sync) {
+                sync.into(project.getLayout().getBuildDirectory().dir("jpi"));
+                sync.with((War) project.getTasks().getByName(JPI_TASK));
+            }
+        });
+        project.getTasks().named("assemble", new Action<>() {
+            @Override
+            public void execute(@NotNull Task task) {
+                task.dependsOn(jpiTask);
+            }
+        });
+
         project.getTasks().named("assemble", new Action<>() {
             @Override
             public void execute(@NotNull Task task) {
@@ -59,7 +75,7 @@ public class V2JpiPlugin implements Plugin<Project> {
         });
 
         final var projectRoot = project.getLayout().getProjectDirectory().getAsFile().getAbsolutePath();
-        final var prepareServer = createPrepareServerTask(project, projectRoot, configurations.getByName("runtimeClasspath"), jpiTask);
+        final var prepareServer = createPrepareServerTask(project, projectRoot, runtimeClasspath, jpiTask);
 
         var serverTask = project.getTasks().register("server", JavaExec.class, new ServerAction(serverTaskClasspath, projectRoot, prepareServer));
         project.getPlugins().withType(JavaBasePlugin.class, new SezpozJavaAction(project));
@@ -82,10 +98,10 @@ public class V2JpiPlugin implements Plugin<Project> {
         dependencies.add("testImplementation", "org.jenkins-ci.main:jenkins-test-harness:" + testHarnessVersion);
 
         dependencies.getComponents().all(HpiMetadataRule.class);
-        configurePublishing(project, jpiTask, configurations.getByName("runtimeClasspath"));
+        configurePublishing(project, jpiTask, runtimeClasspath);
     }
 
-    private static void configurePublishing(@NotNull Project project, TaskProvider<War> jpiTask, Configuration runtimeClasspath) {
+    private static void configurePublishing(@NotNull Project project, TaskProvider<?> jpiTask, Configuration runtimeClasspath) {
         var publishingExtension = project.getExtensions().getByType(PublishingExtension.class);
         var existingPublication = !publishingExtension.getPublications().isEmpty() ? publishingExtension.getPublications().iterator().next() : null;
         var javaPlugin = project.getExtensions().getByType(JavaPluginExtension.class);
@@ -104,14 +120,14 @@ public class V2JpiPlugin implements Plugin<Project> {
         }
     }
 
-    private static void configurePublication(@NotNull MavenPublication publication, TaskProvider<War> jpiTask, Configuration runtimeClasspath, Project project) {
+    private static void configurePublication(@NotNull MavenPublication publication, TaskProvider<?> jpiTask, Configuration runtimeClasspath, Project project) {
         publication.artifact(jpiTask);
         publication.getPom().setPackaging("jpi");
         publication.getPom().withXml(new PomBuilder(runtimeClasspath, project));
     }
 
     @NotNull
-    private static TaskProvider<?> createPrepareServerTask(@NotNull Project project, String projectRoot, Configuration serverJenkinsPlugin, TaskProvider<War> jpiTaskProvider) {
+    private static TaskProvider<?> createPrepareServerTask(@NotNull Project project, String projectRoot, Configuration serverJenkinsPlugin, TaskProvider<?> jpiTaskProvider) {
         return project.getTasks().register("prepareServer", Sync.class, new ConfigurePrepareServerAction(jpiTaskProvider, projectRoot, serverJenkinsPlugin, project));
     }
 
@@ -129,17 +145,6 @@ public class V2JpiPlugin implements Plugin<Project> {
     private static String getVersionFromProperties(@NotNull Project project, String propertyName, String defaultVersion) {
         Provider<String> myProperty = project.getProviders().gradleProperty(propertyName);
         return myProperty.getOrElse(defaultVersion);
-    }
-
-    private static TaskProvider<War> createJpiTask(@NotNull Project project, Configuration runtimeClasspath, final String jenkinsVersion) {
-        project.getTasks().register(EXPLODED_JPI_TASK, Sync.class, new Action<>() {
-            @Override
-            public void execute(@NotNull Sync sync) {
-                sync.into(project.getLayout().getBuildDirectory().dir("jpi"));
-                sync.with((War) project.getTasks().getByName(JPI_TASK));
-            }
-        });
-        return project.getTasks().register(JPI_TASK, War.class, new ConfigureJpiAction(project, runtimeClasspath, jenkinsVersion));
     }
 
 }
