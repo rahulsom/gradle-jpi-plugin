@@ -99,6 +99,8 @@ public class V2JpiPlugin implements Plugin<Project> {
 
         dependencies.getComponents().all(HpiMetadataRule.class);
         configurePublishing(project, jpiTask, runtimeClasspath);
+
+        project.getTasks().register("testServer", new ConfigureTestServerAction(project));
     }
 
     private static void configurePublishing(@NotNull Project project, TaskProvider<?> jpiTask, Configuration runtimeClasspath) {
