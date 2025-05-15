@@ -51,6 +51,7 @@ public class V2JpiPlugin implements Plugin<Project> {
         String testHarnessVersion = getVersionFromProperties(project, TEST_HARNESS_VERSION_PROPERTY, DEFAULT_TEST_HARNESS_VERSION);
 
         var runtimeClasspath = configurations.getByName("runtimeClasspath");
+        var jenkinsCore = configurations.create("jenkinsCore");
 
         var jpiTask = project.getTasks().register(JPI_TASK, War.class, new ConfigureJpiAction(project, runtimeClasspath, jenkinsVersion));
         project.getTasks().register(EXPLODED_JPI_TASK, Sync.class, new Action<>() {
@@ -96,6 +97,9 @@ public class V2JpiPlugin implements Plugin<Project> {
         dependencies.add("testImplementation", "org.jenkins-ci.main:jenkins-core:" + jenkinsVersion);
         dependencies.add("testImplementation", "org.jenkins-ci.main:jenkins-war:" + jenkinsVersion);
         dependencies.add("testImplementation", "org.jenkins-ci.main:jenkins-test-harness:" + testHarnessVersion);
+
+        dependencies.add("jenkinsCore", "org.jenkins-ci.main:jenkins-core:" + jenkinsVersion);
+        runtimeClasspath.shouldResolveConsistentlyWith(configurations.getByName("jenkinsCore"));
 
         dependencies.getComponents().all(HpiMetadataRule.class);
         configurePublishing(project, jpiTask, runtimeClasspath);
