@@ -7,13 +7,15 @@ import org.gradle.api.artifacts.ComponentMetadataRule;
 import org.gradle.api.artifacts.MutableVariantFilesMetadata;
 import org.gradle.api.artifacts.VariantMetadata;
 import org.gradle.api.artifacts.maven.PomModuleDescriptor;
+import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.AttributeContainer;
 import org.jetbrains.annotations.NotNull;
 
 import javax.inject.Inject;
 import java.util.Set;
 
 /**
- * Rule to make compile configurations use jar instead of hpi/jpi.
+ * Rule to make compile and runtime configurations use jar instead of hpi/jpi.
  */
 @SuppressWarnings({
         "Convert2Lambda", // Gradle doesn't like lambdas
@@ -21,6 +23,10 @@ import java.util.Set;
 abstract class HpiMetadataRule implements ComponentMetadataRule {
 
     public static final Set<String> PLUGIN_PACKAGINGS = Set.of("hpi", "jpi");
+    /**
+     * Attribute to mark a component as a Jenkins plugin.
+     */
+    public static final Attribute<Boolean> IS_JENKINS_PLUGIN = Attribute.of("org.jenkinsci.gradle.plugins.jpi2.isJenkinsPlugin", Boolean.class);
 
     @Inject
     public HpiMetadataRule() {
@@ -34,17 +40,21 @@ abstract class HpiMetadataRule implements ComponentMetadataRule {
         }
         var details = componentMetadataContext.getDetails();
         if (PLUGIN_PACKAGINGS.contains(pom.getPackaging())) {
-            details.withVariant("compile", new DefaultSelectionAction(details, "jar"));
+            details.withVariant("compile", new DefaultSelectionAction(details, "jar", false));
+            details.withVariant("runtime", new DefaultSelectionAction(details, "jar", false));
+            details.withVariant("runtime", new DefaultSelectionAction(details, pom.getPackaging(), true));
         }
     }
 
     private static class DefaultSelectionAction implements Action<VariantMetadata> {
         private final ComponentMetadataDetails details;
         private final String extension;
+        private final boolean isJenkinsPlugin;
 
-        public DefaultSelectionAction(ComponentMetadataDetails details, String extension) {
+        public DefaultSelectionAction(ComponentMetadataDetails details, String extension, boolean isJenkinsPlugin) {
             this.details = details;
             this.extension = extension;
+            this.isJenkinsPlugin = isJenkinsPlugin;
         }
 
         @Override
@@ -56,6 +66,7 @@ abstract class HpiMetadataRule implements ComponentMetadataRule {
                     mutableVariantFilesMetadata.addFile(details.getId().getName() + "-" + details.getId().getVersion() + "." + extension);
                 }
             });
+            variantMetadata.getAttributes().attribute(IS_JENKINS_PLUGIN, isJenkinsPlugin);
         }
     }
 }

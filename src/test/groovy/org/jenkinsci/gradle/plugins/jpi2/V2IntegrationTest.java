@@ -494,7 +494,7 @@ class V2IntegrationTest {
     @Test
     void multiModuleWithNestedDependenciesShouldBuild() throws IOException, XmlPullParserException {
         // given
-        var ith = new IntegrationTestHelper(tempDir);
+        var ith = new IntegrationTestHelper(repro());
         configureModuleWithNestedDependencies(ith);
 
         // when
@@ -994,20 +994,22 @@ class V2IntegrationTest {
         var jpiLibsDir = new File(explodedWar, "WEB-INF/lib");
         assertThat(jpiLibsDir).exists();
 
-        var jpiLibs = jpiLibsDir.list();
+        var jpiLibs = Arrays.stream(Objects.requireNonNull(jpiLibsDir.list())).sorted();
         assertThat(jpiLibs).isNotNull()
-                .containsExactlyInAnyOrder("aopalliance-1.0.jar",
-                        "jakarta.inject-api-2.0.1.jar",
-                        "guice-6.0.0.jar",
-                        "test-plugin-1.0.0.jar",
-                        "failureaccess-1.0.2.jar",
-                        "error_prone_annotations-2.36.0.jar",
+                .containsExactly(
+                        "aopalliance-1.0.jar",
                         "checker-qual-3.43.0.jar",
-                        "listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar",
-                        "j2objc-annotations-3.0.0.jar",
+                        "error_prone_annotations-2.36.0.jar",
+                        "failureaccess-1.0.2.jar",
                         "guava-33.4.0-jre.jar",
+                        "guice-6.0.0.jar",
+                        "j2objc-annotations-3.0.0.jar",
+                        "jakarta.inject-api-2.0.1.jar",
+                        "javax.inject-1.jar",
                         "jsr305-3.0.2.jar",
-                        "javax.inject-1.jar");
+                        "listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar",
+                        "test-plugin-1.0.0.jar"
+                );
     }
 
 
@@ -1105,6 +1107,40 @@ class V2IntegrationTest {
         assertThat(String.join("\n", actualList.subList(0, actualList.size() - 2)))
                 .isEqualTo(String.join("\n", expectedList.subList(0, expectedList.size() - 2)));
         assertThat(result.getOutput()).contains("BUILD SUCCESSFUL");
+    }
+
+    @Test
+    void defaultRuntimeClasspathContainsOriginalArtifacts() throws IOException {
+        // given
+        var ith = new IntegrationTestHelper(tempDir);
+        initBuild(ith);
+        Files.write((getBasePluginConfig() + /* language=kotlin */ """
+                dependencies {
+                    implementation("org.jenkins-ci.plugins:git:5.7.0")
+                }
+                
+                tasks.register("printConfigurations") {
+                    doLast {
+                        configurations.getByName("runtimeClasspath").resolvedConfiguration.resolvedArtifacts.forEach {
+                            println("runtimeClasspath: ${it.moduleVersion.id}:${it.extension}")
+                        }
+                        configurations.getByName("defaultRuntimeClasspath").resolvedConfiguration.resolvedArtifacts.forEach {
+                            println("defaultRuntimeClasspath: ${it.moduleVersion.id}:${it.extension}")
+                        }
+                    }
+                }
+                """).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
+
+        var gradleRunner = ith.gradleRunner();
+
+        // when
+        var result = gradleRunner.withArguments("printConfigurations").build();
+
+        // then
+        assertThat(result.getOutput()).contains("BUILD SUCCESSFUL");
+        
+        // Check that defaultRuntimeClasspath contains the original hpi artifacts
+        assertThat(result.getOutput()).contains("defaultRuntimeClasspath: org.jenkins-ci.plugins:git:5.7.0:hpi");
     }
 
     @Test

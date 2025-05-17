@@ -21,6 +21,9 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.util.Comparator;
+
 @SuppressWarnings({
         "Convert2Lambda", // Gradle doesn't like lambdas
         "unused" // This is tested in an acceptance test
@@ -52,8 +55,20 @@ public class V2JpiPlugin implements Plugin<Project> {
 
         var runtimeClasspath = configurations.getByName("runtimeClasspath");
         var jenkinsCore = configurations.create("jenkinsCore");
+        runtimeClasspath.shouldResolveConsistentlyWith(jenkinsCore);
 
-        var jpiTask = project.getTasks().register(JPI_TASK, War.class, new ConfigureJpiAction(project, runtimeClasspath, jenkinsVersion));
+        var defaultRuntimeClasspath = configurations.create("defaultRuntimeClasspath", new Action<>() {
+            @Override
+            public void execute(@NotNull Configuration c) {
+                for (Configuration parent : runtimeClasspath.getExtendsFrom()) {
+                    c.extendsFrom(parent);
+                }
+                c.shouldResolveConsistentlyWith(jenkinsCore);
+                c.getAttributes().attribute(HpiMetadataRule.IS_JENKINS_PLUGIN, true);
+            }
+        });
+
+        var jpiTask = project.getTasks().register(JPI_TASK, War.class, new ConfigureJpiAction(project, defaultRuntimeClasspath, jenkinsVersion));
         project.getTasks().register(EXPLODED_JPI_TASK, Sync.class, new Action<>() {
             @Override
             public void execute(@NotNull Sync sync) {
@@ -76,7 +91,7 @@ public class V2JpiPlugin implements Plugin<Project> {
         });
 
         final var projectRoot = project.getLayout().getProjectDirectory().getAsFile().getAbsolutePath();
-        final var prepareServer = createPrepareServerTask(project, projectRoot, runtimeClasspath, jpiTask);
+        final var prepareServer = createPrepareServerTask(project, projectRoot, defaultRuntimeClasspath, jpiTask);
 
         var serverTask = project.getTasks().register("server", JavaExec.class, new ServerAction(serverTaskClasspath, projectRoot, prepareServer));
         project.getPlugins().withType(JavaBasePlugin.class, new SezpozJavaAction(project));
@@ -99,12 +114,33 @@ public class V2JpiPlugin implements Plugin<Project> {
         dependencies.add("testImplementation", "org.jenkins-ci.main:jenkins-test-harness:" + testHarnessVersion);
 
         dependencies.add("jenkinsCore", "org.jenkins-ci.main:jenkins-core:" + jenkinsVersion);
-        runtimeClasspath.shouldResolveConsistentlyWith(configurations.getByName("jenkinsCore"));
 
         dependencies.getComponents().all(HpiMetadataRule.class);
-        configurePublishing(project, jpiTask, runtimeClasspath);
+
+        project.getTasks().register("printClasspath", new Action<>() {
+            @Override
+            public void execute(@NotNull Task task) {
+                task.doLast(new Action<>() {
+                    @Override
+                    public void execute(@NotNull Task task) {
+                        printClasspath(runtimeClasspath);
+                        printClasspath(defaultRuntimeClasspath);
+                    }
+                });
+            }
+        });
+        configurePublishing(project, jpiTask, defaultRuntimeClasspath);
 
         project.getTasks().register("testServer", new ConfigureTestServerAction(project));
+    }
+
+    private static void printClasspath(@NotNull Configuration configuration) {
+        configuration.getFiles().stream()
+                .filter(it -> it.getName().contains("metrics"))
+                .sorted(Comparator.comparing(File::getName))
+                .forEach(file -> {
+                    System.out.println(configuration.getName() + ": " + file.getName() + " - " + file.getAbsolutePath());
+                });
     }
 
     private static void configurePublishing(@NotNull Project project, TaskProvider<?> jpiTask, Configuration runtimeClasspath) {
@@ -152,5 +188,4 @@ public class V2JpiPlugin implements Plugin<Project> {
         Provider<String> myProperty = project.getProviders().gradleProperty(propertyName);
         return myProperty.getOrElse(defaultVersion);
     }
-
 }
