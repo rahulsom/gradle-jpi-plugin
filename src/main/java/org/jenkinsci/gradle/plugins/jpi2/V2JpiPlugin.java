@@ -14,12 +14,17 @@ import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin;
 import org.gradle.api.tasks.JavaExec;
+import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.bundling.War;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static org.jenkinsci.gradle.plugins.jpi2.ArtifactType.ARTIFACT_TYPE_ATTRIBUTE;
 
 @SuppressWarnings({
         "Convert2Lambda", // Gradle doesn't like lambdas
@@ -50,10 +55,36 @@ public class V2JpiPlugin implements Plugin<Project> {
         String jenkinsVersion = getVersionFromProperties(project, JENKINS_VERSION_PROPERTY, DEFAULT_JENKINS_VERSION);
         String testHarnessVersion = getVersionFromProperties(project, TEST_HARNESS_VERSION_PROPERTY, DEFAULT_TEST_HARNESS_VERSION);
 
-        var runtimeClasspath = configurations.getByName("runtimeClasspath");
         var jenkinsCore = configurations.create("jenkinsCore");
 
-        var jpiTask = project.getTasks().register(JPI_TASK, War.class, new ConfigureJpiAction(project, runtimeClasspath, jenkinsVersion));
+        var runtimeClasspath = configurations.getByName("runtimeClasspath");
+        runtimeClasspath.shouldResolveConsistentlyWith(jenkinsCore);
+        runtimeClasspath.getAttributes().attribute(ARTIFACT_TYPE_ATTRIBUTE, project.getObjects().named(ArtifactType.class, ArtifactType.PLUGIN_JAR));
+
+        var testRuntimeClasspath = configurations.getByName("testRuntimeClasspath");
+        testRuntimeClasspath.shouldResolveConsistentlyWith(jenkinsCore);
+        testRuntimeClasspath.getAttributes().attribute(ARTIFACT_TYPE_ATTRIBUTE, project.getObjects().named(ArtifactType.class, ArtifactType.PLUGIN_JAR));
+
+        var defaultRuntime = configurations.create("defaultRuntime");
+        runtimeClasspath.getExtendsFrom().forEach(defaultRuntime::extendsFrom);
+        defaultRuntime.shouldResolveConsistentlyWith(jenkinsCore);
+        defaultRuntime.getAttributes().attribute(ARTIFACT_TYPE_ATTRIBUTE, project.getObjects().named(ArtifactType.class, ArtifactType.DEFAULT));
+
+        var testCompileClasspath = configurations.getByName("testCompileClasspath");
+        testCompileClasspath.shouldResolveConsistentlyWith(jenkinsCore);
+
+        JavaPluginExtension ext = project.getExtensions().getByType(JavaPluginExtension.class);
+        SourceSetContainer sourceSets = ext.getSourceSets();
+        SourceSet main = sourceSets.getByName(SourceSet.TEST_SOURCE_SET_NAME);
+        main.getResources().getSrcDirs().add(project.file("src/main/webapp"));
+
+        var jpiTask = project.getTasks().register(JPI_TASK, War.class, new ConfigureJpiAction(project, defaultRuntime, jenkinsVersion));
+        project.getTasks().named("jar", Jar.class).configure(new Action<>() {
+            @Override
+            public void execute(@NotNull Jar jarTask) {
+                jarTask.manifest(new ManifestAction(project, defaultRuntime, jenkinsVersion));
+            }
+        });
         project.getTasks().register(EXPLODED_JPI_TASK, Sync.class, new Action<>() {
             @Override
             public void execute(@NotNull Sync sync) {
@@ -68,15 +99,8 @@ public class V2JpiPlugin implements Plugin<Project> {
             }
         });
 
-        project.getTasks().named("assemble", new Action<>() {
-            @Override
-            public void execute(@NotNull Task task) {
-                task.dependsOn(jpiTask);
-            }
-        });
-
         final var projectRoot = project.getLayout().getProjectDirectory().getAsFile().getAbsolutePath();
-        final var prepareServer = createPrepareServerTask(project, projectRoot, runtimeClasspath, jpiTask);
+        final var prepareServer = createPrepareServerTask(project, projectRoot, defaultRuntime, jpiTask);
 
         var serverTask = project.getTasks().register("server", JavaExec.class, new ServerAction(serverTaskClasspath, projectRoot, prepareServer));
         project.getPlugins().withType(JavaBasePlugin.class, new SezpozJavaAction(project));
@@ -86,9 +110,12 @@ public class V2JpiPlugin implements Plugin<Project> {
          * We want sezpoz to be the last annotation processor.
          * If other annotation processors contribute methods/controllers that sezpoz expects, this will ensure it happens.
          */
-        var sezpozAnnotationProcessor = project.getConfigurations().create("sezpozAnnotationProcessor");
-        project.getDependencies().add("sezpozAnnotationProcessor", "net.java.sezpoz:sezpoz:1.13");
-        project.getConfigurations().getByName("annotationProcessor").extendsFrom(sezpozAnnotationProcessor);
+        var lastAnnotationProcessor = project.getConfigurations().create("lastAnnotationProcessor");
+        lastAnnotationProcessor.setVisible(false);
+        project.getDependencies().add("lastAnnotationProcessor", "net.java.sezpoz:sezpoz:1.13");
+        project.getDependencies().add("lastAnnotationProcessor", "org.jenkins-ci.main:jenkins-core:" + jenkinsVersion);
+        project.getConfigurations().getByName("annotationProcessor").extendsFrom(lastAnnotationProcessor);
+        lastAnnotationProcessor.shouldResolveConsistentlyWith(jenkinsCore);
 
         dependencies.add("compileOnly", "org.jenkins-ci.main:jenkins-core:" + jenkinsVersion);
         dependencies.add("compileOnly", "jakarta.servlet:jakarta.servlet-api:5.0.0");
@@ -99,10 +126,9 @@ public class V2JpiPlugin implements Plugin<Project> {
         dependencies.add("testImplementation", "org.jenkins-ci.main:jenkins-test-harness:" + testHarnessVersion);
 
         dependencies.add("jenkinsCore", "org.jenkins-ci.main:jenkins-core:" + jenkinsVersion);
-        runtimeClasspath.shouldResolveConsistentlyWith(configurations.getByName("jenkinsCore"));
 
         dependencies.getComponents().all(HpiMetadataRule.class);
-        configurePublishing(project, jpiTask, runtimeClasspath);
+        configurePublishing(project, jpiTask, defaultRuntime);
 
         project.getTasks().register("testServer", new ConfigureTestServerAction(project));
     }

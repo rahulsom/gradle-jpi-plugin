@@ -178,7 +178,7 @@ class V2IntegrationTest {
     @Test
     void simpleGradleBuildShouldBuild() throws IOException {
         // given
-        var ith = new IntegrationTestHelper(tempDir);
+        var ith = new IntegrationTestHelper(tempDir, "8.14");
         configureSimpleBuild(ith);
 
         // when
@@ -212,7 +212,7 @@ class V2IntegrationTest {
     @Test
     void simpleGradleBuildShouldLaunchServer() throws IOException, InterruptedException {
         // given
-        var ith = new IntegrationTestHelper(tempDir);
+        var ith = new IntegrationTestHelper(tempDir, "8.14");
         configureSimpleBuild(ith);
 
         GradleRunner gradleRunner = ith.gradleRunner();
@@ -233,7 +233,7 @@ class V2IntegrationTest {
     @Test
     void gradleBuildWithOssPluginDependencyShouldBuild() throws IOException {
         // given
-        var ith = new IntegrationTestHelper(tempDir);
+        var ith = new IntegrationTestHelper(tempDir, "8.14");
         configureBuildWithOssPluginDependency(ith);
 
         // when
@@ -267,7 +267,7 @@ class V2IntegrationTest {
     @Test
     void gradleBuildWithOssPluginDependencyShouldLaunchServer() throws IOException, InterruptedException {
         // given
-        var ith = new IntegrationTestHelper(tempDir);
+        var ith = new IntegrationTestHelper(tempDir, "8.14");
         configureBuildWithOssPluginDependency(ith);
 
         GradleRunner gradleRunner = ith.gradleRunner();
@@ -322,7 +322,7 @@ class V2IntegrationTest {
     @Test
     void gradleBuildWithOssLibraryDependencyShouldBuild() throws IOException {
         // given
-        var ith = new IntegrationTestHelper(tempDir);
+        var ith = new IntegrationTestHelper(tempDir, "8.14");
         configureBuildWithOssLibraryDependency(ith);
 
         // when
@@ -358,7 +358,7 @@ class V2IntegrationTest {
     @Test
     void gradleBuildWithOssLibraryDependencyShouldLaunchServer() throws IOException, InterruptedException {
         // given
-        var ith = new IntegrationTestHelper(tempDir);
+        var ith = new IntegrationTestHelper(tempDir, "8.14");
         configureBuildWithOssLibraryDependency(ith);
 
         GradleRunner gradleRunner = ith.gradleRunner();
@@ -370,7 +370,7 @@ class V2IntegrationTest {
     @Test
     void generatesExtensionsWithSezpoz() throws IOException {
         // given
-        var ith = new IntegrationTestHelper(tempDir);
+        var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
         Files.write((getBasePluginConfig()).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
         ith.mkDirInProjectDir("src/main/java/com/example/plugin");
@@ -494,7 +494,7 @@ class V2IntegrationTest {
     @Test
     void multiModuleWithNestedDependenciesShouldBuild() throws IOException, XmlPullParserException {
         // given
-        var ith = new IntegrationTestHelper(tempDir);
+        var ith = new IntegrationTestHelper(tempDir, "8.14");
         configureModuleWithNestedDependencies(ith);
 
         // when
@@ -550,7 +550,7 @@ class V2IntegrationTest {
     @Test
     void multiModuleWithNestedDependenciesShouldLaunchServer() throws IOException, InterruptedException {
         // given
-        var ith = new IntegrationTestHelper(tempDir);
+        var ith = new IntegrationTestHelper(tempDir, "8.14");
         configureModuleWithNestedDependencies(ith);
 
         GradleRunner gradleRunner = ith.gradleRunner();
@@ -562,7 +562,7 @@ class V2IntegrationTest {
     @Test
     void manifestContainsVersionWhenUsingForce() throws IOException {
         // given
-        var ith = new IntegrationTestHelper(tempDir);
+        var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
         Files.write((getBasePluginConfig() + /* language=kotlin */ """
                 configurations.configureEach {
@@ -593,7 +593,7 @@ class V2IntegrationTest {
     @Test
     void manifestContainsVersionWhenUsingBom() throws IOException, XmlPullParserException {
         // given
-        var ith = new IntegrationTestHelper(tempDir);
+        var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
         ith.mkDirInProjectDir("src-repo/com/example/bom/bom/1.0.0");
         Files.write(/* language=xml */ """
@@ -663,7 +663,7 @@ class V2IntegrationTest {
     @Test
     void shouldHaveTestDependencies() throws IOException {
         // given
-        var ith = new IntegrationTestHelper(tempDir);
+        var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
         Files.write((getBasePluginConfig()).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
         ith.mkDirInProjectDir("src/test/java/com/example/plugin");
@@ -705,7 +705,7 @@ class V2IntegrationTest {
     @Test
     void testCanAccessJpiDependencies() throws IOException {
         // given
-        var ith = new IntegrationTestHelper(tempDir);
+        var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
         Files.write((getBasePluginConfig() + /* language=kotlin */ """
                 dependencies {
@@ -747,7 +747,7 @@ class V2IntegrationTest {
     @Test
     void shouldCustomizeJenkinsVersionAndTestHarnessVersion() throws IOException {
         // given
-        var ith = new IntegrationTestHelper(tempDir);
+        var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
         Files.write(/* language=properties */ """
                 jenkins.version=2.492.1
@@ -793,7 +793,7 @@ class V2IntegrationTest {
     @Test
     void publishesJarAndJpi() throws IOException, XmlPullParserException {
         // given
-        var ith = new IntegrationTestHelper(tempDir);
+        var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
         Files.write((getBasePluginConfig() + /* language=kotlin */ """
                 dependencies {
@@ -862,7 +862,7 @@ class V2IntegrationTest {
     @Test
     void consumesJpisWithJars() throws IOException {
         // given
-        var ith = new IntegrationTestHelper(tempDir);
+        var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
         Files.write((getBasePluginConfig() + /* language=kotlin */ """
                 dependencies {
@@ -902,7 +902,7 @@ class V2IntegrationTest {
     @Test
     void playsWellWithLombok() throws IOException {
         // given
-        var ith = new IntegrationTestHelper(tempDir);
+        var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
         Files.write((getBasePluginConfig() +/* language=kotlin */ """
                 dependencies {
@@ -951,7 +951,7 @@ class V2IntegrationTest {
     @Test
     void getsCorrectGuiceVersion() throws IOException {
         // given
-        var ith = new IntegrationTestHelper(tempDir);
+        var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
         Files.write((getBasePluginConfig() +/* language=kotlin */ """
                 dependencies {
@@ -1014,7 +1014,7 @@ class V2IntegrationTest {
     @Test
     void playsWellWithGitPlugin() throws IOException {
         // given
-        var ith = new IntegrationTestHelper(tempDir);
+        var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
         Files.write((getBasePluginConfig() + /* language=kotlin */ """
                 dependencies {
@@ -1054,7 +1054,7 @@ class V2IntegrationTest {
     @Test
     void dependencyTreeIsCorrectForRuntimeClasspath() throws IOException {
         // given
-        var ith = new IntegrationTestHelper(tempDir);
+        var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
         Files.write((getBasePluginConfig() + /* language=kotlin */ """
                 dependencies {
@@ -1082,7 +1082,7 @@ class V2IntegrationTest {
     @Test
     void dependencyTreeIsCorrectForCompileClasspath() throws IOException {
         // given
-        var ith = new IntegrationTestHelper(tempDir);
+        var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
         Files.write((getBasePluginConfig() + /* language=kotlin */ """
                 dependencies {
@@ -1110,7 +1110,7 @@ class V2IntegrationTest {
     @Test
     void respectsExclusions() throws IOException {
         // given
-        var ith = new IntegrationTestHelper(tempDir);
+        var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
         Files.write((getBasePluginConfig() + /* language=kotlin */ """
                 dependencies {
