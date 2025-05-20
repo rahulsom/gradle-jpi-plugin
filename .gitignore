@@ -11,3 +11,5 @@ build/
 /classes
 /out
 /bin
+.kotlin/
+.vscode/
