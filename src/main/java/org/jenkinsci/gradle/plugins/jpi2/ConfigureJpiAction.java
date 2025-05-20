@@ -14,6 +14,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Objects;
 
+import static org.jenkinsci.gradle.plugins.jpi2.ArtifactType.ARTIFACT_TYPE_ATTRIBUTE;
+
 /**
  * Action to configure the JPI task for a Jenkins plugin.
  */
@@ -41,9 +43,16 @@ class ConfigureJpiAction implements Action<War> {
                 copySpec.into("WEB-INF/lib");
             }
         });
+        jpi.from(project.file("src/main/webapp"), new Action<>() {
+            @Override
+            public void execute(@NotNull CopySpec copySpec) {
+                copySpec.into("");
+            }
+        });
 
         var directJarDependencies = getDirectJarDependencies();
         var detachedConfiguration = project.getConfigurations().detachedConfiguration(directJarDependencies.toArray(new Dependency[0]));
+        detachedConfiguration.getAttributes().attribute(ARTIFACT_TYPE_ATTRIBUTE, project.getObjects().named(ArtifactType.class, ArtifactType.PLUGIN_JAR));
         detachedConfiguration.shouldResolveConsistentlyWith(configuration);
 
         jpi.setClasspath(detachedConfiguration);

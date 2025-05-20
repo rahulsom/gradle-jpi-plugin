@@ -14,8 +14,15 @@ public class IntegrationTestHelper {
 
     private final File projectDir;
 
-    public IntegrationTestHelper(File projectDir) {
+    private final String minimumGradleVersion;
+
+    public IntegrationTestHelper(File projectDir, String minimumGradleVersion) {
         this.projectDir = projectDir;
+        this.minimumGradleVersion = minimumGradleVersion;
+    }
+
+    public IntegrationTestHelper(File projectDir) {
+        this(projectDir, null);
     }
 
     public GradleRunner gradleRunner() throws IOException {
@@ -34,7 +41,7 @@ public class IntegrationTestHelper {
         var runner = GradleRunner.create()
                 .withPluginClasspath()
                 .withProjectDir(projectDir);
-        var gradleVersion = getGradleVersionForTest();
+        var gradleVersion = getGradleVersionForTest(minimumGradleVersion);
         if (gradleVersion != GradleVersion.current()) {
             return runner.withGradleVersion(gradleVersion.getVersion());
         }
@@ -42,17 +49,18 @@ public class IntegrationTestHelper {
     }
 
 
-    public static GradleVersion getGradleVersionForTest() {
+    public static GradleVersion getGradleVersionForTest(String minimumGradleVersion) {
         String gradleUnderTest = System.getProperty("gradle.under.test");
-        if (gradleUnderTest != null) {
-            return GradleVersion.version(gradleUnderTest);
-        } else {
-            return GradleVersion.current();
+        var targetVersion = gradleUnderTest == null ? GradleVersion.current() : GradleVersion.version(gradleUnderTest);
+        if (minimumGradleVersion == null) {
+            return targetVersion;
         }
+        var minimumVersion = GradleVersion.version(minimumGradleVersion);
+        return targetVersion.compareTo(minimumVersion) < 0 ? minimumVersion : targetVersion;
     }
 
     public static boolean isBeforeJavaConventionDeprecation() {
-        return getGradleVersionForTest().compareTo(GradleVersion.version("8.2")) < 0;
+        return getGradleVersionForTest(null).compareTo(GradleVersion.version("8.2")) < 0;
     }
 
     public static boolean isAfterJavaConventionDeprecation() {

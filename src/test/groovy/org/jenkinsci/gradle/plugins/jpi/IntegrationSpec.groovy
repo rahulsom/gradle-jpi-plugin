@@ -16,7 +16,7 @@ class IntegrationSpec extends Specification {
     }
 
     static GradleVersion getGradleVersionForTest() {
-        IntegrationTestHelper.getGradleVersionForTest()
+        IntegrationTestHelper.getGradleVersionForTest(null)
     }
 
     static boolean isBeforeJavaConventionDeprecation() {
