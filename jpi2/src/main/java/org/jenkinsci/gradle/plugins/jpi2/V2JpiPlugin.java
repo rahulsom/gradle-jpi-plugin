@@ -1,5 +1,7 @@
 package org.jenkinsci.gradle.plugins.jpi2;
 
+import groovy.namespace.QName;
+import groovy.util.Node;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -7,16 +9,17 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.Directory;
-import org.gradle.api.plugins.GroovyBasePlugin;
 import org.gradle.api.plugins.BasePlugin;
+import org.gradle.api.plugins.ExtensionAware;
+import org.gradle.api.plugins.GroovyBasePlugin;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaLibraryPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin;
+import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
@@ -25,8 +28,6 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.bundling.War;
 import org.jenkinsci.gradle.plugins.jpi2.accmod.CheckAccessModifierTask;
-import groovy.namespace.QName;
-import groovy.util.Node;
 import org.jenkinsci.gradle.plugins.jpi2.accmod.PrefixedPropertiesProvider;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -56,6 +57,8 @@ public class V2JpiPlugin implements Plugin<Project> {
         project.getPlugins().apply(MavenPublishPlugin.class);
 
         var extension = project.getExtensions().create("jenkinsPlugin", JenkinsPluginExtension.class, project);
+        ((ExtensionAware) extension).getExtensions().create("gitVersion", GitVersionExtension.class,
+                project.getObjects(), project.getLayout(), project.getProviders());
 
         var configurations = project.getConfigurations();
         var dependencies = project.getDependencies();
@@ -106,6 +109,7 @@ public class V2JpiPlugin implements Plugin<Project> {
             public void execute(@NotNull War war) {
                 war.dependsOn(licenseTask);
                 war.getWebInf().from(licenseTask.flatMap(GenerateLicenseInfoTask::getOutputDirectory));
+                war.getArchiveVersion().set(extension.getEffectiveVersion());
             }
         });
         project.getTasks().named("jar", Jar.class).configure(new Action<>() {
@@ -161,7 +165,20 @@ public class V2JpiPlugin implements Plugin<Project> {
         dependencies.add(jenkinsCore.getName(), jenkinsCoreCoordinate);
 
         dependencies.getComponents().all(HpiMetadataRule.class);
-        configurePublishing(project, jpiTask, defaultRuntime, extension);
+        var publicationName = configurePublishing(project, jpiTask, defaultRuntime, extension);
+
+        var publishing = project.getExtensions().getByType(PublishingExtension.class);
+        var resolveVersion = project.getTasks().register("resolvePluginVersion", task -> {
+            task.doFirst(t -> {
+                if (extension.getVersionSource().get() != VersionSource.PROJECT) {
+                    var v = extension.getEffectiveVersion().get();
+                    publishing.getPublications().withType(MavenPublication.class).configureEach(pub -> pub.setVersion(v));
+                }
+            });
+        });
+        var capitalizedName = publicationName.isEmpty() ? publicationName : publicationName.substring(0, 1).toUpperCase() + publicationName.substring(1);
+        project.getTasks().named("generatePomFileFor" + capitalizedName + "Publication").configure(t -> t.dependsOn(resolveVersion));
+        project.getTasks().named("generateMetadataFileFor" + capitalizedName + "Publication").configure(t -> t.dependsOn(resolveVersion));
 
         BuildServiceRegistry buildServices = project.getGradle().getSharedServices();
         var portAllocationService = buildServices.registerIfAbsent("portAllocation", PortAllocationService.class, spec -> {
@@ -206,7 +223,9 @@ public class V2JpiPlugin implements Plugin<Project> {
         project.getTasks().named("check", task -> task.dependsOn(checkAccessModifier));
     }
 
-    private static void configurePublishing(@NotNull Project project, TaskProvider<?> jpiTask, Configuration runtimeClasspath, JenkinsPluginExtension extension) {
+    /** Returns the name of the publication that was configured (for task name resolution). */
+    @NotNull
+    private static String configurePublishing(@NotNull Project project, TaskProvider<?> jpiTask, Configuration runtimeClasspath, JenkinsPluginExtension extension) {
         var publishingExtension = project.getExtensions().getByType(PublishingExtension.class);
         var existingPublication = !publishingExtension.getPublications().isEmpty() ? publishingExtension.getPublications().iterator().next() : null;
         var javaPlugin = project.getExtensions().getByType(JavaPluginExtension.class);
@@ -214,6 +233,7 @@ public class V2JpiPlugin implements Plugin<Project> {
         javaPlugin.withSourcesJar();
         if (existingPublication instanceof MavenPublication publication) {
             configurePublication(publication, jpiTask, runtimeClasspath, project, extension);
+            return publication.getName();
         } else {
             publishingExtension.getPublications().create("mavenJpi", MavenPublication.class, new Action<>() {
                 @Override
@@ -222,6 +242,7 @@ public class V2JpiPlugin implements Plugin<Project> {
                     configurePublication(publication, jpiTask, runtimeClasspath, project, extension);
                 }
             });
+            return "mavenJpi";
         }
     }
 
@@ -230,7 +251,7 @@ public class V2JpiPlugin implements Plugin<Project> {
         publication.getPom().setPackaging(extension.getArchiveExtension().get());
         publication.getPom().withXml(new PomBuilder(runtimeClasspath, project));
         publication.getPom().withXml(xml -> {
-            var node = (Node) xml.asNode();
+            var node = xml.asNode();
             var pomNs = "http://maven.apache.org/POM/4.0.0";
             var packagingList = node.getAt(new QName(pomNs, "packaging"));
             var packaging = extension.getArchiveExtension().get();

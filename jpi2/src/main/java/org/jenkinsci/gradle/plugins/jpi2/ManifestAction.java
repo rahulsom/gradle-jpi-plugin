@@ -29,8 +29,9 @@ class ManifestAction implements Action<Manifest> {
     @Override
     public void execute(@NotNull Manifest manifest) {
         var attributes = manifest.getAttributes();
-        attributes.put("Implementation-Title", project.getGroup() + "#" + project.getName() + ";" + project.getVersion());
-        attributes.put("Implementation-Version", project.getVersion());
+        var version = extension.getEffectiveVersion().get();
+        attributes.put("Implementation-Title", project.getGroup() + "#" + project.getName() + ";" + version);
+        attributes.put("Implementation-Version", version);
 
         var rootDependencies = configuration.getIncoming().getResolutionResult().getRoot().getDependencies();
 
@@ -48,7 +49,7 @@ class ManifestAction implements Action<Manifest> {
         if (!pluginDependencies.isEmpty()) {
             attributes.put("Plugin-Dependencies", String.join(",", pluginDependencies));
         }
-        attributes.put("Plugin-Version", project.getVersion());
+        attributes.put("Plugin-Version", version);
         attributes.put("Short-Name", extension.getPluginId().get());
         attributes.put("Extension-Name", extension.getPluginId().get());
         attributes.put("Group-Id", project.getGroup());
