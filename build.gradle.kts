@@ -1,10 +1,15 @@
+buildscript {
+    dependencies {
+        classpath(libs.nebula.release.plugin)
+    }
+}
 plugins {
-    alias(libs.plugins.nebula.release)
     alias(libs.plugins.distribution.sha)
 }
 
 allprojects {
     group = "org.jenkins-ci.tools"
+    apply(plugin = "nebula.release")
 }
 
 subprojects {

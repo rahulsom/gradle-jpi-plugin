@@ -3,7 +3,6 @@ plugins {
     `maven-publish`
     signing
     alias(libs.plugins.plugin.publish)
-    alias(libs.plugins.nebula.release)
     `java-gradle-plugin`
     `kotlin-dsl`
 }
