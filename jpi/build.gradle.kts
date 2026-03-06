@@ -17,7 +17,6 @@ plugins {
     signing
     codenarc
     alias(libs.plugins.plugin.publish)
-    alias(libs.plugins.nebula.release)
     `java-gradle-plugin`
 }
 
