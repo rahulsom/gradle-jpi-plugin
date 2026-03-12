@@ -1,16 +1,13 @@
 package org.jenkinsci.gradle.plugins.jpi2;
 
 import org.gradle.api.DefaultTask;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.LenientConfiguration;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.artifacts.ResolvedDependency;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.attributes.Usage;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.w3c.dom.Document;
@@ -31,7 +28,6 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -41,120 +37,92 @@ import java.util.Set;
 /**
  * Generates {@code licenses.xml} for libraries bundled into the plugin package.
  */
-public class GenerateLicenseInfoTask extends DefaultTask {
+public abstract class GenerateLicenseInfoTask extends DefaultTask {
     public static final String NAME = "generateLicenseInfo";
     private static final String LICENSE_NAMESPACE = "licenses";
 
-    private final DirectoryProperty outputDirectory;
-    private Configuration libraryConfiguration;
-
-    public GenerateLicenseInfoTask() {
-        this.outputDirectory = getProject().getObjects().directoryProperty();
-    }
-
     @OutputDirectory
-    public DirectoryProperty getOutputDirectory() {
-        return outputDirectory;
-    }
+    public abstract DirectoryProperty getOutputDirectory();
 
+    @InputFiles
     @Classpath
-    public Configuration getLibraryConfiguration() {
-        return libraryConfiguration;
-    }
+    public abstract ConfigurableFileCollection getPomFiles();
 
-    public void setLibraryConfiguration(Configuration libraryConfiguration) {
-        this.libraryConfiguration = libraryConfiguration;
-    }
+    @Input
+    public abstract Property<String> getProjectVersion();
+
+    @Input
+    public abstract Property<String> getProjectName();
+
+    @Input
+    public abstract Property<String> getProjectGroup();
+
+    @Input
+    @Optional
+    public abstract Property<String> getProjectDescription();
+
+    @Input
+    @Optional
+    public abstract Property<String> getProjectUrl();
 
     @TaskAction
     public void generateLicenseInfo() {
-        var outputDir = outputDirectory.get().getAsFile();
+        var outputDir = getOutputDirectory().get().getAsFile();
         var outputFile = new File(outputDir, "licenses.xml");
         if (!outputDir.exists() && !outputDir.mkdirs()) {
             throw new IllegalStateException("Could not create output directory: " + outputDir);
         }
 
-        var pomArtifacts = collectPomArtifacts(outputFile.toPath());
-        writeLicensesFile(outputFile, pomArtifacts);
+        var pomFiles = collectPomFiles();
+        writeLicensesFile(outputFile, pomFiles);
     }
 
-    private Set<ResolvedArtifact> collectPomArtifacts(Path destination) {
-        var deps = collectPomDependencies();
-        var detached = getProject().getConfigurations().detachedConfiguration(deps.toArray(new Dependency[0]));
-        detached.getAttributes().attribute(Usage.USAGE_ATTRIBUTE,
-                getProject().getObjects().named(Usage.class, Usage.JAVA_RUNTIME));
-
-        LenientConfiguration lenient = detached.getResolvedConfiguration().getLenientConfiguration();
-
-        var requested = new HashSet<String>();
-        for (ResolvedDependency dependency : lenient.getAllModuleDependencies()) {
-            requested.add(dependency.getModule().toString());
-        }
-        var resolved = new HashSet<String>();
-        for (ResolvedArtifact artifact : lenient.getArtifacts()) {
-            resolved.add(artifact.getModuleVersion().getId().toString());
-        }
-        var unresolved = requested.stream()
-                .filter(it -> !resolved.contains(it))
-                .sorted()
-                .toList();
-        if (!unresolved.isEmpty()) {
-            var pluralized = unresolved.size() == 1 ? "dependency" : "dependencies";
-            var message = new StringBuilder(String.format("Could not resolve license(s) via POM for %d %s:%n",
-                    unresolved.size(), pluralized));
-            for (String coordinate : unresolved) {
-                message.append(String.format("\t- %s%n", coordinate));
+    private Set<File> collectPomFiles() {
+        var pomFiles = getPomFiles().getFiles();
+        var resolved = new HashSet<File>();
+        for (var pomFile : pomFiles) {
+            if (pomFile.exists()) {
+                resolved.add(pomFile);
+            } else {
+                getLogger().warn("POM file does not exist: {}", pomFile);
             }
-            message.append(String.format("The above will be missing from %s%n", destination));
-            getLogger().warn(message.toString());
         }
-
-        return lenient.getArtifacts();
+        return resolved;
     }
 
-    private List<Dependency> collectPomDependencies() {
-        if (libraryConfiguration == null) {
-            throw new IllegalStateException("libraryConfiguration is not configured for " + getPath());
-        }
-        return libraryConfiguration.getResolvedConfiguration().getResolvedArtifacts().stream()
-                .filter(artifact -> "jar".equals(artifact.getExtension()))
-                .filter(artifact -> artifact.getId().getComponentIdentifier() instanceof ModuleComponentIdentifier)
-                .map(artifact -> {
-                    ModuleVersionIdentifier id = artifact.getModuleVersion().getId();
-                    return getProject().getDependencies().create(id.getGroup() + ":" + id.getName() + ":" + id.getVersion() + "@pom");
-                })
-                .toList();
-    }
-
-    private void writeLicensesFile(File outputFile, Set<ResolvedArtifact> pomArtifacts) {
-        var project = getProject();
+    private void writeLicensesFile(File outputFile, Set<File> pomFiles) {
         var extractor = new PomLicenseDataExtractor();
         var document = createDocument();
 
+        var version = getProjectVersion().get();
+        var name = getProjectName().get();
+        var group = getProjectGroup().get();
+        var description = getProjectDescription().getOrNull();
+        var url = getProjectUrl().getOrNull();
+
         var root = document.createElementNS(LICENSE_NAMESPACE, "l:dependencies");
         root.setAttribute("xmlns:l", LICENSE_NAMESPACE);
-        root.setAttribute("version", project.getVersion().toString());
-        root.setAttribute("artifactId", project.getName());
-        root.setAttribute("groupId", project.getGroup().toString());
+        root.setAttribute("version", version);
+        root.setAttribute("artifactId", name);
+        root.setAttribute("groupId", group);
         document.appendChild(root);
 
         var projectDependency = appendDependency(document, root,
-                project.getVersion().toString(),
-                project.getName(),
-                project.getGroup().toString(),
-                project.getDescription() != null ? project.getDescription() : project.getName(),
-                project.getProviders().gradleProperty("url").getOrNull());
-        appendDescription(document, projectDependency, project.getDescription() != null ? project.getDescription() : "");
+                version,
+                name,
+                group,
+                description != null ? description : name,
+                url);
+        appendDescription(document, projectDependency, description != null ? description : "");
 
-        pomArtifacts.stream()
-                .sorted(Comparator.comparing(artifact -> artifact.getModuleVersion().getId().toString()))
-                .forEach(pomArtifact -> {
-                    var data = extractor.extractFrom(pomArtifact.getFile());
-                    var gav = pomArtifact.getModuleVersion().getId();
+        pomFiles.stream()
+                .sorted(Comparator.comparing(File::getName))
+                .forEach(pomFile -> {
+                    var data = extractor.extractFrom(pomFile);
                     var dependency = appendDependency(document, root,
-                            gav.getVersion(),
-                            gav.getName(),
-                            gav.getGroup(),
+                            data.version(),
+                            data.artifactId(),
+                            data.groupId(),
                             data.name(),
                             data.url());
                     appendDescription(document, dependency, data.description());
@@ -240,7 +208,7 @@ public class GenerateLicenseInfoTask extends DefaultTask {
         }
     }
 
-    private record PomLicenseData(String name, String description, String url, List<LicenseInfo> licenses) {
+    private record PomLicenseData(String groupId, String artifactId, String version, String name, String description, String url, List<LicenseInfo> licenses) {
     }
 
     private record LicenseInfo(String name, String url) {
@@ -256,14 +224,24 @@ public class GenerateLicenseInfoTask extends DefaultTask {
         private PomLicenseData extractFrom(File pomFile) {
             try {
                 var document = builder.parse(pomFile);
-                var project = document.getDocumentElement();
+                var root = document.getDocumentElement();
 
-                var name = directChildText(project, "name");
-                var description = directChildText(project, "description");
-                var url = directChildText(project, "url");
+                var groupId = directChildText(root, "groupId");
+                var artifactId = directChildText(root, "artifactId");
+                var version = directChildText(root, "version");
+                var name = directChildText(root, "name");
+                var description = directChildText(root, "description");
+                var url = directChildText(root, "url");
                 var licenses = new ArrayList<LicenseInfo>();
 
-                Node licensesContainer = directChild(project, "licenses");
+                // Fall back to parent GAV if not directly specified
+                Node parentNode = directChild(root, "parent");
+                if (parentNode instanceof Element parentElement) {
+                    if (groupId.isEmpty()) groupId = directChildText(parentElement, "groupId");
+                    if (version.isEmpty()) version = directChildText(parentElement, "version");
+                }
+
+                Node licensesContainer = directChild(root, "licenses");
                 if (licensesContainer instanceof Element element) {
                     var childNodes = element.getChildNodes();
                     for (int i = 0; i < childNodes.getLength(); i++) {
@@ -276,7 +254,7 @@ public class GenerateLicenseInfoTask extends DefaultTask {
                     }
                 }
 
-                return new PomLicenseData(name, description, url, licenses);
+                return new PomLicenseData(groupId, artifactId, version, name, description, url, licenses);
             } catch (SAXException | IOException e) {
                 throw new RuntimeException("Failed to parse POM: " + pomFile, e);
             }
