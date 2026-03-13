@@ -31,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.net.URI;
 
 import static org.jenkinsci.gradle.plugins.jpi2.ArtifactType.ARTIFACT_TYPE_ATTRIBUTE;
@@ -184,7 +185,39 @@ public class V2JpiPlugin implements Plugin<Project> {
         var portAllocationService = buildServices.registerIfAbsent("portAllocation", PortAllocationService.class, spec -> {
         });
 
-        project.getTasks().register("testServer", new ConfigureTestServerAction(project, portAllocationService.get()));
+        var gradle = project.getGradle();
+        var startParameter = gradle.getStartParameter();
+        var gradleHome = gradle.getGradleHomeDir();
+        var gradleExecutable = gradleHome != null ? new File(gradleHome, "bin/gradle").getAbsolutePath() : "gradle";
+        var isRootProject = project == project.getRootProject();
+        var projectPath = project.getPath();
+
+        project.getTasks().register("testServer", TestServerTask.class, new Action<>() {
+            @Override
+            public void execute(@NotNull TestServerTask task) {
+                task.setGroup("verification");
+                task.setDescription("Launch Jenkins server and terminate after success or first error");
+                task.getRootDir().set(project.getRootDir().getAbsolutePath());
+                task.getGradleExecutable().set(gradleExecutable);
+                task.getInitScripts().set(startParameter.getAllInitScripts().stream()
+                        .map(File::getAbsolutePath).toList());
+                task.getIncludedBuilds().set(startParameter.getIncludedBuilds().stream()
+                        .map(File::getPath).toList());
+                task.getOffline().set(startParameter.isOffline());
+                task.getBuildCacheEnabled().set(startParameter.isBuildCacheEnabled());
+                task.getRefreshDependencies().set(startParameter.isRefreshDependencies());
+                task.getContinueOnFailure().set(startParameter.isContinueOnFailure());
+                task.getParallelExecution().set(startParameter.isParallelProjectExecutionEnabled());
+                task.getProfile().set(startParameter.isProfile());
+                task.getRerunTasks().set(startParameter.isRerunTasks());
+                task.getDryRun().set(startParameter.isDryRun());
+                task.getSystemProperties().set(startParameter.getSystemPropertiesArgs());
+                task.getProjectProperties().set(startParameter.getProjectProperties());
+                task.getServerTaskPath().set(isRootProject ? ":server" : projectPath + ":server");
+                task.getPortAllocationService().set(portAllocationService);
+                task.usesService(portAllocationService);
+            }
+        });
     }
 
     private static void configureAccessModifier(@NotNull Project project) {
