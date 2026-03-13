@@ -19,6 +19,9 @@ abstract class JenkinsPluginExtension @Inject constructor(private val project: P
         const val TEST_HARNESS_VERSION_PROPERTY = "jenkins.testharness.version"
         const val DEFAULT_TEST_HARNESS_VERSION = "2414.v185474555e66"
 
+        const val LOCALIZER_VERSION_PROPERTY = "jenkins.localizer.version"
+        const val DEFAULT_LOCALIZER_VERSION = "1.31"
+
         const val DEFAULT_ARCHIVE_EXTENSION = "jpi"
     }
 
@@ -49,6 +52,17 @@ abstract class JenkinsPluginExtension @Inject constructor(private val project: P
         .convention(
             project.providers.gradleProperty(TEST_HARNESS_VERSION_PROPERTY)
                 .orElse(DEFAULT_TEST_HARNESS_VERSION)
+        )
+
+    /**
+     * The version of the localizer generator used by the `localizeMessages` task.
+     * Can be set via the [LOCALIZER_VERSION_PROPERTY] Gradle property.
+     * Defaults to [DEFAULT_LOCALIZER_VERSION].
+     */
+    val localizerVersion: Property<String> = project.objects.property(String::class.java)
+        .convention(
+            project.providers.gradleProperty(LOCALIZER_VERSION_PROPERTY)
+                .orElse(DEFAULT_LOCALIZER_VERSION)
         )
 
     /**
