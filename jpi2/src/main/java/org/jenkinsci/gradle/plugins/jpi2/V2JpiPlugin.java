@@ -5,6 +5,9 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.Directory;
 import org.gradle.api.plugins.BasePlugin;
@@ -33,6 +36,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.URI;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.jenkinsci.gradle.plugins.jpi2.ArtifactType.ARTIFACT_TYPE_ATTRIBUTE;
 
@@ -86,13 +91,19 @@ public class V2JpiPlugin implements Plugin<Project> {
         defaultRuntime.shouldResolveConsistentlyWith(jenkinsCore);
         defaultRuntime.getAttributes().attribute(ARTIFACT_TYPE_ATTRIBUTE, project.getObjects().named(ArtifactType.class, ArtifactType.DEFAULT));
 
+        var pomFiles = resolvePomFiles(project, defaultRuntime);
         var licenseTask = project.getTasks().register(GenerateLicenseInfoTask.NAME, GenerateLicenseInfoTask.class, new Action<>() {
             @Override
             public void execute(@NotNull GenerateLicenseInfoTask task) {
                 task.setGroup(BasePlugin.BUILD_GROUP);
                 task.setDescription("Generates license information.");
                 task.getOutputDirectory().set(project.getLayout().getBuildDirectory().dir("licenses"));
-                task.setLibraryConfiguration(defaultRuntime);
+                task.getPomFiles().from(pomFiles);
+                task.getProjectVersion().set(project.provider(() -> project.getVersion().toString()));
+                task.getProjectName().set(project.getName());
+                task.getProjectGroup().set(project.provider(() -> project.getGroup().toString()));
+                task.getProjectDescription().set(project.provider(project::getDescription));
+                task.getProjectUrl().set(project.getProviders().gradleProperty("url"));
             }
         });
 
@@ -301,6 +312,32 @@ public class V2JpiPlugin implements Plugin<Project> {
                 c.setCanBeConsumed(false);
                 c.setTransitive(false);
             }
+        });
+    }
+
+    @NotNull
+    private static Provider<Set<File>> resolvePomFiles(@NotNull Project project, Configuration libraryConfiguration) {
+        return project.provider(() -> {
+            var pomCoordinates = libraryConfiguration.getResolvedConfiguration().getResolvedArtifacts().stream()
+                    .filter(artifact -> "jar".equals(artifact.getExtension()))
+                    .filter(artifact -> artifact.getId().getComponentIdentifier() instanceof ModuleComponentIdentifier)
+                    .map(artifact -> {
+                        var id = artifact.getModuleVersion().getId();
+                        return id.getGroup() + ":" + id.getName() + ":" + id.getVersion() + "@pom";
+                    })
+                    .toList();
+
+            var deps = pomCoordinates.stream()
+                    .map(coord -> project.getDependencies().create(coord))
+                    .toArray(Dependency[]::new);
+
+            var detached = project.getConfigurations().detachedConfiguration(deps);
+            detached.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.JAVA_RUNTIME));
+
+            var lenient = detached.getResolvedConfiguration().getLenientConfiguration();
+            return lenient.getArtifacts().stream()
+                    .map(ResolvedArtifact::getFile)
+                    .collect(Collectors.toSet());
         });
     }
 
