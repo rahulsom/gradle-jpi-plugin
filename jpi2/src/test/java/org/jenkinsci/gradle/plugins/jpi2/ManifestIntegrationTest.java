@@ -12,9 +12,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.OS;
 
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,7 +26,6 @@ class ManifestIntegrationTest extends V2IntegrationTestBase {
 
     @Test
     void manifestContainsVersionWhenUsingForce() throws IOException {
-        // given
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
         Files.write((getBasePluginConfig() + /* language=kotlin */ """
@@ -40,14 +41,9 @@ class ManifestIntegrationTest extends V2IntegrationTestBase {
 
         GradleRunner gradleRunner = ith.gradleRunner();
 
-        // when
         gradleRunner.withArguments("build").build();
 
-        // then
-        var manifest = ith.inProjectDir("build/jpi/META-INF/MANIFEST.MF");
-        assertThat(manifest).exists();
-
-        var manifestData = new Manifest(manifest.toURI().toURL().openStream()).getMainAttributes();
+        var manifestData = manifestAttributes(ith);
         assertThat(manifestData).isNotNull().isNotEmpty();
         assertThat(manifestData.getValue("Jenkins-Version")).isEqualTo("2.492.3");
         assertThat(manifestData.getValue("Plugin-Dependencies")).isEqualTo("git:5.7.0");
@@ -55,7 +51,6 @@ class ManifestIntegrationTest extends V2IntegrationTestBase {
 
     @Test
     void manifestContainsVersionWhenUsingBom() throws IOException, XmlPullParserException {
-        // given
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
         ith.mkDirInProjectDir("src-repo/com/example/bom/bom/1.0.0");
@@ -93,15 +88,11 @@ class ManifestIntegrationTest extends V2IntegrationTestBase {
 
         GradleRunner gradleRunner = ith.gradleRunner();
 
-        // when
         var result = gradleRunner.withArguments("build", "publish").build();
 
-        // then
         assertThat(result.getOutput()).doesNotContain("Dependency resolution rules will not be applied to configuration");
-        var manifest = ith.inProjectDir("build/jpi/META-INF/MANIFEST.MF");
-        assertThat(manifest).exists();
 
-        var manifestData = new Manifest(manifest.toURI().toURL().openStream()).getMainAttributes();
+        var manifestData = manifestAttributes(ith);
         assertThat(manifestData).isNotNull().isNotEmpty();
         assertThat(manifestData.getValue("Jenkins-Version")).isEqualTo("2.492.3");
         assertThat(manifestData.getValue("Plugin-Dependencies")).isEqualTo("git:5.7.0");
@@ -121,5 +112,96 @@ class ManifestIntegrationTest extends V2IntegrationTestBase {
                 .containsExactlyInAnyOrder(
                         new Tuple("org.jenkins-ci.plugins", "git", "5.7.0", "compile")
                 );
+    }
+
+    @Test
+    void supportDynamicLoadingDefaultsToTrueWhenNoExtensionsExist() throws IOException {
+        var ith = new IntegrationTestHelper(tempDir, "8.14");
+        initBuild(ith);
+        Files.write(getBasePluginConfig().getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
+
+        ith.gradleRunner().withArguments("build").build();
+
+        assertThat(manifestAttributes(ith).getValue("Support-Dynamic-Loading")).isEqualTo("true");
+    }
+
+    @Test
+    void supportDynamicLoadingIsTrueWhenAllExtensionsAreYes() throws IOException {
+        var ith = new IntegrationTestHelper(tempDir, "8.14");
+        initBuild(ith);
+        Files.write(getBasePluginConfig().getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
+        writeJavaSource(ith, "com/example/plugin/AlwaysReloadable.java", """
+                package com.example.plugin;
+
+                @hudson.Extension(dynamicLoadable = jenkins.YesNoMaybe.YES)
+                public class AlwaysReloadable {
+                }
+                """);
+
+        ith.gradleRunner().withArguments("build").build();
+
+        assertThat(manifestAttributes(ith).getValue("Support-Dynamic-Loading")).isEqualTo("true");
+    }
+
+    @Test
+    void supportDynamicLoadingIsOmittedWhenAnyExtensionIsMaybe() throws IOException {
+        var ith = new IntegrationTestHelper(tempDir, "8.14");
+        initBuild(ith);
+        Files.write(getBasePluginConfig().getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
+        writeJavaSource(ith, "com/example/plugin/MaybeReloadable.java", """
+                package com.example.plugin;
+
+                @hudson.Extension(dynamicLoadable = jenkins.YesNoMaybe.MAYBE)
+                public class MaybeReloadable {
+                }
+                """);
+        writeJavaSource(ith, "com/example/plugin/AlwaysReloadable.java", """
+                package com.example.plugin;
+
+                @hudson.Extension(dynamicLoadable = jenkins.YesNoMaybe.YES)
+                public class AlwaysReloadable {
+                }
+                """);
+
+        ith.gradleRunner().withArguments("build").build();
+
+        assertThat(manifestAttributes(ith).getValue("Support-Dynamic-Loading")).isNull();
+    }
+
+    @Test
+    void supportDynamicLoadingIsFalseWhenAnyExtensionIsNotDynamicLoadable() throws IOException {
+        var ith = new IntegrationTestHelper(tempDir, "8.14");
+        initBuild(ith);
+        Files.write(getBasePluginConfig().getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
+        writeJavaSource(ith, "com/example/plugin/NeverReloadable.java", """
+                package com.example.plugin;
+
+                @hudson.Extension(dynamicLoadable = jenkins.YesNoMaybe.NO)
+                public class NeverReloadable {
+                }
+                """);
+        writeJavaSource(ith, "com/example/plugin/AlwaysReloadable.java", """
+                package com.example.plugin;
+
+                @hudson.Extension(dynamicLoadable = jenkins.YesNoMaybe.YES)
+                public class AlwaysReloadable {
+                }
+                """);
+
+        ith.gradleRunner().withArguments("build").build();
+
+        assertThat(manifestAttributes(ith).getValue("Support-Dynamic-Loading")).isEqualTo("false");
+    }
+
+    private static Attributes manifestAttributes(IntegrationTestHelper ith) throws IOException {
+        File manifest = ith.inProjectDir("build/jpi/META-INF/MANIFEST.MF");
+        assertThat(manifest).exists();
+        return new Manifest(manifest.toURI().toURL().openStream()).getMainAttributes();
+    }
+
+    private static void writeJavaSource(IntegrationTestHelper ith, String relativePath, String source) throws IOException {
+        var parent = relativePath.substring(0, relativePath.lastIndexOf('/'));
+        ith.mkDirInProjectDir("src/main/java/" + parent);
+        Files.write(source.getBytes(StandardCharsets.UTF_8), ith.inProjectDir("src/main/java/" + relativePath));
     }
 }

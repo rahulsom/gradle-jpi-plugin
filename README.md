@@ -449,6 +449,15 @@ dependencies {
 }
 ```
 
+## JPI2 Generated Manifest Entries
+
+The `jpi2` plugin now generates and merges additional Jenkins manifest entries into both the `jar` and `jpi` artifacts.
+
+- `Support-Dynamic-Loading` is derived from the generated `@Extension` metadata (`META-INF/annotations/hudson.Extension.txt`).
+- `Support-Dynamic-Loading` is set to `true` when all discovered extensions are marked `dynamicLoadable=YES`, or when no extensions are present.
+- `Support-Dynamic-Loading` is omitted when at least one extension is `dynamicLoadable=MAYBE` and none are `NO`.
+- `Support-Dynamic-Loading` is set to `false` when any extension is `dynamicLoadable=NO`.
+
 ## JPI2 Version Configuration
 
 Jenkins and test harness versions can be set in the `jenkinsPlugin` extension (as shown above) or via `gradle.properties`:

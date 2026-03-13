@@ -115,11 +115,24 @@ public class V2JpiPlugin implements Plugin<Project> {
         SourceSet main = sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME);
         main.getResources().getSrcDirs().add(project.file("src/main/webapp"));
 
+        var optionalManifest = project.getTasks().register(
+                GenerateOptionalJenkinsManifestTask.NAME,
+                GenerateOptionalJenkinsManifestTask.class,
+                task -> {
+                    task.setGroup(BasePlugin.BUILD_GROUP);
+                    task.setDescription("Generates optional Jenkins manifest attributes.");
+                    task.getInspectionDirectories().from(main.getOutput());
+                    task.getOutputFile().set(project.getLayout().getBuildDirectory().file("jenkins-manifests/optional.mf"));
+                });
+        var optionalManifestFile = optionalManifest.flatMap(GenerateOptionalJenkinsManifestTask::getOutputFile);
+
         var jpiTask = project.getTasks().register(JPI_TASK, War.class, new ConfigureJpiAction(project, defaultRuntime, jenkinsCore, extension));
         jpiTask.configure(new Action<>() {
             @Override
             public void execute(@NotNull War war) {
                 war.dependsOn(licenseTask);
+                war.getInputs().file(optionalManifestFile);
+                war.getManifest().from(optionalManifestFile);
                 war.getWebInf().from(licenseTask.flatMap(GenerateLicenseInfoTask::getOutputDirectory));
                 war.getArchiveVersion().set(extension.getEffectiveVersion());
             }
@@ -128,6 +141,8 @@ public class V2JpiPlugin implements Plugin<Project> {
             @Override
             public void execute(@NotNull Jar jarTask) {
                 jarTask.manifest(new ManifestAction(project, defaultRuntime, extension));
+                jarTask.getInputs().file(optionalManifestFile);
+                jarTask.getManifest().from(optionalManifestFile);
             }
         });
         Provider<Directory> jpiDirectory = project.getLayout().getBuildDirectory().dir("jpi");
