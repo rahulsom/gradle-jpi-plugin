@@ -28,6 +28,7 @@ import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.bundling.War;
+import org.jenkinsci.gradle.plugins.jpi2.localization.LocalizationPlugin;
 import org.jenkinsci.gradle.plugins.jpi2.accmod.CheckAccessModifierTask;
 import org.jenkinsci.gradle.plugins.jpi2.accmod.PrefixedPropertiesProvider;
 import org.jetbrains.annotations.NotNull;
@@ -114,6 +115,7 @@ public class V2JpiPlugin implements Plugin<Project> {
         SourceSetContainer sourceSets = ext.getSourceSets();
         SourceSet main = sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME);
         main.getResources().getSrcDirs().add(project.file("src/main/webapp"));
+        project.getPlugins().apply(LocalizationPlugin.class);
 
         var optionalManifest = project.getTasks().register(
                 GenerateOptionalJenkinsManifestTask.NAME,

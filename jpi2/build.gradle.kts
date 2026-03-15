@@ -13,6 +13,7 @@ dependencies {
     implementation(gradleApi())
     compileOnly(libs.jetbrains.annotations)
     compileOnly(libs.accessmodifier.checker)
+    compileOnly(libs.localizer.maven)
     compileOnly(libs.maven.plugin.api)
 
     // Test dependencies

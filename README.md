@@ -87,6 +87,7 @@ jenkinsPlugin {
     disabledTestInjection = false
 
     // the output directory for the localizer task relative to the project root, defaults to the value shown
+    // for jpi2, configure tasks.named("localizeMessages") instead; see the jpi2 localization section below
     localizerOutputDir = "${project.buildDir}/generated-src/localizer"
 
     // disable configuration of Maven Central, the local Maven cache and the Jenkins Maven repository, defaults to true
@@ -400,6 +401,10 @@ jenkinsPlugin {
     // can also be set via the gradle property 'jenkins.testharness.version'
     testHarnessVersion.set("2414.v185474555e66")
 
+    // version of the localizer generator used by localizeMessages (default: 1.31)
+    // can also be set via the gradle property 'jenkins.localizer.version'
+    localizerVersion.set("1.31")
+
     // ID of the plugin, defaults to the project name
     pluginId.set("my-plugin")
 
@@ -465,9 +470,37 @@ Jenkins and test harness versions can be set in the `jenkinsPlugin` extension (a
 ```properties
 jenkins.version=2.492.3
 jenkins.testharness.version=2414.v185474555e66
+jenkins.localizer.version=1.31
 ```
 
-The `gradle.properties` values serve as defaults; explicit values in the `jenkinsPlugin` block take precedence.
+The `gradle.properties` values serve as defaults; explicit values in the `jenkinsPlugin` block take precedence, including `localizerVersion`.
+
+### Localization source generation
+
+JPI2 now registers a `localizeMessages` task that scans the main resources source set for `Messages.properties` files and generates matching Java sources using the same localizer input format as the original JPI plugin.
+
+By default:
+
+- `src/main/resources/**/Messages.properties` files are used as inputs
+- generated Java sources are written to `build/generated-src/localizer`
+- the generated sources are added to the main Java source set automatically
+- `compileJava`, `classes`, `build`, and `sourcesJar` will all include the generated localization sources
+
+You normally do not need to wire anything manually. A Java class in `src/main/java` can refer directly to a generated `Messages` class, and running `build` or `classes` will generate and compile it first.
+
+To customize the output directory, configure the task directly:
+
+```kotlin
+tasks.named<org.jenkinsci.gradle.plugins.jpi2.localization.LocalizationTask>("localizeMessages") {
+    outputDir.set(layout.buildDirectory.dir("custom-localizer"))
+}
+```
+
+You can also run the task directly when you only want to refresh generated localization sources:
+
+```shell
+./gradlew localizeMessages
+```
 
 ### Plugin version source
 
