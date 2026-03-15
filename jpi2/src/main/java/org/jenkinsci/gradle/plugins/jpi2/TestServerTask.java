@@ -35,6 +35,9 @@ public abstract class TestServerTask extends DefaultTask {
     public abstract Property<String> getGradleExecutable();
 
     @Input
+    public abstract Property<String> getJavaHome();
+
+    @Input
     public abstract ListProperty<String> getInitScripts();
 
     @Input
@@ -139,6 +142,7 @@ public abstract class TestServerTask extends DefaultTask {
     private List<String> getCommandLine() {
         List<String> commandLine = new ArrayList<>();
         commandLine.add(getGradleExecutable().get());
+        commandLine.add("-Dorg.gradle.java.home=" + getJavaHome().get());
 
         for (var initScript : getInitScripts().get()) {
             commandLine.add("--init-script");

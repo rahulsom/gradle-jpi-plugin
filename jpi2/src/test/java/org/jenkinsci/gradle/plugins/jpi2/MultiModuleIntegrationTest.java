@@ -92,4 +92,22 @@ class MultiModuleIntegrationTest extends V2IntegrationTestBase {
         var pluginThreeJpi = ith.inProjectDir("plugin-four/work/plugins/plugin-three.jpi");
         assertThat(pluginThreeJpi).exists();
     }
+
+    @Test
+    void multiModuleWithNestedDependenciesShouldLaunchRun() throws IOException, InterruptedException {
+        // given
+        var ith = new IntegrationTestHelper(tempDir, "8.14");
+        configureModuleWithNestedDependencies(ith);
+
+        GradleRunner gradleRunner = ith.gradleRunner();
+
+        // when
+        testServerStarts(gradleRunner, ":plugin-four:hplRun");
+
+        // then
+        var pluginThreeHpl = ith.inProjectDir("plugin-four/work/plugins/plugin-three.hpl");
+        assertThat(pluginThreeHpl).exists();
+        assertThat(ith.inProjectDir("plugin-four/work/plugins/plugin-three.jpi")).doesNotExist();
+        assertThat(ith.inProjectDir("plugin-four/work/plugins/plugin-four.hpl")).exists();
+    }
 }

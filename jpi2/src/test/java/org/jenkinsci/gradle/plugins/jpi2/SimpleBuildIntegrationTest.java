@@ -50,6 +50,25 @@ class SimpleBuildIntegrationTest extends V2IntegrationTestBase {
     }
 
     @Test
+    void simpleGradleBuildShouldGenerateHpl() throws IOException {
+        // given
+        var ith = new IntegrationTestHelper(tempDir, "8.14");
+        configureSimpleBuild(ith);
+
+        // when
+        ith.gradleRunner().withArguments("generateJenkinsServerHpl").build();
+
+        // then
+        var hpl = ith.inProjectDir("build/hpl/test-plugin.hpl");
+        assertThat(hpl).exists();
+
+        var manifestData = new Manifest(hpl.toURI().toURL().openStream()).getMainAttributes();
+        assertThat(manifestData.getValue("Short-Name")).isEqualTo("test-plugin");
+        assertThat(manifestData.getValue("Resource-Path"))
+                .isEqualTo(ith.inProjectDir("src/main/webapp").getCanonicalPath());
+    }
+
+    @Test
     void simpleGradleBuildShouldLaunchServer() throws IOException, InterruptedException {
         // given
         var ith = new IntegrationTestHelper(tempDir, "8.14");
@@ -59,5 +78,43 @@ class SimpleBuildIntegrationTest extends V2IntegrationTestBase {
 
         // when
         testServerStarts(gradleRunner, "server");
+    }
+
+    @Test
+    void simpleGradleBuildShouldLaunchRun() throws IOException, InterruptedException {
+        // given
+        var ith = new IntegrationTestHelper(tempDir, "8.14");
+        configureSimpleBuild(ith);
+
+        GradleRunner gradleRunner = ith.gradleRunner();
+
+        // when
+        testServerStarts(gradleRunner, "hplRun");
+
+        // then
+        assertThat(ith.inProjectDir("work/plugins/test-plugin.hpl")).exists();
+    }
+
+    @Test
+    void simpleGradleBuildShouldVerifyRun() throws IOException {
+        // given
+        var ith = new IntegrationTestHelper(tempDir, "8.14");
+        configureSimpleBuildForVerification(ith);
+
+        GradleRunner gradleRunner = ith.gradleRunner();
+
+        // when
+        testServerVerificationTask(gradleRunner, "testHplRun");
+    }
+
+    @Test
+    void simpleGradleBuildShouldCoexistWithApplicationRunTask() throws IOException {
+        var ith = new IntegrationTestHelper(tempDir, "8.14");
+        configureBuildWithApplicationPlugin(ith);
+
+        var result = ith.gradleRunner().withArguments("tasks", "--all").build();
+
+        assertThat(result.getOutput()).contains("run - Runs this project as a JVM application");
+        assertThat(result.getOutput()).contains("hplRun");
     }
 }

@@ -571,6 +571,16 @@ That can also be set on the command line:
 ./gradlew server -Dserver.port=8090
 ```
 
+### Running with HPL in JPI2
+
+JPI2 also registers:
+
+- `generateJenkinsServerHpl` to generate an HPL for the current plugin in `build/hpl`
+- `hplRun` to start Jenkins with the current plugin and project plugin dependencies installed as HPLs, which also lets a debugger hotswap changed classes more easily
+- `testHplRun` to verify that `hplRun` can boot Jenkins successfully and then stop
+
+This is useful when working in a multi-module plugin build because changes in dependent plugin projects can be rebuilt and reflected in the running Jenkins instance without rebuilding JPIs for each project dependency.
+
 ## Examples
 
 Here are some real world examples of Jenkins plugins using the Gradle JPI plugin:

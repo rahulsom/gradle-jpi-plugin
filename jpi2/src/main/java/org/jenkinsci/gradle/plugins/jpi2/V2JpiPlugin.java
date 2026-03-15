@@ -6,6 +6,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.Usage;
@@ -21,6 +22,7 @@ import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin;
 import org.gradle.api.services.BuildServiceRegistry;
+import org.gradle.StartParameter;
 import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
@@ -37,6 +39,11 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.URI;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -148,11 +155,29 @@ public class V2JpiPlugin implements Plugin<Project> {
             }
         });
         Provider<Directory> jpiDirectory = project.getLayout().getBuildDirectory().dir("jpi");
+        var runtimeClasspathArtifacts = new RuntimeClasspathArtifacts(project, defaultRuntime, jenkinsCore);
         project.getTasks().register(EXPLODED_JPI_TASK, Sync.class, new Action<>() {
             @Override
             public void execute(@NotNull Sync sync) {
                 sync.into(jpiDirectory);
                 sync.with(jpiTask.get());
+            }
+        });
+        var generateHpl = project.getTasks().register(GenerateHplTask.TASK_NAME, GenerateHplTask.class, new Action<>() {
+            @Override
+            public void execute(@NotNull GenerateHplTask task) {
+                task.setGroup("Jenkins Server");
+                task.setDescription("Generate hpl (Hudson plugin link) for running locally");
+                task.getHpl().set(project.getLayout().getBuildDirectory()
+                        .file(extension.getPluginId().map(id -> "hpl/" + id + ".hpl")));
+                task.getResourcePath().set(project.file("src/main/webapp"));
+                task.getLibraries().from(main.getResources().getSrcDirs());
+                task.getLibraries().from(main.getOutput().getClassesDirs());
+                task.getLibraries().from(project.provider(main.getOutput()::getResourcesDir));
+                task.getLibraries().from(runtimeClasspathArtifacts.getBundledLibraries());
+                task.getUpstreamManifest().set(jpiDirectory.map(dir -> dir.file("META-INF/MANIFEST.MF")));
+                task.dependsOn(project.getTasks().named("classes"));
+                task.dependsOn(project.getTasks().named(EXPLODED_JPI_TASK));
             }
         });
         project.getTasks().named("assemble", new Action<>() {
@@ -163,9 +188,19 @@ public class V2JpiPlugin implements Plugin<Project> {
         });
 
         final var projectRoot = project.getLayout().getProjectDirectory().getAsFile().getAbsolutePath();
-        final var prepareServer = createPrepareServerTask(project, projectRoot, defaultRuntime, runtimeClasspath, jpiTask);
+        final var prepareServer = createPrepareServerTask(project, projectRoot, defaultRuntime, jpiTask);
+        final var prepareRun = createPrepareRunTask(project, projectRoot, defaultRuntime, generateHpl);
 
-        var serverTask = project.getTasks().register("server", JavaExec.class, new ServerAction(serverTaskClasspath, projectRoot, prepareServer));
+        project.getGradle().projectsEvaluated(gradle -> {
+            var projectByPath = project.getRootProject().getAllprojects().stream()
+                    .collect(Collectors.toMap(Project::getPath, it -> it));
+            var projectDependencies = getProjectDependencies(runtimeClasspath, projectByPath);
+            configureProjectDependencyJpis(prepareServer, getProjectDependencyJpis(projectDependencies, extension.getArchiveExtension().get()));
+            configureProjectDependencyTasks(prepareRun, getProjectDependencyTasks(projectDependencies, GenerateHplTask.TASK_NAME));
+        });
+
+        project.getTasks().register("server", JavaExec.class, new ServerAction(serverTaskClasspath, projectRoot, prepareServer));
+        project.getTasks().register("hplRun", JavaExec.class, new ServerAction(serverTaskClasspath, projectRoot, prepareRun));
         project.getPlugins().withType(JavaBasePlugin.class, new SezpozJavaAction(project));
         project.getPlugins().withType(GroovyBasePlugin.class, new SezpozGroovyAction(project));
         configureAccessModifier(project);
@@ -220,13 +255,24 @@ public class V2JpiPlugin implements Plugin<Project> {
         var isRootProject = project == project.getRootProject();
         var projectPath = project.getPath();
 
-        project.getTasks().register("testServer", TestServerTask.class, new Action<>() {
+        registerTestTask(project, portAllocationService, gradleExecutable, startParameter, isRootProject, projectPath,
+                "testServer", "Launch Jenkins server and terminate after success or first error", ":server");
+        registerTestTask(project, portAllocationService, gradleExecutable, startParameter, isRootProject, projectPath,
+                "testHplRun", "Launch Jenkins hplRun task and terminate after success or first error", ":hplRun");
+    }
+
+    private static void registerTestTask(@NotNull Project project, @NotNull Provider<PortAllocationService> portAllocationService,
+                                         @NotNull String gradleExecutable, @NotNull StartParameter startParameter,
+                                         boolean isRootProject, @NotNull String projectPath, @NotNull String taskName,
+                                         @NotNull String description, @NotNull String taskSuffix) {
+        project.getTasks().register(taskName, TestServerTask.class, new Action<>() {
             @Override
             public void execute(@NotNull TestServerTask task) {
                 task.setGroup("verification");
-                task.setDescription("Launch Jenkins server and terminate after success or first error");
+                task.setDescription(description);
                 task.getRootDir().set(project.getRootDir().getAbsolutePath());
                 task.getGradleExecutable().set(gradleExecutable);
+                task.getJavaHome().set(System.getProperty("java.home"));
                 task.getInitScripts().set(startParameter.getAllInitScripts().stream()
                         .map(File::getAbsolutePath).toList());
                 task.getIncludedBuilds().set(startParameter.getIncludedBuilds().stream()
@@ -241,7 +287,7 @@ public class V2JpiPlugin implements Plugin<Project> {
                 task.getDryRun().set(startParameter.isDryRun());
                 task.getSystemProperties().set(startParameter.getSystemPropertiesArgs());
                 task.getProjectProperties().set(startParameter.getProjectProperties());
-                task.getServerTaskPath().set(isRootProject ? ":server" : projectPath + ":server");
+                task.getServerTaskPath().set(isRootProject ? taskSuffix : projectPath + taskSuffix);
                 task.getPortAllocationService().set(portAllocationService);
                 task.usesService(portAllocationService);
             }
@@ -317,8 +363,111 @@ public class V2JpiPlugin implements Plugin<Project> {
     }
 
     @NotNull
-    private static TaskProvider<?> createPrepareServerTask(@NotNull Project project, String projectRoot, Configuration defaultRuntime, Configuration runtimeClasspath, TaskProvider<?> jpiTaskProvider) {
-        return project.getTasks().register("prepareServer", Sync.class, new ConfigurePrepareServerAction(jpiTaskProvider, projectRoot, defaultRuntime, runtimeClasspath, project));
+    private static TaskProvider<Sync> createPrepareServerTask(@NotNull Project project, String projectRoot, Configuration defaultRuntime,
+                                                              TaskProvider<?> jpiTaskProvider) {
+        return project.getTasks().register("prepareServer", Sync.class, new ConfigurePrepareServerAction(
+                jpiTaskProvider,
+                projectRoot,
+                defaultRuntime,
+                project.provider(project::getName),
+                project.provider(() -> project.getVersion().toString()),
+                project.getExtensions().getByType(JenkinsPluginExtension.class).getArchiveExtension()
+        ));
+    }
+
+    @NotNull
+    private static TaskProvider<Sync> createPrepareRunTask(@NotNull Project project, String projectRoot, Configuration defaultRuntime,
+                                                           TaskProvider<GenerateHplTask> hplTaskProvider) {
+        return project.getTasks().register("prepareRun", Sync.class, new ConfigurePrepareRunAction(
+                hplTaskProvider,
+                projectRoot,
+                defaultRuntime
+        ));
+    }
+
+    private static void configureProjectDependencyTasks(TaskProvider<Sync> prepareTask, List<TaskProvider<?>> projectDependencyTasks) {
+        prepareTask.configure(sync -> projectDependencyTasks.forEach(sync::from));
+    }
+
+    private static void configureProjectDependencyJpis(TaskProvider<Sync> prepareTask, List<TaskWithRename> projectDependencyJpis) {
+        prepareTask.configure(sync -> projectDependencyJpis.forEach(task ->
+                sync.from(task.getTaskProvider()).rename(task.getRenameTransformer())
+        ));
+    }
+
+    @NotNull
+    private static List<TaskProvider<?>> getProjectDependencyTasks(List<Project> projectDependencies, String taskName) {
+        return projectDependencies.stream()
+                .filter(it -> it.getTasks().getNames().contains(taskName))
+                .sorted(Comparator.comparing(Project::getName))
+                .map(it -> it.getTasks().named(taskName))
+                .collect(Collectors.toList());
+    }
+
+    @NotNull
+    private static List<TaskWithRename> getProjectDependencyJpis(List<Project> projectDependencies, String targetExtension) {
+        return projectDependencies.stream()
+                .filter(it -> it.getTasks().getNames().contains(JPI_TASK))
+                .sorted(Comparator.comparing(Project::getName))
+                .map(it -> new TaskWithRename(
+                        it.getTasks().named(JPI_TASK),
+                        new DropVersionTransformer(
+                                it.getName(),
+                                it.getVersion().toString(),
+                                targetExtension
+                        )
+                ))
+                .collect(Collectors.toList());
+    }
+
+    @NotNull
+    private static List<Project> getProjectDependencies(Configuration runtimeClasspath, Map<String, Project> projectByPath) {
+        Map<String, Project> projectsByPath = new LinkedHashMap<>();
+        collectProjectDependencies(runtimeClasspath, projectByPath, projectsByPath, new LinkedHashSet<>());
+        return List.copyOf(projectsByPath.values());
+    }
+
+    private static void collectProjectDependencies(Configuration configuration, Map<String, Project> projectByPath,
+                                                   Map<String, Project> projectsByPath,
+                                                   Set<String> visitedProjectPaths) {
+        configuration.getAllDependencies().withType(ProjectDependency.class).forEach(projectDependency -> {
+            var dependencyProjectPath = getProjectDependencyPath(projectDependency);
+            var dependencyProject = dependencyProjectPath == null ? null : projectByPath.get(dependencyProjectPath);
+            if (dependencyProject == null || !visitedProjectPaths.add(dependencyProject.getPath())) {
+                return;
+            }
+
+            projectsByPath.put(dependencyProject.getPath(), dependencyProject);
+
+            var dependencyRuntimeClasspath = dependencyProject.getConfigurations().findByName("runtimeClasspath");
+            if (dependencyRuntimeClasspath != null) {
+                collectProjectDependencies(dependencyRuntimeClasspath, projectByPath, projectsByPath, visitedProjectPaths);
+            }
+        });
+    }
+
+    private static String getProjectDependencyPath(ProjectDependency projectDependency) {
+        try {
+            var getPath = projectDependency.getClass().getMethod("getPath");
+            var projectPath = getPath.invoke(projectDependency);
+            if (projectPath instanceof String path) {
+                return path;
+            }
+        } catch (ReflectiveOperationException ignored) {
+            // Fall through to older Gradle APIs.
+        }
+
+        try {
+            var getDependencyProject = projectDependency.getClass().getMethod("getDependencyProject");
+            var dependencyProject = getDependencyProject.invoke(projectDependency);
+            if (dependencyProject instanceof Project project) {
+                return project.getPath();
+            }
+        } catch (ReflectiveOperationException ignored) {
+            return null;
+        }
+
+        return null;
     }
 
     @NotNull

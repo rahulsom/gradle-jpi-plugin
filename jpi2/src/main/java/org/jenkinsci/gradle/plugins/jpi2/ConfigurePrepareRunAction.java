@@ -2,7 +2,6 @@ package org.jenkinsci.gradle.plugins.jpi2;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.TaskProvider;
@@ -11,39 +10,23 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Comparator;
 
 /**
- * Action to configure the prepareServer task.
+ * Action to configure the prepareRun task.
  */
-class ConfigurePrepareServerAction implements Action<Sync> {
-    private final TaskProvider<?> jpiTaskProvider;
+class ConfigurePrepareRunAction implements Action<Sync> {
+    private final TaskProvider<GenerateHplTask> hplTaskProvider;
     private final String projectRoot;
     private final Configuration defaultRuntime;
-    private final Provider<String> projectName;
-    private final Provider<String> projectVersion;
-    private final Provider<String> targetExtension;
 
-    public ConfigurePrepareServerAction(TaskProvider<?> jpiTaskProvider, String projectRoot, Configuration defaultRuntime,
-                                       Provider<String> projectName, Provider<String> projectVersion,
-                                       Provider<String> targetExtension) {
-        this.jpiTaskProvider = jpiTaskProvider;
+    ConfigurePrepareRunAction(TaskProvider<GenerateHplTask> hplTaskProvider, String projectRoot, Configuration defaultRuntime) {
+        this.hplTaskProvider = hplTaskProvider;
         this.projectRoot = projectRoot;
         this.defaultRuntime = defaultRuntime;
-        this.projectName = projectName;
-        this.projectVersion = projectVersion;
-        this.targetExtension = targetExtension;
     }
 
     @Override
     public void execute(@NotNull Sync sync) {
-        var jpi = jpiTaskProvider.get();
-
         sync.into(projectRoot + "/work/plugins");
-
-        sync.from(jpi)
-                .rename(new DropVersionTransformer(
-                        projectName.get(),
-                        projectVersion.get(),
-                        targetExtension.get()
-                ));
+        sync.from(hplTaskProvider);
 
         defaultRuntime.getResolvedConfiguration().getResolvedArtifacts()
                 .stream()
@@ -54,7 +37,7 @@ class ConfigurePrepareServerAction implements Action<Sync> {
                                 .rename(new DropVersionTransformer(
                                         artifact.getModuleVersion().getId().getName(),
                                         artifact.getModuleVersion().getId().getVersion(),
-                                        targetExtension.get()
+                                        artifact.getExtension()
                                 ))
                 );
     }
