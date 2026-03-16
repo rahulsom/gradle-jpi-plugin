@@ -1,6 +1,5 @@
 plugins {
     `java-library`
-    `maven-publish`
     signing
     alias(libs.plugins.plugin.publish)
     `java-gradle-plugin`
@@ -76,17 +75,6 @@ publishing {
             }
         }
     }
-    repositories {
-        maven {
-            val path = if (version.toString().endsWith("SNAPSHOT")) "snapshots" else "releases"
-            name = "JenkinsCommunity"
-            url = uri("https://repo.jenkins-ci.org/${path}")
-            credentials {
-                username = project.stringProp("jenkins.username")
-                password = project.stringProp("jenkins.password")
-            }
-        }
-    }
 }
 
 signing {
@@ -133,15 +121,11 @@ tasks.addRule("Pattern: testGradle<ID>") {
 }
 
 val checkPhase = tasks.named("check")
-val publishToJenkins = tasks.named("publishPluginMavenPublicationToJenkinsCommunityRepository")
-publishToJenkins.configure {
-    dependsOn(checkPhase)
-}
 val publishToGradle = tasks.named("publishPlugins")
 publishToGradle.configure {
     dependsOn(checkPhase)
 }
 
 rootProject.tasks.named("postRelease").configure {
-    dependsOn(publishToJenkins, publishToGradle)
+    dependsOn(publishToGradle)
 }
