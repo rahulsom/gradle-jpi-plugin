@@ -16,7 +16,12 @@ subprojects {
     repositories {
         maven {
             url = uri("https://repo.jenkins-ci.org/public")
+            mavenContent {
+               excludeGroup("commons-io")
+               excludeGroup("org.apache.commons")
+            }
         }
+        mavenCentral()
         gradlePluginPortal()
     }
 
