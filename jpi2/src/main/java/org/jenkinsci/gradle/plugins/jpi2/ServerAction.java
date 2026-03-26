@@ -3,11 +3,13 @@ package org.jenkinsci.gradle.plugins.jpi2;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.TaskProvider;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -19,11 +21,13 @@ import java.util.List;
 class ServerAction implements Action<JavaExec> {
     private final Configuration serverTaskClasspath;
     private final String projectRoot;
+    private final Provider<String> workDir;
     private final TaskProvider<?> prepareServer;
 
-    public ServerAction(Configuration serverTaskClasspath, String projectRoot, TaskProvider<?> prepareServer) {
+    public ServerAction(Configuration serverTaskClasspath, String projectRoot, Provider<String> workDir, TaskProvider<?> prepareServer) {
         this.serverTaskClasspath = serverTaskClasspath;
         this.projectRoot = projectRoot;
+        this.workDir = workDir;
         this.prepareServer = prepareServer;
     }
 
@@ -33,14 +37,20 @@ class ServerAction implements Action<JavaExec> {
         spec.setStandardOutput(System.out);
         spec.setErrorOutput(System.err);
         spec.getMainClass().set("executable.Main");
-        spec.args(List.of(
-                "--webroot=" + projectRoot + "/build/jenkins/war",
-                "--pluginroot=" + projectRoot + "/build/jenkins/plugins",
-                "--extractedFilesFolder=" + projectRoot + "/build/jenkins/extracted",
-                "--commonLibFolder=" + projectRoot + "/work/lib",
-                "--httpPort=" + System.getProperty("server.port", "8080")
-        ));
-        spec.environment("JENKINS_HOME", projectRoot + "/work");
+        spec.doFirst(task -> {
+            var resolvedWorkDir = workDir.get();
+            var args = new ArrayList<String>();
+            args.addAll(List.of(
+                    "--webroot=" + projectRoot + "/build/jenkins/war",
+                    "--pluginroot=" + projectRoot + "/build/jenkins/plugins",
+                    "--extractedFilesFolder=" + projectRoot + "/build/jenkins/extracted",
+                    "--commonLibFolder=" + resolvedWorkDir + "/lib",
+                    "--httpPort=" + System.getProperty("server.port", "8080")
+            ));
+            args.addAll(spec.getArgs());
+            spec.setArgs(args);
+            spec.environment("JENKINS_HOME", resolvedWorkDir);
+        });
 
         spec.dependsOn(prepareServer);
 
