@@ -96,4 +96,22 @@ class OssPluginDependencyIntegrationTest extends V2IntegrationTestBase {
                         "workflow-step-api.jpi"
                 );
     }
+
+    @Test
+    void gradleBuildWithOssPluginDependencyShouldPrepareRunWithJpiPlugins() throws IOException {
+        // given
+        var ith = new IntegrationTestHelper(tempDir, "8.14");
+        configureBuildWithOssPluginDependency(ith);
+
+        // when
+        ith.gradleRunner().withArguments("prepareRun").build();
+
+        // then
+        var pluginsDir = ith.inProjectDir("work/plugins");
+        assertThat(pluginsDir).exists();
+
+        var files = Arrays.stream(Objects.requireNonNull(pluginsDir.list())).sorted().toList();
+        assertThat(files).contains("git.jpi", "test-plugin.hpl", "workflow-step-api.jpi");
+        assertThat(files).noneMatch(it -> it.endsWith(".hpi"));
+    }
 }
