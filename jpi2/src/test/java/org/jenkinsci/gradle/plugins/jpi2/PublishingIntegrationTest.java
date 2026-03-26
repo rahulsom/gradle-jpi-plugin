@@ -92,6 +92,41 @@ class PublishingIntegrationTest extends V2IntegrationTestBase {
     }
 
     @Test
+    void allowsConfiguringGeneratedMavenPublicationDirectly() throws IOException, XmlPullParserException {
+        // given
+        var ith = new IntegrationTestHelper(tempDir, "8.14");
+        initBuild(ith);
+        Files.write((getBasePluginConfig() + /* language=kotlin */ """
+                publishing {
+                    publications.withType<MavenPublication>().configureEach {
+                        pom {
+                            scm {
+                                connection.set("scm:git:https://github.com/jenkinsci/example-plugin.git")
+                                developerConnection.set("scm:git:git@github.com:jenkinsci/example-plugin.git")
+                                tag.set("HEAD")
+                                url.set("https://github.com/jenkinsci/example-plugin")
+                            }
+                        }
+                    }
+                }
+                """).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
+
+        // when
+        ith.gradleRunner().withArguments("publish").build();
+
+        // then
+        var pom = ith.inProjectDir("build/repo/com/example/test-plugin/1.0.0/test-plugin-1.0.0.pom");
+        var model = new MavenXpp3Reader().read(new FileReader(pom));
+
+        assertThat(model.getScm()).isNotNull();
+        assertThat(model.getScm().getConnection()).isEqualTo("scm:git:https://github.com/jenkinsci/example-plugin.git");
+        assertThat(model.getScm().getDeveloperConnection()).isEqualTo("scm:git:git@github.com:jenkinsci/example-plugin.git");
+        assertThat(model.getScm().getTag()).isEqualTo("HEAD");
+        assertThat(model.getScm().getUrl()).isEqualTo("https://github.com/jenkinsci/example-plugin");
+        assertThat(model.getPackaging()).isEqualTo("jpi");
+    }
+
+    @Test
     void consumesJpisWithJars() throws IOException {
         // given
         var ith = new IntegrationTestHelper(tempDir, "8.14");
