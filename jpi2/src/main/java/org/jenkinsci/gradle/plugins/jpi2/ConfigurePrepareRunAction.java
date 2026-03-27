@@ -14,6 +14,8 @@ import java.util.Comparator;
  * Action to configure the prepareRun task.
  */
 class ConfigurePrepareRunAction implements Action<Sync> {
+    private static final String JPI_EXTENSION = "jpi";
+
     private final TaskProvider<GenerateHplTask> hplTaskProvider;
     private final Provider<String> workDir;
     private final Configuration defaultRuntime;
@@ -40,7 +42,7 @@ class ConfigurePrepareRunAction implements Action<Sync> {
                                 .rename(new DropVersionTransformer(
                                         artifact.getModuleVersion().getId().getName(),
                                         artifact.getModuleVersion().getId().getVersion(),
-                                        artifact.getExtension()
+                                        JPI_EXTENSION
                                 ))
                 );
     }
