@@ -237,10 +237,7 @@ class TestHarnessIntegrationTest extends V2IntegrationTestBase {
                 }
                 repositories {
                     mavenCentral()
-                    maven {
-                        name = "jenkins-releases"
-                        url = uri("https://repo.jenkins-ci.org/releases/")
-                    }
+                    jenkinsPublic()
                 }
                 tasks.named("server") {
                     args("--httpPort=%d")

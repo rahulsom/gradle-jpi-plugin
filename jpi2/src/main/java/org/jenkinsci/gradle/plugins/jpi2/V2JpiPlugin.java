@@ -69,6 +69,7 @@ public class V2JpiPlugin implements Plugin<Project> {
     public void apply(@NotNull Project project) {
         project.getPlugins().apply(JavaLibraryPlugin.class);
         project.getPlugins().apply(MavenPublishPlugin.class);
+        RepositoryShortcuts.registerRepositoryShortcuts(project.getRepositories());
 
         var extension = project.getExtensions().create("jenkinsPlugin", JenkinsPluginExtension.class, project);
         ((ExtensionAware) extension).getExtensions().create("gitVersion", GitVersionExtension.class,

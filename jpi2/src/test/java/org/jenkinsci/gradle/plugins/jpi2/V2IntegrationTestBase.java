@@ -62,10 +62,7 @@ abstract class V2IntegrationTestBase {
                 }
                 repositories {
                     mavenCentral()
-                    maven {
-                        name = "jenkins-releases"
-                        url = uri("https://repo.jenkins-ci.org/releases/")
-                    }
+                    jenkinsPublic()
                 }
                 tasks.named<JavaExec>("server") {
                     args("--httpPort=%d")
@@ -90,10 +87,7 @@ abstract class V2IntegrationTestBase {
                 apply(plugin = "org.jenkins-ci.jpi2")
                 repositories {
                     mavenCentral()
-                    maven {
-                        name = "jenkins-releases"
-                        url = uri("https://repo.jenkins-ci.org/releases/")
-                    }
+                    jenkinsPublic()
                 }
                 tasks.named<JavaExec>("server") {
                     args("--httpPort=%d")
@@ -246,10 +240,7 @@ abstract class V2IntegrationTestBase {
                 }
                 repositories {
                     mavenCentral()
-                    maven {
-                        name = "jenkins-releases"
-                        url = uri("https://repo.jenkins-ci.org/releases/")
-                    }
+                    jenkinsPublic()
                 }
                 application {
                     mainClass.set("com.example.Main")

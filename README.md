@@ -43,11 +43,12 @@ description = "A Jenkins plugin built with Gradle"
 
 repositories {
     mavenCentral()
-    maven {
-        name = "jenkins-releases"
-        url = uri("https://repo.jenkins-ci.org/releases/")
-    }
+    jenkinsPublic()
 }
+
+`jenkinsPublic()` adds the Jenkins public repository (`https://repo.jenkins-ci.org/public/`).
+`jenkinsIncrementals()` adds the Jenkins incrementals repository (`https://repo.jenkins-ci.org/incrementals/`).
+`jenkinsSnapshots()` adds the Jenkins snapshots repository (`https://repo.jenkins-ci.org/snapshots/`).
 
 jenkinsPlugin {
     jenkinsVersion.set("2.492.3")
