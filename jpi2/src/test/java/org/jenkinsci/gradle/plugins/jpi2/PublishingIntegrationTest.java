@@ -76,7 +76,7 @@ class PublishingIntegrationTest extends V2IntegrationTestBase {
                 .extracting(Repository::getId, Repository::getUrl)
                 .containsExactlyInAnyOrder(
                         new Tuple("MavenRepo", "https://repo.maven.apache.org/maven2/"),
-                        new Tuple("jenkins-releases", "https://repo.jenkins-ci.org/releases/")
+                        new Tuple("jenkins-public", "https://repo.jenkins-ci.org/public/")
                 );
         var explodedWar = ith.inProjectDir("build/jpi");
 
@@ -124,6 +124,51 @@ class PublishingIntegrationTest extends V2IntegrationTestBase {
         assertThat(model.getScm().getTag()).isEqualTo("HEAD");
         assertThat(model.getScm().getUrl()).isEqualTo("https://github.com/jenkinsci/example-plugin");
         assertThat(model.getPackaging()).isEqualTo("jpi");
+    }
+
+    @Test
+    void publishesGroovyBuildWithRepositoryShorthands() throws IOException, XmlPullParserException {
+        // given
+        var ith = new IntegrationTestHelper(tempDir, "8.14");
+        initBuild(ith);
+        Files.write(/* language=groovy */ """
+                plugins {
+                    id "org.jenkins-ci.jpi2"
+                }
+                repositories {
+                    mavenCentral()
+                    jenkinsPublic()
+                }
+                group = "com.example"
+                version = "1.0.0"
+                publishing {
+                    repositories {
+                        maven {
+                            name = "local"
+                            url = uri("${rootDir}/build/repo")
+                        }
+                    }
+                }
+                """.getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle"));
+
+        // when
+        var gradleRunner = ith.gradleRunner();
+        gradleRunner.withArguments("publish").build();
+
+        // then
+        var pom = ith.inProjectDir("build/repo/com/example/test-plugin/1.0.0/test-plugin-1.0.0.pom");
+        assertThat(pom).exists();
+
+        MavenXpp3Reader reader = new MavenXpp3Reader();
+        Model model = reader.read(new FileReader(pom));
+
+        var repositories = model.getRepositories();
+        assertThat(repositories)
+                .extracting(Repository::getId, Repository::getUrl)
+                .containsExactlyInAnyOrder(
+                        new Tuple("MavenRepo", "https://repo.maven.apache.org/maven2/"),
+                        new Tuple("jenkins-public", "https://repo.jenkins-ci.org/public/")
+                );
     }
 
     @Test

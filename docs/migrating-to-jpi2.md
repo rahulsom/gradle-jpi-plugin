@@ -33,12 +33,13 @@ The legacy plugin could configure repositories for you.
 ```kotlin
 repositories {
     mavenCentral()
-    maven {
-        name = "jenkins-releases"
-        url = uri("https://repo.jenkins-ci.org/releases/")
-    }
+    jenkinsPublic()
 }
 ```
+
+`jenkinsPublic()` is the shorthand for the Jenkins public repository.
+`jenkinsIncrementals()` is the shorthand for the Jenkins incrementals repository.
+`jenkinsSnapshots()` is the shorthand for the Jenkins snapshots repository.
 
 ## 3. Update the `jenkinsPlugin` block
 
