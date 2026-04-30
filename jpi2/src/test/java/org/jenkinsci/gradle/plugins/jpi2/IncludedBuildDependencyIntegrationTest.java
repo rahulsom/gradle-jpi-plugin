@@ -1,6 +1,6 @@
 package org.jenkinsci.gradle.plugins.jpi2;
 
-import com.google.common.io.Files;
+import java.nio.file.Files;
 import org.jenkinsci.gradle.plugins.jpi.IntegrationTestHelper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
@@ -36,47 +36,47 @@ class IncludedBuildDependencyIntegrationTest extends V2IntegrationTestBase {
     }
 
     private static void configureBuildWithIncludedBuildLibraryDependency(IntegrationTestHelper ith) throws IOException {
-        Files.write(/* language=kotlin */ """
+        Files.write(ith.inProjectDir("settings.gradle.kts").toPath(), /* language=kotlin */ """
                 rootProject.name = "test-plugin"
                 includeBuild("included-build")
-                """.getBytes(StandardCharsets.UTF_8), ith.inProjectDir("settings.gradle.kts"));
+                """.getBytes(StandardCharsets.UTF_8));
 
-        Files.write((getBasePluginConfig() + /* language=kotlin */ """
+        Files.write(ith.inProjectDir("build.gradle.kts").toPath(), (getBasePluginConfig() + /* language=kotlin */ """
                 dependencies {
                     implementation("com.example:lib:1.0.0")
                 }
-                """).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
+                """).getBytes(StandardCharsets.UTF_8));
 
         ith.mkDirInProjectDir("included-build/lib/src/main/java/com/example/lib");
 
-        Files.write(/* language=kotlin */ """
+        Files.write(ith.inProjectDir("included-build/settings.gradle.kts").toPath(), /* language=kotlin */ """
                 rootProject.name = "included-build"
                 include("lib")
-                """.getBytes(StandardCharsets.UTF_8), ith.inProjectDir("included-build/settings.gradle.kts"));
+                """.getBytes(StandardCharsets.UTF_8));
 
-        Files.write(/* language=kotlin */ """
+        Files.write(ith.inProjectDir("included-build/build.gradle.kts").toPath(), /* language=kotlin */ """
                 allprojects {
                     group = "com.example"
                     version = "1.0.0"
                 }
-                """.getBytes(StandardCharsets.UTF_8), ith.inProjectDir("included-build/build.gradle.kts"));
+                """.getBytes(StandardCharsets.UTF_8));
 
-        Files.write(/* language=kotlin */ """
+        Files.write(ith.inProjectDir("included-build/lib/build.gradle.kts").toPath(), /* language=kotlin */ """
                 plugins {
                     id("java-library")
                 }
                 repositories {
                     mavenCentral()
                 }
-                """.getBytes(StandardCharsets.UTF_8), ith.inProjectDir("included-build/lib/build.gradle.kts"));
+                """.getBytes(StandardCharsets.UTF_8));
 
-        Files.write(/* language=java */ """
+        Files.write(ith.inProjectDir("included-build/lib/src/main/java/com/example/lib/IncludedBuildLibrary.java").toPath(), /* language=java */ """
                 package com.example.lib;
                 public class IncludedBuildLibrary {
                     public String hello() {
                         return "hello";
                     }
                 }
-                """.getBytes(StandardCharsets.UTF_8), ith.inProjectDir("included-build/lib/src/main/java/com/example/lib/IncludedBuildLibrary.java"));
+                """.getBytes(StandardCharsets.UTF_8));
     }
 }

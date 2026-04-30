@@ -1,6 +1,6 @@
 package org.jenkinsci.gradle.plugins.jpi2;
 
-import com.google.common.io.Files;
+import java.nio.file.Files;
 import org.jenkinsci.gradle.plugins.jpi.IntegrationTestHelper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
@@ -19,16 +19,16 @@ class AccessModifierIntegrationTest extends V2IntegrationTestBase {
         // given
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
-        Files.write(getBasePluginConfig().getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
+        Files.write(ith.inProjectDir("build.gradle.kts").toPath(), getBasePluginConfig().getBytes(StandardCharsets.UTF_8));
         ith.mkDirInProjectDir("src/main/java/com/example/plugin");
-        Files.write((/* language=java */ """
+        Files.write(ith.inProjectDir("src/main/java/com/example/plugin/Example.java").toPath(), (/* language=java */ """
                 package com.example.plugin;
                 public class Example {
                     public String value() {
                         return "ok";
                     }
                 }
-                """).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("src/main/java/com/example/plugin/Example.java"));
+                """).getBytes(StandardCharsets.UTF_8));
 
         // when
         var result = ith.gradleRunner().withArguments("check").build();
@@ -43,14 +43,14 @@ class AccessModifierIntegrationTest extends V2IntegrationTestBase {
         // given
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
-        Files.write((getBasePluginConfig() + /* language=kotlin */ """
+        Files.write(ith.inProjectDir("build.gradle.kts").toPath(), (getBasePluginConfig() + /* language=kotlin */ """
                 tasks.named<org.jenkinsci.gradle.plugins.jpi2.accmod.CheckAccessModifierTask>("checkAccessModifier") {
                     ignoreFailures.set(false)
                 }
-                """).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
+                """).getBytes(StandardCharsets.UTF_8));
         ith.mkDirInProjectDir("src/main/java/org/example/restricted");
         ith.mkDirInProjectDir("src/main/java/org/example/blessed");
-        Files.write((/* language=java */ """
+        Files.write(ith.inProjectDir("src/main/java/org/example/restricted/OhNo.java").toPath(), (/* language=java */ """
                 package org.example.restricted;
                 import org.kohsuke.accmod.Restricted;
                 import org.kohsuke.accmod.restrictions.DoNotUse;
@@ -60,8 +60,8 @@ class AccessModifierIntegrationTest extends V2IntegrationTestBase {
                         return a + b;
                     }
                 }
-                """).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("src/main/java/org/example/restricted/OhNo.java"));
-        Files.write((/* language=java */ """
+                """).getBytes(StandardCharsets.UTF_8));
+        Files.write(ith.inProjectDir("src/main/java/org/example/blessed/Consumer.java").toPath(), (/* language=java */ """
                 package org.example.blessed;
                 import org.example.restricted.OhNo;
                 public class Consumer {
@@ -69,7 +69,7 @@ class AccessModifierIntegrationTest extends V2IntegrationTestBase {
                         return new OhNo().add(1, 2);
                     }
                 }
-                """).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("src/main/java/org/example/blessed/Consumer.java"));
+                """).getBytes(StandardCharsets.UTF_8));
 
         // when
         var result = ith.gradleRunner().withArguments("checkAccessModifier").buildAndFail();

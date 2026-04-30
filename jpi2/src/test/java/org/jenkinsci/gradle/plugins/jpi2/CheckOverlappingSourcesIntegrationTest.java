@@ -1,6 +1,6 @@
 package org.jenkinsci.gradle.plugins.jpi2;
 
-import com.google.common.io.Files;
+import java.nio.file.Files;
 import org.gradle.testkit.runner.TaskOutcome;
 import org.jenkinsci.gradle.plugins.jpi.IntegrationTestHelper;
 import org.junit.jupiter.api.Test;
@@ -32,24 +32,24 @@ class CheckOverlappingSourcesIntegrationTest extends V2IntegrationTestBase {
     void checkOverlappingSourcesFailsForMultiplePluginImplementations() throws IOException {
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
-        Files.write((getBasePluginConfig() + /* language=kotlin */ """
+        Files.write(ith.inProjectDir("build.gradle.kts").toPath(), (getBasePluginConfig() + /* language=kotlin */ """
                 apply(plugin = "groovy")
                 dependencies {
                     implementation(localGroovy())
                 }
-                """).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
+                """).getBytes(StandardCharsets.UTF_8));
         ith.mkDirInProjectDir("src/main/java/com/example");
         ith.mkDirInProjectDir("src/main/groovy/com/example");
-        Files.write((/* language=java */ """
+        Files.write(ith.inProjectDir("src/main/java/com/example/JavaPlugin.java").toPath(), (/* language=java */ """
                 package com.example;
                 public class JavaPlugin extends hudson.Plugin {
                 }
-                """).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("src/main/java/com/example/JavaPlugin.java"));
-        Files.write((/* language=groovy */ """
+                """).getBytes(StandardCharsets.UTF_8));
+        Files.write(ith.inProjectDir("src/main/groovy/com/example/GroovyPlugin.groovy").toPath(), (/* language=groovy */ """
                 package com.example
                 class GroovyPlugin extends hudson.Plugin {
                 }
-                """).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("src/main/groovy/com/example/GroovyPlugin.groovy"));
+                """).getBytes(StandardCharsets.UTF_8));
 
         var result = ith.gradleRunner().withArguments("checkOverlappingSources").buildAndFail();
 
@@ -62,26 +62,26 @@ class CheckOverlappingSourcesIntegrationTest extends V2IntegrationTestBase {
     void checkOverlappingSourcesFailsForOverlappingSezpozFiles() throws IOException {
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
-        Files.write((getBasePluginConfig() + /* language=kotlin */ """
+        Files.write(ith.inProjectDir("build.gradle.kts").toPath(), (getBasePluginConfig() + /* language=kotlin */ """
                 apply(plugin = "groovy")
                 dependencies {
                     implementation(localGroovy())
                 }
-                """).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
+                """).getBytes(StandardCharsets.UTF_8));
         ith.mkDirInProjectDir("src/main/java/com/example");
         ith.mkDirInProjectDir("src/main/groovy/com/example");
-        Files.write((/* language=java */ """
+        Files.write(ith.inProjectDir("src/main/java/com/example/JavaExtension.java").toPath(), (/* language=java */ """
                 package com.example;
                 @hudson.Extension
                 public class JavaExtension {
                 }
-                """).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("src/main/java/com/example/JavaExtension.java"));
-        Files.write((/* language=groovy */ """
+                """).getBytes(StandardCharsets.UTF_8));
+        Files.write(ith.inProjectDir("src/main/groovy/com/example/GroovyExtension.groovy").toPath(), (/* language=groovy */ """
                 package com.example
                 @hudson.Extension
                 class GroovyExtension {
                 }
-                """).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("src/main/groovy/com/example/GroovyExtension.groovy"));
+                """).getBytes(StandardCharsets.UTF_8));
 
         var result = ith.gradleRunner().withArguments("checkOverlappingSources").buildAndFail();
 
