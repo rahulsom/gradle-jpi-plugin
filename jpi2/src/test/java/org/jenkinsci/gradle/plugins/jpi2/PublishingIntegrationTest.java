@@ -1,6 +1,6 @@
 package org.jenkinsci.gradle.plugins.jpi2;
 
-import com.google.common.io.Files;
+import java.nio.file.Files;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Repository;
@@ -27,12 +27,12 @@ class PublishingIntegrationTest extends V2IntegrationTestBase {
         // given
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
-        Files.write((getBasePluginConfig() + /* language=kotlin */ """
+        Files.write(ith.inProjectDir("build.gradle.kts").toPath(), (getBasePluginConfig() + /* language=kotlin */ """
                 dependencies {
                     api("org.jenkins-ci.plugins:jackson2-api:2.18.3-402.v74c4eb_f122b_2")
                     implementation("com.github.rahulsom:nothing-java:0.2.0")
                 }
-                """).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
+                """).getBytes(StandardCharsets.UTF_8));
 
         // when
         var gradleRunner = ith.gradleRunner();
@@ -96,7 +96,7 @@ class PublishingIntegrationTest extends V2IntegrationTestBase {
         // given
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
-        Files.write((getBasePluginConfig() + /* language=kotlin */ """
+        Files.write(ith.inProjectDir("build.gradle.kts").toPath(), (getBasePluginConfig() + /* language=kotlin */ """
                 publishing {
                     publications.withType<MavenPublication>().configureEach {
                         pom {
@@ -109,7 +109,7 @@ class PublishingIntegrationTest extends V2IntegrationTestBase {
                         }
                     }
                 }
-                """).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
+                """).getBytes(StandardCharsets.UTF_8));
 
         // when
         ith.gradleRunner().withArguments("publish").build();
@@ -131,7 +131,7 @@ class PublishingIntegrationTest extends V2IntegrationTestBase {
         // given
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
-        Files.write(/* language=groovy */ """
+        Files.write(ith.inProjectDir("build.gradle").toPath(), /* language=groovy */ """
                 plugins {
                     id "org.jenkins-ci.jpi2"
                 }
@@ -149,7 +149,7 @@ class PublishingIntegrationTest extends V2IntegrationTestBase {
                         }
                     }
                 }
-                """.getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle"));
+                """.getBytes(StandardCharsets.UTF_8));
 
         // when
         var gradleRunner = ith.gradleRunner();
@@ -184,13 +184,13 @@ class PublishingIntegrationTest extends V2IntegrationTestBase {
         // given
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
-        com.google.common.io.Files.write((PUBLISH_TO_JENKINS_IMPORT + getBasePluginConfig() + /* language=kotlin */ """
+        Files.write(ith.inProjectDir("build.gradle.kts").toPath(), (PUBLISH_TO_JENKINS_IMPORT + getBasePluginConfig() + /* language=kotlin */ """
                 publishing {
                     repositories {
                         publishToJenkins()
                     }
                 }
-                """).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
+                """).getBytes(StandardCharsets.UTF_8));
 
         // when
         var result = ith.gradleRunner().withArguments(
@@ -205,7 +205,7 @@ class PublishingIntegrationTest extends V2IntegrationTestBase {
         // given
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
-        com.google.common.io.Files.write((PUBLISH_TO_JENKINS_IMPORT + String.format(/* language=kotlin */ """
+        Files.write(ith.inProjectDir("build.gradle.kts").toPath(), (PUBLISH_TO_JENKINS_IMPORT + String.format(/* language=kotlin */ """
                 plugins {
                     id("org.jenkins-ci.jpi2")
                 }
@@ -231,7 +231,7 @@ class PublishingIntegrationTest extends V2IntegrationTestBase {
                     }
                 }
                 """, RandomPortProvider.findFreePort(), RandomPortProvider.findFreePort()))
-                .getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
+                .getBytes(StandardCharsets.UTF_8));
 
         // when
         var result = ith.gradleRunner().withArguments(
@@ -247,7 +247,7 @@ class PublishingIntegrationTest extends V2IntegrationTestBase {
         // given
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
-        com.google.common.io.Files.write((PUBLISH_TO_JENKINS_IMPORT + String.format(/* language=kotlin */ """
+        Files.write(ith.inProjectDir("build.gradle.kts").toPath(), (PUBLISH_TO_JENKINS_IMPORT + String.format(/* language=kotlin */ """
                 plugins {
                     id("org.jenkins-ci.jpi2")
                 }
@@ -273,7 +273,7 @@ class PublishingIntegrationTest extends V2IntegrationTestBase {
                     }
                 }
                 """, RandomPortProvider.findFreePort(), RandomPortProvider.findFreePort()))
-                .getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
+                .getBytes(StandardCharsets.UTF_8));
 
         // when
         var result = ith.gradleRunner().withArguments(
@@ -289,7 +289,7 @@ class PublishingIntegrationTest extends V2IntegrationTestBase {
         // given
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
-        com.google.common.io.Files.write(/* language=groovy */ """
+        Files.write(ith.inProjectDir("build.gradle").toPath(), /* language=groovy */ """
                 plugins {
                     id "org.jenkins-ci.jpi2"
                 }
@@ -308,7 +308,7 @@ class PublishingIntegrationTest extends V2IntegrationTestBase {
                         }
                     }
                 }
-                """.getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle"));
+                """.getBytes(StandardCharsets.UTF_8));
 
         // when
         var result = ith.gradleRunner().withArguments(
@@ -323,14 +323,14 @@ class PublishingIntegrationTest extends V2IntegrationTestBase {
         // given
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
-        Files.write((getBasePluginConfig() + /* language=kotlin */ """
+        Files.write(ith.inProjectDir("build.gradle.kts").toPath(), (getBasePluginConfig() + /* language=kotlin */ """
                 dependencies {
                     implementation("org.jenkins-ci.plugins:jackson2-api:2.18.3-402.v74c4eb_f122b_2")
                 }
-                """).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
+                """).getBytes(StandardCharsets.UTF_8));
 
         ith.mkDirInProjectDir("src/main/java/com/example/plugin");
-        Files.write(/* language=java */ """
+        Files.write(ith.inProjectDir("src/main/java/com/example/plugin/Plugin.java").toPath(), /* language=java */ """
                 package com.example.plugin;
                 import com.fasterxml.jackson.databind.ObjectMapper;
                 public class Plugin {
@@ -338,7 +338,7 @@ class PublishingIntegrationTest extends V2IntegrationTestBase {
                         var o = new ObjectMapper();
                     }
                 }
-                """.getBytes(StandardCharsets.UTF_8), ith.inProjectDir("src/main/java/com/example/plugin/Plugin.java"));
+                """.getBytes(StandardCharsets.UTF_8));
 
         // when
         var gradleRunner = ith.gradleRunner();

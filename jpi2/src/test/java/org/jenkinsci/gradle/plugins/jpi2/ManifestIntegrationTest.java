@@ -1,6 +1,6 @@
 package org.jenkinsci.gradle.plugins.jpi2;
 
-import com.google.common.io.Files;
+import java.nio.file.Files;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
@@ -28,7 +28,7 @@ class ManifestIntegrationTest extends V2IntegrationTestBase {
     void manifestContainsVersionWhenUsingForce() throws IOException {
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
-        Files.write((getBasePluginConfig() + /* language=kotlin */ """
+        Files.write(ith.inProjectDir("build.gradle.kts").toPath(), (getBasePluginConfig() + /* language=kotlin */ """
                 configurations.configureEach {
                     resolutionStrategy {
                         force("org.jenkins-ci.plugins:git:5.7.0")
@@ -37,7 +37,7 @@ class ManifestIntegrationTest extends V2IntegrationTestBase {
                 dependencies {
                     implementation("org.jenkins-ci.plugins:git")
                 }
-                """).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
+                """).getBytes(StandardCharsets.UTF_8));
 
         GradleRunner gradleRunner = ith.gradleRunner();
 
@@ -54,7 +54,7 @@ class ManifestIntegrationTest extends V2IntegrationTestBase {
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
         ith.mkDirInProjectDir("src-repo/com/example/bom/bom/1.0.0");
-        Files.write(/* language=xml */ """
+        Files.write(ith.inProjectDir("src-repo/com/example/bom/bom/1.0.0/bom-1.0.0.pom").toPath(), /* language=xml */ """
                 <project xmlns="http://maven.apache.org/POM/4.0.0"
                         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -73,8 +73,8 @@ class ManifestIntegrationTest extends V2IntegrationTestBase {
                         </dependencies>
                     </dependencyManagement>
                 </project>
-                """.getBytes(StandardCharsets.UTF_8), ith.inProjectDir("src-repo/com/example/bom/bom/1.0.0/bom-1.0.0.pom"));
-        Files.write((getBasePluginConfig() + /* language=kotlin */ """
+                """.getBytes(StandardCharsets.UTF_8));
+        Files.write(ith.inProjectDir("build.gradle.kts").toPath(), (getBasePluginConfig() + /* language=kotlin */ """
                 repositories {
                     maven {
                         url = uri("${rootDir}/src-repo")
@@ -84,7 +84,7 @@ class ManifestIntegrationTest extends V2IntegrationTestBase {
                     implementation(platform("com.example.bom:bom:1.0.0"))
                     api("org.jenkins-ci.plugins:git")
                 }
-                """).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
+                """).getBytes(StandardCharsets.UTF_8));
 
         GradleRunner gradleRunner = ith.gradleRunner();
 
@@ -118,7 +118,7 @@ class ManifestIntegrationTest extends V2IntegrationTestBase {
     void supportDynamicLoadingDefaultsToTrueWhenNoExtensionsExist() throws IOException {
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
-        Files.write(getBasePluginConfig().getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
+        Files.write(ith.inProjectDir("build.gradle.kts").toPath(), getBasePluginConfig().getBytes(StandardCharsets.UTF_8));
 
         ith.gradleRunner().withArguments("build").build();
 
@@ -129,7 +129,7 @@ class ManifestIntegrationTest extends V2IntegrationTestBase {
     void supportDynamicLoadingIsTrueWhenAllExtensionsAreYes() throws IOException {
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
-        Files.write(getBasePluginConfig().getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
+        Files.write(ith.inProjectDir("build.gradle.kts").toPath(), getBasePluginConfig().getBytes(StandardCharsets.UTF_8));
         writeJavaSource(ith, "com/example/plugin/AlwaysReloadable.java", """
                 package com.example.plugin;
 
@@ -147,7 +147,7 @@ class ManifestIntegrationTest extends V2IntegrationTestBase {
     void supportDynamicLoadingIsOmittedWhenAnyExtensionIsMaybe() throws IOException {
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
-        Files.write(getBasePluginConfig().getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
+        Files.write(ith.inProjectDir("build.gradle.kts").toPath(), getBasePluginConfig().getBytes(StandardCharsets.UTF_8));
         writeJavaSource(ith, "com/example/plugin/MaybeReloadable.java", """
                 package com.example.plugin;
 
@@ -172,7 +172,7 @@ class ManifestIntegrationTest extends V2IntegrationTestBase {
     void supportDynamicLoadingIsFalseWhenAnyExtensionIsNotDynamicLoadable() throws IOException {
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
-        Files.write(getBasePluginConfig().getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
+        Files.write(ith.inProjectDir("build.gradle.kts").toPath(), getBasePluginConfig().getBytes(StandardCharsets.UTF_8));
         writeJavaSource(ith, "com/example/plugin/NeverReloadable.java", """
                 package com.example.plugin;
 
@@ -202,6 +202,6 @@ class ManifestIntegrationTest extends V2IntegrationTestBase {
     private static void writeJavaSource(IntegrationTestHelper ith, String relativePath, String source) throws IOException {
         var parent = relativePath.substring(0, relativePath.lastIndexOf('/'));
         ith.mkDirInProjectDir("src/main/java/" + parent);
-        Files.write(source.getBytes(StandardCharsets.UTF_8), ith.inProjectDir("src/main/java/" + relativePath));
+        Files.write(ith.inProjectDir("src/main/java/" + relativePath).toPath(), source.getBytes(StandardCharsets.UTF_8));
     }
 }

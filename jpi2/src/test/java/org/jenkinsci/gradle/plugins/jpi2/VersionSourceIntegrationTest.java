@@ -1,6 +1,6 @@
 package org.jenkinsci.gradle.plugins.jpi2;
 
-import com.google.common.io.Files;
+import java.nio.file.Files;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
@@ -31,7 +31,7 @@ class VersionSourceIntegrationTest extends V2IntegrationTestBase {
     void projectVersionIsUsedByDefault() throws IOException {
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
-        Files.write(getConfig().getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
+        Files.write(ith.inProjectDir("build.gradle.kts").toPath(), getConfig().getBytes(StandardCharsets.UTF_8));
 
         ith.gradleRunner().withArguments("build").build();
 
@@ -60,7 +60,7 @@ class VersionSourceIntegrationTest extends V2IntegrationTestBase {
     void projectVersionAppearsInPublishedPomAndJpi() throws IOException, XmlPullParserException {
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
-        Files.write(getConfig().getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
+        Files.write(ith.inProjectDir("build.gradle.kts").toPath(), getConfig().getBytes(StandardCharsets.UTF_8));
 
         ith.gradleRunner().withArguments("publish").build();
 
@@ -72,12 +72,12 @@ class VersionSourceIntegrationTest extends V2IntegrationTestBase {
     void fixedVersionIsUsedWhenSet() throws IOException {
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
-        Files.write((getConfig() + /* language=kotlin */ """
+        Files.write(ith.inProjectDir("build.gradle.kts").toPath(), (getConfig() + /* language=kotlin */ """
                 jenkinsPlugin {
                     versionSource.set(org.jenkinsci.gradle.plugins.jpi2.VersionSource.FIXED)
                     fixedVersion.set("2.0.0-beta")
                 }
-                """).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
+                """).getBytes(StandardCharsets.UTF_8));
 
         ith.gradleRunner().withArguments("build").build();
 
@@ -95,12 +95,12 @@ class VersionSourceIntegrationTest extends V2IntegrationTestBase {
     void fixedVersionFromProviderIsUsedWhenSet() throws IOException {
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
-        Files.write((getConfig() + /* language=kotlin */ """
+        Files.write(ith.inProjectDir("build.gradle.kts").toPath(), (getConfig() + /* language=kotlin */ """
                 jenkinsPlugin {
                     versionSource.set(org.jenkinsci.gradle.plugins.jpi2.VersionSource.FIXED)
                     fixedVersion.set(providers.provider { "2.0.0-beta" })
                 }
-                """).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
+                """).getBytes(StandardCharsets.UTF_8));
 
         ith.gradleRunner().withArguments("build").build();
 
@@ -118,12 +118,12 @@ class VersionSourceIntegrationTest extends V2IntegrationTestBase {
     void fixedVersionAppearsInPublishedPomAndJpi() throws IOException, XmlPullParserException {
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
-        Files.write((getConfig() + /* language=kotlin */ """
+        Files.write(ith.inProjectDir("build.gradle.kts").toPath(), (getConfig() + /* language=kotlin */ """
                 jenkinsPlugin {
                     versionSource.set(org.jenkinsci.gradle.plugins.jpi2.VersionSource.FIXED)
                     fixedVersion.set("2.0.0-beta")
                 }
-                """).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
+                """).getBytes(StandardCharsets.UTF_8));
 
         ith.gradleRunner().withArguments("publish").build();
 
@@ -134,20 +134,20 @@ class VersionSourceIntegrationTest extends V2IntegrationTestBase {
     void generateGitVersionTaskProducesVersionFile() throws IOException, InterruptedException {
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
-        Files.write((getConfig() + /* language=kotlin */ """
+        Files.write(ith.inProjectDir("build.gradle.kts").toPath(), (getConfig() + /* language=kotlin */ """
                 jenkinsPlugin {
                     gitVersion {
                         allowDirty.set(true)
                     }
                 }
-                """).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
+                """).getBytes(StandardCharsets.UTF_8));
         initGitRepo(ith.inProjectDir("."));
 
         ith.gradleRunner().withArguments("generateGitVersion").build();
 
         var versionFile = ith.inProjectDir("build/generated/version/version.txt");
         assertThat(versionFile).exists();
-        var lines = Files.readLines(versionFile, StandardCharsets.UTF_8);
+        var lines = Files.readAllLines(versionFile.toPath(), StandardCharsets.UTF_8);
         assertThat(lines).hasSize(1);
         // depth.abbrevHash (e.g. 1.abc123def456)
         assertThat(lines.get(0)).matches("\\d+\\.[a-f0-9]{12}");
@@ -157,21 +157,21 @@ class VersionSourceIntegrationTest extends V2IntegrationTestBase {
     void gitVersionSourceUsesGeneratedVersionInBuild() throws IOException, InterruptedException {
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
-        Files.write((getConfig() + /* language=kotlin */ """
+        Files.write(ith.inProjectDir("build.gradle.kts").toPath(), (getConfig() + /* language=kotlin */ """
                 jenkinsPlugin {
                     versionSource.set(org.jenkinsci.gradle.plugins.jpi2.VersionSource.GIT)
                     gitVersion {
                         allowDirty.set(true)
                     }
                 }
-                """).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
+                """).getBytes(StandardCharsets.UTF_8));
         initGitRepo(ith.inProjectDir("."));
 
         ith.gradleRunner().withArguments("generateGitVersion", "build").build();
 
         var versionFile = ith.inProjectDir("build/generated/version/version.txt");
         assertThat(versionFile).exists();
-        var expectedVersion = Files.readLines(versionFile, StandardCharsets.UTF_8).get(0).trim();
+        var expectedVersion = Files.readAllLines(versionFile.toPath(), StandardCharsets.UTF_8).get(0).trim();
 
         var manifest = ith.inProjectDir("build/jpi/META-INF/MANIFEST.MF");
         assertThat(manifest).exists();
@@ -188,20 +188,20 @@ class VersionSourceIntegrationTest extends V2IntegrationTestBase {
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
         initGitRepo(ith.inProjectDir("."));
-        Files.write((getConfig() + /* language=kotlin */ """
+        Files.write(ith.inProjectDir("build.gradle.kts").toPath(), (getConfig() + /* language=kotlin */ """
                 jenkinsPlugin {
                     versionSource.set(org.jenkinsci.gradle.plugins.jpi2.VersionSource.GIT)
                     gitVersion {
                         allowDirty.set(true)
                     }
                 }
-                """).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
+                """).getBytes(StandardCharsets.UTF_8));
 
         ith.gradleRunner().withArguments("generateGitVersion", "publish").build();
 
         var versionFile = ith.inProjectDir("build/generated/version/version.txt");
         assertThat(versionFile).exists();
-        var expectedVersion = Files.readLines(versionFile, StandardCharsets.UTF_8).get(0).trim();
+        var expectedVersion = Files.readAllLines(versionFile.toPath(), StandardCharsets.UTF_8).get(0).trim();
         assertPomAndJpiContainVersion(ith, expectedVersion);
     }
 
@@ -209,9 +209,9 @@ class VersionSourceIntegrationTest extends V2IntegrationTestBase {
     void generateGitVersionFailsWhenDirtyAndAllowDirtyFalse() throws IOException, InterruptedException {
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
-        Files.write(getConfig().getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
+        Files.write(ith.inProjectDir("build.gradle.kts").toPath(), getConfig().getBytes(StandardCharsets.UTF_8));
         initGitRepo(ith.inProjectDir("."));
-        Files.write("dirty".getBytes(StandardCharsets.UTF_8), ith.inProjectDir("uncommitted.txt"));
+        Files.write(ith.inProjectDir("uncommitted.txt").toPath(), "dirty".getBytes(StandardCharsets.UTF_8));
 
         BuildResult result = ith.gradleRunner().withArguments("generateGitVersion").buildAndFail();
 
@@ -222,15 +222,15 @@ class VersionSourceIntegrationTest extends V2IntegrationTestBase {
     void generateGitVersionSucceedsWhenAllowDirtyTrue() throws IOException, InterruptedException {
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
-        Files.write((getConfig() + /* language=kotlin */ """
+        Files.write(ith.inProjectDir("build.gradle.kts").toPath(), (getConfig() + /* language=kotlin */ """
                 jenkinsPlugin {
                     gitVersion {
                         allowDirty.set(true)
                     }
                 }
-                """).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
+                """).getBytes(StandardCharsets.UTF_8));
         initGitRepo(ith.inProjectDir("."));
-        Files.write("dirty".getBytes(StandardCharsets.UTF_8), ith.inProjectDir("uncommitted.txt"));
+        Files.write(ith.inProjectDir("uncommitted.txt").toPath(), "dirty".getBytes(StandardCharsets.UTF_8));
 
         ith.gradleRunner().withArguments("generateGitVersion").build();
 
@@ -242,7 +242,7 @@ class VersionSourceIntegrationTest extends V2IntegrationTestBase {
     void generateGitVersionWithCustomFormat() throws IOException, InterruptedException {
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
-        Files.write((getConfig() + /* language=kotlin */ """
+        Files.write(ith.inProjectDir("build.gradle.kts").toPath(), (getConfig() + /* language=kotlin */ """
                 jenkinsPlugin {
                     gitVersion {
                         versionFormat.set("rc-%d.%s")
@@ -250,14 +250,14 @@ class VersionSourceIntegrationTest extends V2IntegrationTestBase {
                         allowDirty.set(true)
                     }
                 }
-                """).getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
+                """).getBytes(StandardCharsets.UTF_8));
         initGitRepo(ith.inProjectDir("."));
 
         ith.gradleRunner().withArguments("generateGitVersion").build();
 
         var versionFile = ith.inProjectDir("build/generated/version/version.txt");
         assertThat(versionFile).exists();
-        var firstLine = Files.readLines(versionFile, StandardCharsets.UTF_8).get(0);
+        var firstLine = Files.readAllLines(versionFile.toPath(), StandardCharsets.UTF_8).get(0);
         assertThat(firstLine).startsWith("rc-");
         assertThat(firstLine).matches("rc-\\d+\\.[a-f0-9]{10}");
     }
@@ -266,7 +266,7 @@ class VersionSourceIntegrationTest extends V2IntegrationTestBase {
     void generateGitVersionFailsWhenNotAGitRepository() throws IOException {
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
-        Files.write(getConfig().getBytes(StandardCharsets.UTF_8), ith.inProjectDir("build.gradle.kts"));
+        Files.write(ith.inProjectDir("build.gradle.kts").toPath(), getConfig().getBytes(StandardCharsets.UTF_8));
 
         BuildResult result = ith.gradleRunner().withArguments("generateGitVersion").buildAndFail();
 
@@ -291,10 +291,10 @@ class VersionSourceIntegrationTest extends V2IntegrationTestBase {
 
     private static void initGitRepo(File projectDir) throws IOException, InterruptedException {
         runGit(projectDir, "init");
-        Files.write(/* language=gitignore */ """
+        Files.write(new File(projectDir, ".gitignore").toPath(), /* language=gitignore */ """
                 .gradle
                 build
-                """.getBytes(StandardCharsets.UTF_8), new File(projectDir, ".gitignore"));
+                """.getBytes(StandardCharsets.UTF_8));
         runGit(projectDir, "add", ".");
         runGit(projectDir, "config", "user.email", "test@test");
         runGit(projectDir, "config", "user.name", "Test");
