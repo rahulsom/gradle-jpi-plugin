@@ -17,7 +17,6 @@ dependencies {
 
     // Test dependencies
     testImplementation(testFixtures(project(":core")))
-    testImplementation(libs.spock.core)
     testImplementation(platform(libs.junit5.bom))
     testImplementation(libs.junit5.api)
     testImplementation(libs.assertj.core)
