@@ -25,6 +25,7 @@ jobs:
         java-version: "17"
         distribution: "temurin"
         cache: "gradle"
+    - uses: gradle/actions/setup-gradle@v6
     - name: Build
       run: ./gradlew clean build testGradle8.4
     - name: Archive Codenarc Report on Failure
