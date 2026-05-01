@@ -26,6 +26,7 @@ dependencies {
     testCompileOnly(libs.develocity.testing.annotations)
     testCompileOnly(libs.jetbrains.annotations)
     testRuntimeOnly(libs.junit5.jupiter)
+    testRuntimeOnly(libs.junit5.launcher)
 }
 
 tasks.withType<Test>().configureEach {

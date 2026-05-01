@@ -9,7 +9,6 @@ dependencies {
     // Test fixtures dependencies - shared test infrastructure
     testFixturesImplementation(gradleApi())
     testFixturesImplementation(gradleTestKit())
-    testFixturesImplementation(libs.spock.core)
     testFixturesImplementation(libs.commons.text)
     testFixturesImplementation(libs.junit4)
     testFixturesImplementation(libs.javapoet)

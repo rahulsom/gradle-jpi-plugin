@@ -39,6 +39,7 @@ junit4 = { module = "junit:junit", version.ref = "junit4" }
 junit5-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit5" }
 junit5-bom = { module = "org.junit:junit-bom", version.ref = "junit5" }
 junit5-jupiter = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit5" }
+junit5-launcher = { module = "org.junit.platform:junit-platform-launcher" }
 junit5-vintage = { module = "org.junit.vintage:junit-vintage-engine", version.ref = "junit5" }
 localizer-maven = { module = "org.jvnet.localizer:localizer-maven-plugin", version.ref = "localizer" }
 maven-model = { module = "org.apache.maven:maven-model", version.ref = "maven" }
