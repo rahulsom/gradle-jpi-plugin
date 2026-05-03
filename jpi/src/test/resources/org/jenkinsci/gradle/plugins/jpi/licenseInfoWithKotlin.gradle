@@ -21,7 +21,7 @@ jenkinsPlugin {
 
 dependencies {
     // packaged library dependencies -> include license
-    api 'xmlunit:xmlunit:1.4'
+    api 'xmlunit:xmlunit:1.6'
     // dependency provided -> do not include license
     compileOnly 'commons-codec:commons-codec:1.8'
     // plugin dependency -> do not include license
