@@ -1,6 +1,6 @@
 [versions]
 accessmodifier = "1.33"
-assertj = "3.21.0"
+assertj = "3.27.7"
 awaitility = "4.3.0"
 commons-io = "2.15.1"
 commons-text = "1.10.0"
