@@ -20,7 +20,7 @@ okhttp = "4.10.0"
 sezpoz = "1.13"
 spock = "2.1-groovy-3.0"
 spotbugs-gradle = "5.0.13"
-xmlunit = "2.8.3"
+xmlunit = "2.11.0"
 
 [libraries]
 accessmodifier-checker = { module = "org.kohsuke:access-modifier-checker", version.ref = "accessmodifier" }
