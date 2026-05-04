@@ -29,7 +29,7 @@ jobs:
     - name: Test ${{ matrix.gradle_version }}
       run: ./gradlew :jpi2:testGradle${{ matrix.gradle_version }}
     - name: Archive Test Results on Failure
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       if: ${{ failure() }}
       with:
         name: ${{ matrix.os }}-${{ matrix.gradle_version }}-test-results
