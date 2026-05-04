@@ -147,7 +147,7 @@ tasks.withType<Test>().configureEach {
 }
 
 codenarc {
-    toolVersion = "1.6"
+    toolVersion = "1.6.1"
     configFile = rootProject.file("config/codenarc/rules.groovy")
 }
 
