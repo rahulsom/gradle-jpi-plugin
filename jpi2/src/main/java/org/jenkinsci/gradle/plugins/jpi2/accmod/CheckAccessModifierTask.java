@@ -5,6 +5,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.Input;
@@ -19,6 +20,7 @@ import javax.inject.Inject;
  * Submits parallel {@link CheckAccess} work items — one per compilation output directory —
  * to enforce {@code @Restricted} API access rules from {@code kohsuke.accmod}.
  */
+@CacheableTask
 public abstract class CheckAccessModifierTask extends DefaultTask {
     /** Standard name under which this task is registered. */
     public static final String NAME = "checkAccessModifier";
@@ -71,6 +73,7 @@ public abstract class CheckAccessModifierTask extends DefaultTask {
 
     /** @return directories of compiled {@code .class} files to scan for {@code @Restricted} violations */
     @InputFiles
+    @Classpath
     public ConfigurableFileCollection getCompilationDirs() {
         return compilationDirs;
     }

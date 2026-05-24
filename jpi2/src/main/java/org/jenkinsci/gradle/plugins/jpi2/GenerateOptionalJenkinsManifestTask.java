@@ -4,6 +4,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.PathSensitive;
@@ -23,6 +24,7 @@ import java.util.stream.Stream;
  * Generates the optional Jenkins manifest fragment that declares whether a plugin supports
  * dynamic loading, derived from the {@code dynamicLoadable} attribute of Sezpoz extension entries.
  */
+@CacheableTask
 public abstract class GenerateOptionalJenkinsManifestTask extends DefaultTask {
     /** Standard name under which this task is registered. */
     public static final String NAME = "generateOptionalJenkinsManifest";
