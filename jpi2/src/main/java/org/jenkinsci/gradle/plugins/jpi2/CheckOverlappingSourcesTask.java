@@ -4,6 +4,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.PathSensitive;
@@ -29,6 +30,7 @@ import static java.util.stream.Collectors.joining;
  * or duplicate {@code hudson.Plugin} service entries — both of which break Jenkins plugin loading.
  * The fix is always joint compilation so that a single compiler run owns all annotation processing.
  */
+@CacheableTask
 public abstract class CheckOverlappingSourcesTask extends DefaultTask {
     /** Standard name under which this task is registered. */
     public static final String NAME = "checkOverlappingSources";

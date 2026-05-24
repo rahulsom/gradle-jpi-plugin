@@ -5,6 +5,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.work.DisableCachingByDefault;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
@@ -23,6 +24,7 @@ import java.util.List;
 /**
  * Task that launches a Jenkins server and terminates after success or first error.
  */
+@DisableCachingByDefault(because = "starts an external Jenkins process and produces no cacheable outputs")
 public abstract class TestServerTask extends DefaultTask {
 
     private static final List<String> FAILURE_MESSAGES = List.of(

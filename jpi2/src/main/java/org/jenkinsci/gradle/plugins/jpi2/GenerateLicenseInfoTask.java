@@ -4,6 +4,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
@@ -37,6 +38,7 @@ import java.util.Set;
 /**
  * Generates {@code licenses.xml} for libraries bundled into the plugin package.
  */
+@CacheableTask
 public abstract class GenerateLicenseInfoTask extends DefaultTask {
     /** Standard name under which this task is registered. */
     public static final String NAME = "generateLicenseInfo";
