@@ -181,13 +181,8 @@ public abstract class TestServerTask extends DefaultTask {
 
         try (var paths = Files.walk(workDir)) {
             paths.sorted(Comparator.reverseOrder())
-                    .forEach(path -> {
-                        try {
-                            Files.deleteIfExists(path);
-                        } catch (IOException e) {
-                            throw new GradleException("Failed to delete temporary Jenkins work directory " + workDir, e);
-                        }
-                    });
+                    .map(Path::toFile)
+                    .forEach(File::delete);
         } catch (IOException e) {
             throw new GradleException("Failed to clean temporary Jenkins work directory " + workDir, e);
         }
