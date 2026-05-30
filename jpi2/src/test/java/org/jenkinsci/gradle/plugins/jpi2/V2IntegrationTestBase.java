@@ -213,6 +213,42 @@ abstract class V2IntegrationTestBase {
                 getBasePluginConfigWithBuildscriptClasspath(pluginJar.getAbsolutePath()).getBytes(StandardCharsets.UTF_8));
     }
 
+    static void configureTwoPluginsForVerification(IntegrationTestHelper ith) throws IOException {
+        var pluginJar = materializePluginJar(ith.inProjectDir("plugin-under-test/jpi2-under-test.jar"));
+        Files.writeString(ith.inProjectDir("settings.gradle.kts").toPath(), /* language=kotlin */ """
+                rootProject.name = "test-plugin"
+                include("upstream", "downstream")
+                """, StandardCharsets.UTF_8);
+        Files.writeString(ith.inProjectDir("gradle.properties").toPath(), /* language=properties */ """
+                jenkins.version=2.492.3
+                org.gradle.warning.mode=all
+                """, StandardCharsets.UTF_8);
+        Files.writeString(ith.inProjectDir("build.gradle.kts").toPath(), "", StandardCharsets.UTF_8);
+
+        ith.mkDirInProjectDir("upstream/src/main/java/com/example/upstream");
+        Files.writeString(ith.inProjectDir("upstream/build.gradle.kts").toPath(),
+                getBasePluginConfigWithBuildscriptClasspath(pluginJar.getAbsolutePath()),
+                StandardCharsets.UTF_8);
+        Files.writeString(ith.inProjectDir("upstream/src/main/java/com/example/upstream/Example.java").toPath(),
+                /* language=java */ """
+                        package com.example.upstream;
+                        public class Example { public String hello() { return "v1"; } }
+                        """, StandardCharsets.UTF_8);
+
+        ith.mkDirInProjectDir("downstream/src/main/java/com/example/downstream");
+        Files.writeString(ith.inProjectDir("downstream/build.gradle.kts").toPath(),
+                getBasePluginConfigWithBuildscriptClasspath(pluginJar.getAbsolutePath()) + /* language=kotlin */ """
+                        dependencies {
+                            "implementation"(project(":upstream"))
+                        }
+                        """, StandardCharsets.UTF_8);
+        Files.writeString(ith.inProjectDir("downstream/src/main/java/com/example/downstream/Example.java").toPath(),
+                /* language=java */ """
+                        package com.example.downstream;
+                        public class Example { public String hello() { return "v1"; } }
+                        """, StandardCharsets.UTF_8);
+    }
+
     static void configureBuildWithOssPluginDependency(IntegrationTestHelper ith) throws IOException {
         initBuild(ith);
         Files.write(ith.inProjectDir("build.gradle.kts").toPath(), (getBasePluginConfig() + /* language=kotlin */ """

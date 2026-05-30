@@ -2,12 +2,19 @@ package org.jenkinsci.gradle.plugins.jpi2;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
-import org.gradle.work.DisableCachingByDefault;
+import org.gradle.api.tasks.CacheableTask;
+import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.OutputFile;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.jetbrains.annotations.NotNull;
 
@@ -15,6 +22,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
@@ -23,8 +31,13 @@ import java.util.List;
 
 /**
  * Task that launches a Jenkins server and terminates after success or first error.
+ *
+ * Cacheable: a successful run produces a marker file. If the declared inputs
+ * (plugin files synced for the server, Jenkins runtime classpath, and any files
+ * referenced from the plugin's HPL) are unchanged, Gradle can restore the marker
+ * from cache and skip launching Jenkins.
  */
-@DisableCachingByDefault(because = "starts an external Jenkins process and produces no cacheable outputs")
+@CacheableTask
 public abstract class TestServerTask extends DefaultTask {
 
     private static final List<String> FAILURE_MESSAGES = List.of(
@@ -97,6 +110,33 @@ public abstract class TestServerTask extends DefaultTask {
     @Input
     public abstract Property<String> getServerTaskPath();
 
+    /**
+     * @return files that {@code prepareServer} / {@code prepareRun} would copy into the Jenkins
+     * work directory (the project's own JPI/HPL and resolved plugin dependencies). Fingerprinting
+     * these is what makes the task safely cacheable when nothing relevant has changed.
+     */
+    @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)
+    public abstract ConfigurableFileCollection getPluginFiles();
+
+    /** @return classpath used to launch the embedded Jenkins server (jenkins-war). */
+    @Classpath
+    public abstract ConfigurableFileCollection getJenkinsClasspath();
+
+    /**
+     * @return files referenced by the plugin's HPL but not bundled into {@link #getPluginFiles()}:
+     * the plugin's own classes, resource directories, and bundled libraries. Required for
+     * {@code testHplRun}, where the HPL points at these paths directly; ignored (empty) for
+     * {@code testServer}, since the JPI archive already captures the same content.
+     */
+    @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)
+    public abstract ConfigurableFileCollection getReferencedFiles();
+
+    /** @return marker file written only on a successful Jenkins start so the task is cacheable. */
+    @OutputFile
+    public abstract RegularFileProperty getSuccessMarker();
+
     /** @return build service that allocates a free TCP port for the Jenkins test server */
     @Internal
     public abstract Property<PortAllocationService> getPortAllocationService();
@@ -110,6 +150,8 @@ public abstract class TestServerTask extends DefaultTask {
         var timeoutSystemProperty = System.getProperty("testServer.timeoutSeconds", "120");
         var timeout = Integer.parseInt(timeoutSystemProperty);
         Path workDir = null;
+
+        clearSuccessMarker();
 
         try {
             workDir = createWorkDirectory();
@@ -131,17 +173,44 @@ public abstract class TestServerTask extends DefaultTask {
             BufferedReader stdoutReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             boolean foundSuccess = isProcessSuccessful(stdoutReader, process);
 
-            if (process.waitFor() != 0) {
-                if (!foundSuccess) {
-                    throw new GradleException("Jenkins failed to start with exit code " + process.exitValue());
-                }
+            process.waitFor();
+
+            if (!foundSuccess) {
+                throw new GradleException("Jenkins failed to report a successful start (exit code " + process.exitValue() + ")");
             }
+
+            writeSuccessMarker();
         } catch (IOException e) {
             throw new GradleException("IO Exception", e);
         } catch (InterruptedException e) {
             throw new GradleException("Process interrupted", e);
         } finally {
             cleanupWorkDirectory(workDir);
+        }
+    }
+
+    private void clearSuccessMarker() {
+        var marker = getSuccessMarker().getAsFile().getOrNull();
+        if (marker == null) {
+            return;
+        }
+        try {
+            Files.deleteIfExists(marker.toPath());
+        } catch (IOException e) {
+            throw new GradleException("Failed to clear success marker " + marker, e);
+        }
+    }
+
+    private void writeSuccessMarker() {
+        var marker = getSuccessMarker().getAsFile().getOrNull();
+        if (marker == null) {
+            return;
+        }
+        try {
+            Files.createDirectories(marker.toPath().getParent());
+            Files.writeString(marker.toPath(), "Jenkins reported successful start\n", StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new GradleException("Failed to write success marker " + marker, e);
         }
     }
 

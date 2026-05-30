@@ -6,14 +6,19 @@ import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.assertj.core.groups.Tuple;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.gradle.testkit.runner.GradleRunner;
+import org.gradle.testkit.runner.TaskOutcome;
 import org.jenkinsci.gradle.plugins.jpi.IntegrationTestHelper;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.OS;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.concurrent.TimeUnit;
 import java.util.jar.Manifest;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -91,6 +96,40 @@ class MultiModuleIntegrationTest extends V2IntegrationTestBase {
         // then
         var pluginThreeJpi = ith.inProjectDir("plugin-four/work/plugins/plugin-three.jpi");
         assertThat(pluginThreeJpi).exists();
+    }
+
+    @Test
+    @Timeout(value = 15, unit = TimeUnit.MINUTES)
+    void testHplRunInvalidatesOnUpstreamModuleSourceChange() throws IOException {
+        var ith = new IntegrationTestHelper(tempDir, "8.14");
+        configureTwoPluginsForVerification(ith);
+
+        GradleRunner runner = ith.gradleRunner();
+        var taskPath = ":downstream:testHplRun";
+
+        var first = runner.withArguments(":downstream:testHplRun").build();
+        assertThat(first.task(taskPath).getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
+        assertThat(first.getOutput()).contains("Jenkins is fully up and running");
+
+        var noChange = runner.withArguments(":downstream:testHplRun").build();
+        assertThat(noChange.task(taskPath).getOutcome())
+                .as("unchanged inputs should hit the cache and skip launching Jenkins")
+                .isEqualTo(TaskOutcome.UP_TO_DATE);
+
+        // Edit a source file in the *upstream* module — Jenkins on the next hplRun would
+        // load the new class via upstream's HPL (which only references paths, not content).
+        // The downstream testHplRun must therefore re-execute, not silently reuse the
+        // cached pass that no longer reflects current behavior.
+        var upstreamSrc = ith.inProjectDir("upstream/src/main/java/com/example/upstream/Example.java").toPath();
+        Files.writeString(upstreamSrc, /* language=java */ """
+                package com.example.upstream;
+                public class Example { public String hello() { return "v2"; } }
+                """, StandardCharsets.UTF_8);
+        var afterUpstreamEdit = runner.withArguments(":downstream:testHplRun").build();
+        assertThat(afterUpstreamEdit.task(taskPath).getOutcome())
+                .as("editing an upstream module's source must invalidate the downstream testHplRun cache")
+                .isEqualTo(TaskOutcome.SUCCESS);
+        assertThat(afterUpstreamEdit.getOutput()).contains("Jenkins is fully up and running");
     }
 
     @Test

@@ -212,6 +212,7 @@ public class V2JpiPlugin implements Plugin<Project> {
             var projectDependencies = getProjectDependencies(runtimeClasspath, projectByPath);
             configureProjectDependencyJpis(prepareServer, getProjectDependencyJpis(projectDependencies, extension.getArchiveExtension().get()));
             configureProjectDependencyTasks(prepareRun, getProjectDependencyTasks(projectDependencies, GenerateHplTask.TASK_NAME));
+            wireUpstreamJpiReferencedFiles(project, projectDependencies);
         });
 
         project.getTasks().register("server", JavaExec.class, new ServerAction(serverTaskClasspath, projectRoot, workDir, prepareServer));
@@ -270,17 +271,41 @@ public class V2JpiPlugin implements Plugin<Project> {
         var isRootProject = project == project.getRootProject();
         var projectPath = project.getPath();
 
-        registerTestTask(project, portAllocationService, gradleExecutable, startParameter, isRootProject, projectPath,
+        var testServerTask = registerTestTask(project, portAllocationService, gradleExecutable, startParameter, isRootProject, projectPath,
                 "testServer", "Launch Jenkins server and terminate after success or first error", ":server");
-        registerTestTask(project, portAllocationService, gradleExecutable, startParameter, isRootProject, projectPath,
+        // Fingerprint the source files that prepareServer would sync (jpi, plugin dependencies,
+        // project-dependency jpis), not its destination — prepareServer and prepareRun both write
+        // to workDir/plugins, so snapshotting the destination would create an implicit dependency
+        // between the two test tasks.
+        testServerTask.configure(task -> {
+            task.getPluginFiles().from(prepareServer.map(Sync::getSource));
+            task.getJenkinsClasspath().from(serverTaskClasspath);
+        });
+
+        var testHplRunTask = registerTestTask(project, portAllocationService, gradleExecutable, startParameter, isRootProject, projectPath,
                 "testHplRun", "Launch Jenkins hplRun task and terminate after success or first error", ":hplRun");
+        testHplRunTask.configure(task -> {
+            task.getPluginFiles().from(prepareRun.map(Sync::getSource));
+            task.getJenkinsClasspath().from(serverTaskClasspath);
+            // The .hpl manifest points at these directories on disk by absolute path; their
+            // contents must be fingerprinted for caching to be correct, even though only the
+            // generated .hpl file (whose text doesn't change when sources change) is an input
+            // to prepareRun.
+            task.getReferencedFiles().from(main.getResources().getSrcDirs());
+            task.getReferencedFiles().from(main.getOutput().getClassesDirs());
+            task.getReferencedFiles().from(project.provider(main.getOutput()::getResourcesDir));
+            task.getReferencedFiles().from(runtimeClasspathArtifacts.getBundledLibraries());
+            task.dependsOn(project.getTasks().named("classes"));
+        });
     }
 
-    private static void registerTestTask(@NotNull Project project, @NotNull Provider<PortAllocationService> portAllocationService,
-                                         @NotNull String gradleExecutable, @NotNull StartParameter startParameter,
-                                         boolean isRootProject, @NotNull String projectPath, @NotNull String taskName,
-                                         @NotNull String description, @NotNull String taskSuffix) {
-        project.getTasks().register(taskName, TestServerTask.class, new Action<>() {
+    @NotNull
+    private static TaskProvider<TestServerTask> registerTestTask(
+            @NotNull Project project, @NotNull Provider<PortAllocationService> portAllocationService,
+            @NotNull String gradleExecutable, @NotNull StartParameter startParameter,
+            boolean isRootProject, @NotNull String projectPath, @NotNull String taskName,
+            @NotNull String description, @NotNull String taskSuffix) {
+        return project.getTasks().register(taskName, TestServerTask.class, new Action<>() {
             @Override
             public void execute(@NotNull TestServerTask task) {
                 task.setGroup("verification");
@@ -303,6 +328,7 @@ public class V2JpiPlugin implements Plugin<Project> {
                 task.getSystemProperties().set(startParameter.getSystemPropertiesArgs());
                 task.getProjectProperties().set(startParameter.getProjectProperties());
                 task.getServerTaskPath().set(isRootProject ? taskSuffix : projectPath + taskSuffix);
+                task.getSuccessMarker().set(project.getLayout().getBuildDirectory().file("test-server/" + taskName + ".success"));
                 task.getPortAllocationService().set(portAllocationService);
                 task.usesService(portAllocationService);
             }
@@ -402,6 +428,31 @@ public class V2JpiPlugin implements Plugin<Project> {
 
     private static void configureProjectDependencyTasks(TaskProvider<Sync> prepareTask, List<TaskProvider<?>> projectDependencyTasks) {
         prepareTask.configure(sync -> projectDependencyTasks.forEach(sync::from));
+    }
+
+    /**
+     * Wire each upstream JPI project dependency's {@code main} source set classes / resources
+     * into this project's {@code testHplRun} {@code referencedFiles}. Upstream {@code .hpl}
+     * manifests only reference paths to those directories, so without this the consumer's
+     * {@code testHplRun} cache would not invalidate when an upstream class's content changes.
+     */
+    private static void wireUpstreamJpiReferencedFiles(@NotNull Project project, @NotNull List<Project> projectDependencies) {
+        var hplProjectDeps = projectDependencies.stream()
+                .filter(dep -> dep.getTasks().getNames().contains(GenerateHplTask.TASK_NAME))
+                .toList();
+        if (hplProjectDeps.isEmpty()) {
+            return;
+        }
+        project.getTasks().named("testHplRun", TestServerTask.class, task -> {
+            for (var dep : hplProjectDeps) {
+                var depJava = dep.getExtensions().getByType(JavaPluginExtension.class);
+                var depMain = depJava.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+                task.getReferencedFiles().from(depMain.getResources().getSrcDirs());
+                task.getReferencedFiles().from(depMain.getOutput().getClassesDirs());
+                task.getReferencedFiles().from(dep.provider(() -> depMain.getOutput().getResourcesDir()));
+                task.dependsOn(dep.getTasks().named("classes"));
+            }
+        });
     }
 
     private static void configureProjectDependencyJpis(TaskProvider<Sync> prepareTask, List<TaskWithRename> projectDependencyJpis) {
