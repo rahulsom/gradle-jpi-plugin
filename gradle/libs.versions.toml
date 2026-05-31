@@ -1,5 +1,5 @@
 [versions]
-accessmodifier = "1.33"
+accessmodifier = "1.35"
 assertj = "3.27.7"
 awaitility = "4.3.0"
 commons-io = "2.22.0"
