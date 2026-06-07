@@ -1,15 +1,19 @@
 package org.jenkinsci.gradle.plugins.jpi2;
 
 import org.gradle.testkit.runner.GradleRunner;
+import org.gradle.testkit.runner.TaskOutcome;
 import org.jenkinsci.gradle.plugins.jpi.IntegrationTestHelper;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.OS;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
+import java.util.concurrent.TimeUnit;
 import java.util.jar.Manifest;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -137,6 +141,147 @@ class SimpleBuildIntegrationTest extends V2IntegrationTestBase {
 
         // when
         testServerVerificationTask(gradleRunner, "testHplRun");
+    }
+
+    @Test
+    @Timeout(value = 15, unit = TimeUnit.MINUTES)
+    void testServerIsCacheableAndInvalidatesOnSourceChange() throws IOException {
+        assertVerificationTaskCachingBehavior("testServer");
+    }
+
+    @Test
+    @Timeout(value = 15, unit = TimeUnit.MINUTES)
+    void testHplRunIsCacheableAndInvalidatesOnSourceChange() throws IOException {
+        assertVerificationTaskCachingBehavior("testHplRun");
+    }
+
+    @Test
+    @Timeout(value = 15, unit = TimeUnit.MINUTES)
+    void testServerInvalidatesOnBuildScriptChange() throws IOException {
+        assertVerificationTaskInvalidatesOnBuildScriptChange("testServer");
+    }
+
+    @Test
+    @Timeout(value = 15, unit = TimeUnit.MINUTES)
+    void testHplRunInvalidatesOnBuildScriptChange() throws IOException {
+        assertVerificationTaskInvalidatesOnBuildScriptChange("testHplRun");
+    }
+
+    @Test
+    @Timeout(value = 15, unit = TimeUnit.MINUTES)
+    void testServerInvalidatesOnInitScriptContentAndOrderChange() throws IOException {
+        var ith = new IntegrationTestHelper(tempDir, "8.14");
+        configureSimpleBuildForVerification(ith);
+
+        // Init scripts forwarded to the nested build affect its behavior. Keep them outside the
+        // project tree so only the init-script inputs (not the build-config fileTree) can invalidate
+        // the cache, isolating that getInitScriptFiles (content) and getInitScriptPaths (order) work.
+        var initDir = Files.createTempDirectory("jpi2-init-scripts");
+        var scriptA = Files.writeString(initDir.resolve("a.gradle"), "// init script a v1\n").toAbsolutePath().toString();
+        var scriptB = Files.writeString(initDir.resolve("b.gradle"), "// init script b\n").toAbsolutePath().toString();
+
+        GradleRunner runner = ith.gradleRunner();
+
+        var first = runner.withArguments("testServer", "--init-script", scriptA, "--init-script", scriptB, "--build-cache").build();
+        assertThat(first.task(":testServer").getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
+
+        var unchanged = runner.withArguments("testServer", "--init-script", scriptA, "--init-script", scriptB, "--build-cache").build();
+        assertThat(unchanged.task(":testServer").getOutcome())
+                .as("unchanged init scripts should hit the cache")
+                .isEqualTo(TaskOutcome.UP_TO_DATE);
+
+        // Edit an init script's content without changing its path: the content fingerprint
+        // (getInitScriptFiles, PathSensitivity.NONE) must invalidate the cache.
+        Files.writeString(initDir.resolve("a.gradle"), "// init script a v2\n");
+        var afterContentEdit = runner.withArguments("testServer", "--init-script", scriptA, "--init-script", scriptB, "--build-cache").build();
+        assertThat(afterContentEdit.task(":testServer").getOutcome())
+                .as("editing an init script's content must invalidate the cache")
+                .isEqualTo(TaskOutcome.SUCCESS);
+
+        // Swap the order of two unchanged scripts: Gradle applies init scripts in command-line order,
+        // so the ordered path input (getInitScriptPaths) must invalidate the cache.
+        var afterReorder = runner.withArguments("testServer", "--init-script", scriptB, "--init-script", scriptA, "--build-cache").build();
+        assertThat(afterReorder.task(":testServer").getOutcome())
+                .as("reordering init scripts must invalidate the cache")
+                .isEqualTo(TaskOutcome.SUCCESS);
+    }
+
+    private void assertVerificationTaskInvalidatesOnBuildScriptChange(String task) throws IOException {
+        var ith = new IntegrationTestHelper(tempDir, "8.14");
+        configureSimpleBuildForVerification(ith);
+
+        GradleRunner runner = ith.gradleRunner();
+        var taskPath = ":" + task;
+
+        var first = runner.withArguments(task).build();
+        assertThat(first.task(taskPath).getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
+
+        var secondNoChange = runner.withArguments(task).build();
+        assertThat(secondNoChange.task(taskPath).getOutcome())
+                .as("unchanged inputs should hit the cache")
+                .isEqualTo(TaskOutcome.UP_TO_DATE);
+
+        // Append a comment to build.gradle.kts — changes file content without affecting behavior.
+        Files.writeString(ith.inProjectDir("build.gradle.kts").toPath(),
+                "\n// cache-invalidation marker\n",
+                StandardCharsets.UTF_8, StandardOpenOption.APPEND);
+        var afterBuildScriptEdit = runner.withArguments(task).build();
+        assertThat(afterBuildScriptEdit.task(taskPath).getOutcome())
+                .as("editing build.gradle.kts must invalidate the cache")
+                .isEqualTo(TaskOutcome.SUCCESS);
+    }
+
+    private void assertVerificationTaskCachingBehavior(String task) throws IOException {
+        var ith = new IntegrationTestHelper(tempDir, "8.14");
+        configureSimpleBuildForVerification(ith);
+
+        // A non-empty source set ensures the testHplRun cache must track classes/resources
+        // via referencedFiles — without that wiring, removing this file would not invalidate
+        // the cache (the .hpl text only references paths, not content).
+        ith.mkDirInProjectDir("src/main/java/com/example");
+        var source = ith.inProjectDir("src/main/java/com/example/Example.java").toPath();
+        Files.writeString(source,
+                "package com.example; public class Example { public String hello() { return \"v1\"; } }\n",
+                StandardCharsets.UTF_8);
+
+        GradleRunner runner = ith.gradleRunner();
+        var taskPath = ":" + task;
+
+        var first = runner.withArguments(task, "--build-cache").build();
+        assertThat(first.task(taskPath).getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
+        assertThat(first.getOutput()).contains("Jenkins is fully up and running");
+
+        var secondNoChange = runner.withArguments(task, "--build-cache").build();
+        assertThat(secondNoChange.task(taskPath).getOutcome())
+                .as("unchanged inputs should hit the cache and skip launching Jenkins")
+                .isEqualTo(TaskOutcome.UP_TO_DATE);
+        assertThat(secondNoChange.getOutput()).doesNotContain("Jenkins is fully up and running");
+
+        // Delete build outputs to force a cache lookup instead of an UP_TO_DATE check.
+        deleteDirectory(ith.inProjectDir("build"));
+        var fromCache = runner.withArguments(task, "--build-cache").build();
+        assertThat(fromCache.task(taskPath).getOutcome())
+                .as("after build dir is deleted, the task must be restored FROM_CACHE rather than re-executing")
+                .isEqualTo(TaskOutcome.FROM_CACHE);
+        assertThat(fromCache.getOutput()).doesNotContain("Jenkins is fully up and running");
+
+        // Edit-in-place: the .class file's content changes but its path does not. For
+        // testHplRun, the .hpl manifest's Libraries attribute lists paths (filtered by
+        // File.exists), so editing alone does NOT change the .hpl bytes.
+        Files.writeString(source,
+                "package com.example; public class Example { public String hello() { return \"v2\"; } }\n",
+                StandardCharsets.UTF_8);
+        var afterEdit = runner.withArguments(task).build();
+        assertThat(afterEdit.task(taskPath).getOutcome())
+                .as("editing main source must invalidate the cache (catches missing referencedFiles wiring on testHplRun)")
+                .isEqualTo(TaskOutcome.SUCCESS);
+        assertThat(afterEdit.getOutput()).contains("Jenkins is fully up and running");
+
+        var rerunTasks = runner.withArguments(task, "--rerun-tasks").build();
+        assertThat(rerunTasks.task(taskPath).getOutcome())
+                .as("--rerun-tasks must force the task to run regardless of cache state")
+                .isEqualTo(TaskOutcome.SUCCESS);
+        assertThat(rerunTasks.getOutput()).contains("Jenkins is fully up and running");
     }
 
     @Test
