@@ -8,6 +8,7 @@ import org.gradle.api.Project;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
+import org.gradle.api.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -22,11 +23,13 @@ class PomBuilder implements Action<XmlProvider> {
     private final Configuration runtimeClasspath;
     private final Project project;
     private final JenkinsPluginExtension extension;
+    private final Logger logger;
 
-    public PomBuilder(Configuration runtimeClasspath, Project project, JenkinsPluginExtension extension) {
+    public PomBuilder(Configuration runtimeClasspath, Project project, JenkinsPluginExtension extension, Logger logger) {
         this.runtimeClasspath = runtimeClasspath;
         this.project = project;
         this.extension = extension;
+        this.logger = logger;
     }
 
     private static Optional<String> getNodeElement(Node dependencyNode, String elementName) {
@@ -85,7 +88,7 @@ class PomBuilder implements Action<XmlProvider> {
                 }
                 dependencyNode.appendNode(new QName(POM_NS, "version"), resolvedDependency.get().getModuleVersion());
             } else {
-                System.err.println("Dependency not found: " + groupId + ":" + artifactId);
+                logger.warn("Dependency not found: {}:{}", groupId, artifactId);
             }
         });
     }

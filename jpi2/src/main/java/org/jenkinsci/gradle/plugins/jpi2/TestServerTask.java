@@ -210,7 +210,7 @@ public abstract class TestServerTask extends DefaultTask {
                 } catch (InterruptedException e) {
                     // Ignore
                 }
-                System.err.println("Timeout reached, terminating Jenkins server");
+                getLogger().warn("Timeout reached, terminating Jenkins server");
                 process.destroy();
             });
 
@@ -259,11 +259,11 @@ public abstract class TestServerTask extends DefaultTask {
         return new ProcessBuilder(commandLine).directory(new File(getRootDir().get())).redirectErrorStream(true).start();
     }
 
-    private static boolean isProcessSuccessful(BufferedReader stdoutReader, Process process) throws IOException, InterruptedException {
+    private boolean isProcessSuccessful(BufferedReader stdoutReader, Process process) throws IOException, InterruptedException {
         String stdout;
 
         while ((stdout = stdoutReader.readLine()) != null) {
-            System.err.println("    " + stdout);
+            getLogger().lifecycle("    {}", stdout);
             if (stdout.contains("Jenkins is fully up and running")) {
                 process.destroy();
                 return true;
@@ -336,7 +336,7 @@ public abstract class TestServerTask extends DefaultTask {
         commandLine.add(getServerTaskPath().get());
         commandLine.add("-Dserver.port=" + getPortAllocationService().get().findAndReserveFreePort());
         commandLine.add("-P" + WorkDirectorySettings.PROPERTY + "=" + workDir.toAbsolutePath());
-        System.err.println("Command: " + commandLine);
+        getLogger().info("Command: {}", commandLine);
         return commandLine;
     }
 }

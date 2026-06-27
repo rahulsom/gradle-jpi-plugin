@@ -413,7 +413,7 @@ public class V2JpiPlugin implements Plugin<Project> {
         publication.getPom().getName().set(extension.getDisplayName());
         publication.getPom().getUrl().set(extension.getHomePage().map(URI::toASCIIString));
         publication.getPom().getDescription().set(project.provider(project::getDescription));
-        publication.getPom().withXml(new PomBuilder(runtimeClasspath, project, extension));
+        publication.getPom().withXml(new PomBuilder(runtimeClasspath, project, extension, project.getLogger()));
     }
 
     @NotNull
