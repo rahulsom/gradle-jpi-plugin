@@ -211,7 +211,7 @@ public abstract class TestServerTask extends DefaultTask {
                     // Ignore
                 }
                 System.err.println("Timeout reached, terminating Jenkins server");
-                process.destroy();
+                terminateProcessTree(process);
             });
 
             timerThread.start();
@@ -265,16 +265,32 @@ public abstract class TestServerTask extends DefaultTask {
         while ((stdout = stdoutReader.readLine()) != null) {
             System.err.println("    " + stdout);
             if (stdout.contains("Jenkins is fully up and running")) {
-                process.destroy();
+                terminateProcessTree(process);
                 return true;
             }
             if (FAILURE_MESSAGES.stream().anyMatch(stdout::contains)) {
-                process.destroy();
+                terminateProcessTree(process);
                 process.waitFor();
                 throw new GradleException("Jenkins failed to start: " + stdout);
             }
         }
         return false;
+    }
+
+    /**
+     * Terminates the nested build and everything it spawned. The nested build runs
+     * {@code :server} / {@code :hplRun}, which never returns (Jenkins runs until killed), so only
+     * destroying the launched client would leave the Gradle daemon and the Jenkins JVM running —
+     * they reparent to init and accumulate across a test suite until the machine is exhausted.
+     *
+     * <p>The nested build is launched with {@code --no-daemon} precisely so that the build JVM (and
+     * the Jenkins JVM it forks) are descendants of this process and therefore reachable here.
+     * Descendants are destroyed first so nothing is missed when the root exits and its children
+     * would otherwise reparent.
+     */
+    private static void terminateProcessTree(Process process) {
+        process.descendants().forEach(ProcessHandle::destroyForcibly);
+        process.destroyForcibly();
     }
 
     @NotNull
@@ -302,6 +318,10 @@ public abstract class TestServerTask extends DefaultTask {
         List<String> commandLine = new ArrayList<>();
         commandLine.add(getGradleExecutable().get());
         commandLine.add("-Dorg.gradle.java.home=" + getJavaHome().get());
+        // Run without a daemon so the build JVM (and the Jenkins JVM it forks) are descendants of
+        // the launched process. A reused daemon is detached (its parent is init), so it — and the
+        // Jenkins it keeps running — would survive killing the client and leak. See terminateProcessTree.
+        commandLine.add("--no-daemon");
 
         for (var initScriptPath : getInitScriptPaths().get()) {
             commandLine.add("--init-script");

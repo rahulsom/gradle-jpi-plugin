@@ -139,6 +139,24 @@ class MultiModuleIntegrationTest extends V2IntegrationTestBase {
     }
 
     @Test
+    @Timeout(value = 15, unit = TimeUnit.MINUTES)
+    void concurrentTestServersAcrossModulesDoNotTripValidation() throws IOException {
+        var ith = new IntegrationTestHelper(tempDir, "8.14");
+        configureTwoPluginsForVerification(ith);
+
+        // downstream depends on upstream, so downstream's prepareServer source (which testServer
+        // fingerprints) includes upstream's produced artifacts. Running both testServers together
+        // must not trip Gradle's implicit-dependency validation on the upstream producing task.
+        var result = ith.gradleRunner()
+                .withArguments(":upstream:testServer", ":downstream:testServer")
+                .build();
+
+        assertThat(result.task(":upstream:testServer").getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
+        assertThat(result.task(":downstream:testServer").getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
+        assertThat(result.getOutput()).doesNotContain("without declaring an explicit or implicit dependency");
+    }
+
+    @Test
     void multiModuleWithNestedDependenciesShouldLaunchRun() throws IOException, InterruptedException {
         // given
         var ith = new IntegrationTestHelper(tempDir, "8.14");
