@@ -1,7 +1,6 @@
 import okio.buffer
 import okio.sink
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
-import org.gradle.api.tasks.testing.logging.TestLogEvent
 import java.nio.file.StandardOpenOption
 
 buildscript {
@@ -135,13 +134,9 @@ tasks.addRule("Pattern: testGradle<ID>") {
     }
 }
 
-val isCi = providers.environmentVariable("CI")
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
     testLogging {
-        if (isCi.map { it.toBoolean() }.getOrElse(false)) {
-            events(TestLogEvent.FAILED, TestLogEvent.PASSED, TestLogEvent.SKIPPED)
-        }
         exceptionFormat = FULL
     }
 }

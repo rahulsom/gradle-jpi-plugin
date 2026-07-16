@@ -5,6 +5,7 @@ buildscript {
 }
 plugins {
     alias(libs.plugins.distribution.sha)
+    alias(libs.plugins.test.logger) apply false
 }
 
 allprojects {
@@ -31,5 +32,6 @@ subprojects {
                 languageVersion.set(JavaLanguageVersion.of(17))
             }
         }
+        apply(plugin = "com.adarshr.test-logger")
     }
 }
