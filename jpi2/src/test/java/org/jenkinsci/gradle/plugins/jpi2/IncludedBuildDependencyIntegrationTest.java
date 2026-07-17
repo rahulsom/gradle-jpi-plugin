@@ -3,15 +3,12 @@ package org.jenkinsci.gradle.plugins.jpi2;
 import java.nio.file.Files;
 import org.jenkinsci.gradle.plugins.jpi.IntegrationTestHelper;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledOnOs;
-import org.junit.jupiter.api.condition.OS;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DisabledOnOs(value = OS.WINDOWS, disabledReason = "TempDir doesn't appear to work correctly on Windows")
 class IncludedBuildDependencyIntegrationTest extends V2IntegrationTestBase {
 
     @Test

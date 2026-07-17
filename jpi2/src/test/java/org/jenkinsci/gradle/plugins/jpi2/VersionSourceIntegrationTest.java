@@ -8,8 +8,6 @@ import org.gradle.testkit.runner.BuildResult;
 import org.jenkinsci.gradle.plugins.jpi.IntegrationTestHelper;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledOnOs;
-import org.junit.jupiter.api.condition.OS;
 
 import java.io.File;
 import java.io.FileReader;
@@ -22,7 +20,6 @@ import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DisabledOnOs(value = OS.WINDOWS, disabledReason = "TempDir doesn't appear to work correctly on Windows")
 class VersionSourceIntegrationTest extends V2IntegrationTestBase {
 
     private static final Pattern GIT_HASH = Pattern.compile("[a-f0-9]{40}");

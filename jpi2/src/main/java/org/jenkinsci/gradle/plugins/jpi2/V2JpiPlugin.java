@@ -43,6 +43,7 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -267,7 +268,9 @@ public class V2JpiPlugin implements Plugin<Project> {
         var gradle = project.getGradle();
         var startParameter = gradle.getStartParameter();
         var gradleHome = gradle.getGradleHomeDir();
-        var gradleExecutable = gradleHome != null ? new File(gradleHome, "bin/gradle").getAbsolutePath() : "gradle";
+        var isWindows = System.getProperty("os.name", "").toLowerCase(Locale.ROOT).contains("windows");
+        var gradleScriptName = isWindows ? "bin/gradle.bat" : "bin/gradle";
+        var gradleExecutable = gradleHome != null ? new File(gradleHome, gradleScriptName).getAbsolutePath() : "gradle";
         var isRootProject = project == project.getRootProject();
         var projectPath = project.getPath();
 
