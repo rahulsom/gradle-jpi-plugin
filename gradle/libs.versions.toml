@@ -54,3 +54,4 @@ xmlunit = { module = "org.xmlunit:xmlunit-core", version.ref = "xmlunit" }
 [plugins]
 distribution-sha = { id = "com.github.sghill.distribution-sha", version = "0.4.0" }
 plugin-publish = { id = "com.gradle.plugin-publish", version = "2.1.1" }
+test-logger = { id = "com.adarshr.test-logger", version = "4.0.0" }

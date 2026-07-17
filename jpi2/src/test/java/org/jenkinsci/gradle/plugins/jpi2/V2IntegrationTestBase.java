@@ -67,9 +67,11 @@ abstract class V2IntegrationTestBase {
                 }
                 tasks.named<JavaExec>("server") {
                     args("--httpPort=%d")
+                    maxHeapSize = "512m"
                 }
                 tasks.named<JavaExec>("hplRun") {
                     args("--httpPort=%d")
+                    maxHeapSize = "512m"
                 }
                 tasks.withType(Test::class) {
                     useJUnitPlatform()
@@ -92,9 +94,11 @@ abstract class V2IntegrationTestBase {
                 }
                 tasks.named<JavaExec>("server") {
                     args("--httpPort=%d")
+                    maxHeapSize = "512m"
                 }
                 tasks.named<JavaExec>("hplRun") {
                     args("--httpPort=%d")
+                    maxHeapSize = "512m"
                 }
                 tasks.withType(Test::class) {
                     useJUnitPlatform()

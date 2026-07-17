@@ -34,6 +34,10 @@ public class IntegrationTestHelper {
         if (!existsRelativeToProjectDir("gradle.properties")) {
             var props = new Properties();
             props.setProperty("org.gradle.warning.mode", warningMode.name().toLowerCase(Locale.US));
+            props.setProperty("org.gradle.jvmargs", "-Xmx512m -XX:MaxMetaspaceSize=256m");
+            // Nested-build daemons otherwise idle for hours, piling up alongside the outer
+            // daemon and the spawned Jenkins process; let them exit quickly once each test finishes.
+            props.setProperty("org.gradle.daemon.idletimeout", "10000");
             try (var outputStream = new FileOutputStream(gradleProperties)) {
                 props.store(outputStream, "IntegrationSpec default generated values");
             }

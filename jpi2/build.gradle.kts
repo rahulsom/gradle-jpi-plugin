@@ -34,6 +34,9 @@ tasks.withType<Test>().configureEach {
     testLogging {
         exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
     }
+    // This JVM mostly waits on nested Gradle/Jenkins processes rather than doing heap-heavy
+    // work itself; capping it leaves more headroom for those nested processes.
+    maxHeapSize = "512m"
 }
 
 publishing {
