@@ -208,7 +208,7 @@ public abstract class TestServerTask extends DefaultTask {
                 try {
                     Thread.sleep(timeout * 1000L);
                 } catch (InterruptedException e) {
-                    // Ignore
+                    return;
                 }
                 getLogger().warn("Timeout reached, terminating Jenkins server");
                 process.destroy();
@@ -229,6 +229,7 @@ public abstract class TestServerTask extends DefaultTask {
         } catch (IOException e) {
             throw new GradleException("IO Exception", e);
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             throw new GradleException("Process interrupted", e);
         } finally {
             cleanupWorkDirectory(workDir);
