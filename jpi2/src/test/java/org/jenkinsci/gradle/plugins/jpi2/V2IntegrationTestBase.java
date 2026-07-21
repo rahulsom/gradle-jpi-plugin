@@ -7,8 +7,6 @@ import org.gradle.testkit.runner.GradleRunner;
 import org.jenkinsci.gradle.plugins.jpi.IntegrationTestHelper;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Timeout;
-import org.junit.jupiter.api.condition.DisabledOnOs;
-import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.CleanupMode;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -33,7 +31,6 @@ import java.util.jar.JarOutputStream;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Timeout(value = 5, unit = TimeUnit.MINUTES)
-@DisabledOnOs(value = OS.WINDOWS, disabledReason = "TempDir doesn't appear to work correctly on Windows")
 abstract class V2IntegrationTestBase {
 
     @TempDir(cleanup = CleanupMode.NEVER)

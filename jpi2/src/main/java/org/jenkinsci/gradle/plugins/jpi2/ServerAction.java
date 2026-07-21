@@ -39,13 +39,14 @@ class ServerAction implements Action<JavaExec> {
         spec.getMainClass().set("executable.Main");
         spec.doFirst(task -> {
             var resolvedWorkDir = workDir.get();
+            var serverPort = task.getProject().findProperty("server.port");
             var args = new ArrayList<String>();
             args.addAll(List.of(
                     "--webroot=" + projectRoot + "/build/jenkins/war",
                     "--pluginroot=" + projectRoot + "/build/jenkins/plugins",
                     "--extractedFilesFolder=" + projectRoot + "/build/jenkins/extracted",
                     "--commonLibFolder=" + resolvedWorkDir + "/lib",
-                    "--httpPort=" + System.getProperty("server.port", "8080")
+                    "--httpPort=" + (serverPort != null ? serverPort : "8080")
             ));
             args.addAll(spec.getArgs());
             spec.setArgs(args);

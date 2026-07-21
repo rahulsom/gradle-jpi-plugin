@@ -195,10 +195,10 @@ public abstract class TestServerTask extends DefaultTask {
     public void runTestServer() {
         var timeoutSystemProperty = System.getProperty("testServer.timeoutSeconds", "120");
         var timeout = Integer.parseInt(timeoutSystemProperty);
-        Path workDir = null;
 
         clearSuccessMarker();
 
+        Path workDir = null;
         try {
             workDir = createWorkDirectory();
             var commandLine = getCommandLine(workDir);
@@ -211,7 +211,7 @@ public abstract class TestServerTask extends DefaultTask {
                     return;
                 }
                 getLogger().warn("Timeout reached, terminating Jenkins server");
-                process.destroy();
+                destroyTree(process);
             });
 
             timerThread.start();
@@ -260,17 +260,27 @@ public abstract class TestServerTask extends DefaultTask {
         return new ProcessBuilder(commandLine).directory(new File(getRootDir().get())).redirectErrorStream(true).start();
     }
 
+    /**
+     * {@link Process#destroy()} only terminates the launched process itself, not the forked
+     * JavaExec JVM it starts, so that JVM (and the Jenkins server port/files it holds) would
+     * otherwise keep running for the rest of the build.
+     */
+    private static void destroyTree(Process process) {
+        process.descendants().forEach(ProcessHandle::destroyForcibly);
+        process.destroy();
+    }
+
     private boolean isProcessSuccessful(BufferedReader stdoutReader, Process process) throws IOException, InterruptedException {
         String stdout;
 
         while ((stdout = stdoutReader.readLine()) != null) {
             getLogger().lifecycle("    {}", stdout);
             if (stdout.contains("Jenkins is fully up and running")) {
-                process.destroy();
+                destroyTree(process);
                 return true;
             }
             if (FAILURE_MESSAGES.stream().anyMatch(stdout::contains)) {
-                process.destroy();
+                destroyTree(process);
                 process.waitFor();
                 throw new GradleException("Jenkins failed to start: " + stdout);
             }
@@ -301,19 +311,20 @@ public abstract class TestServerTask extends DefaultTask {
     @NotNull
     private List<String> getCommandLine(@NotNull Path workDir) {
         List<String> commandLine = new ArrayList<>();
-        commandLine.add(getGradleExecutable().get());
-        commandLine.add("-Dorg.gradle.java.home=" + getJavaHome().get());
+        commandLine.add(slashify(getGradleExecutable().get()));
+        commandLine.add("-Dorg.gradle.java.home=" + slashify(getJavaHome().get()));
 
         for (var initScriptPath : getInitScriptPaths().get()) {
             commandLine.add("--init-script");
-            commandLine.add(initScriptPath);
+            commandLine.add(slashify(initScriptPath));
         }
 
         for (var includedBuild : getIncludedBuilds().get()) {
             commandLine.add("--include-build");
-            commandLine.add(includedBuild);
+            commandLine.add(slashify(includedBuild));
         }
 
+        commandLine.add("--no-daemon");
         if (getOffline().get()) commandLine.add("--offline");
         if (getBuildCacheEnabled().get()) commandLine.add("--build-cache");
         if (getRefreshDependencies().get()) commandLine.add("--refresh-dependencies");
@@ -325,19 +336,31 @@ public abstract class TestServerTask extends DefaultTask {
 
         getSystemProperties().get().forEach((k, v) -> {
             if (!k.equals(WorkDirectorySettings.PROPERTY)) {
-                commandLine.add("-D" + k + "=" + v);
+                commandLine.add("-D" + k + "=" + slashify(v));
             }
         });
         getProjectProperties().get().forEach((k, v) -> {
             if (!k.equals(WorkDirectorySettings.PROPERTY)) {
-                commandLine.add("-P" + k + "=" + v);
+                commandLine.add("-P" + k + "=" + slashify(v));
             }
         });
 
         commandLine.add(getServerTaskPath().get());
-        commandLine.add("-Dserver.port=" + getPortAllocationService().get().findAndReserveFreePort());
-        commandLine.add("-P" + WorkDirectorySettings.PROPERTY + "=" + workDir.toAbsolutePath());
+        commandLine.add("-Pserver.port=" + getPortAllocationService().get().findAndReserveFreePort());
+        commandLine.add("-P" + WorkDirectorySettings.PROPERTY + "=" + slashify(workDir.toAbsolutePath().toString()));
         getLogger().info("Command: {}", commandLine);
         return commandLine;
+    }
+
+    /**
+     * Backslashes in Windows paths get silently dropped somewhere between here and the spawned
+     * Gradle process reading its own arguments (observed even on values, like
+     * {@link #getGradleExecutable()}, that never pass through our own {@code -D}/{@code -P}
+     * parsing). Forward slashes are accepted in paths on Windows, so use those everywhere a
+     * path is placed on the spawned process's command line.
+     */
+    @NotNull
+    private static String slashify(@NotNull String value) {
+        return value.replace('\\', '/');
     }
 }
