@@ -158,6 +158,11 @@ public class V2JpiPlugin implements Plugin<Project> {
                 war.getManifest().from(optionalManifestFile);
                 war.getWebInf().from(licenseTask.flatMap(GenerateLicenseInfoTask::getOutputDirectory));
                 war.getArchiveVersion().set(extension.getEffectiveVersion());
+                // Gradle's own default for these flipped between the 8.x and 9.x lines; pin them so the
+                // archive's bytes (and therefore testServer's build-cache key, which fingerprints this
+                // file) don't depend on which Gradle version is running.
+                war.setPreserveFileTimestamps(false);
+                war.setReproducibleFileOrder(true);
             }
         });
         project.getTasks().named("jar", Jar.class).configure(new Action<>() {
@@ -166,6 +171,8 @@ public class V2JpiPlugin implements Plugin<Project> {
                 jarTask.manifest(new ManifestAction(project, defaultRuntime, extension));
                 jarTask.getInputs().file(optionalManifestFile);
                 jarTask.getManifest().from(optionalManifestFile);
+                jarTask.setPreserveFileTimestamps(false);
+                jarTask.setReproducibleFileOrder(true);
             }
         });
         Provider<Directory> jpiDirectory = project.getLayout().getBuildDirectory().dir("jpi");

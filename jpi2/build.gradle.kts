@@ -103,21 +103,37 @@ gradlePlugin {
 
 fun Project.stringProp(named: String): String? = findProperty(named) as String?
 
-tasks.addRule("Pattern: testGradle<ID>") {
+val javaVersions = listOf(17)
+val umbrellaPattern = Regex("^testGradle([0-9]+(?:\\.[0-9]+)*)$")
+val perJavaPattern = Regex("^testGradle([0-9]+(?:\\.[0-9]+)*)onJava([0-9]+)$")
+
+fun Project.registerJavaSpecificTestGradleTask(gradleVersion: String, javaVersion: Int) =
+    tasks.register<Test>("testGradle${gradleVersion}onJava${javaVersion}") {
+        val testSourceSet = sourceSets.test.get()
+        testClassesDirs = testSourceSet.output.classesDirs
+        classpath = testSourceSet.runtimeClasspath
+        systemProperty("gradle.under.test", gradleVersion)
+        setTestNameIncludePatterns(listOf("*IntegrationTest"))
+        javaLauncher.set(javaToolchains.launcherFor {
+            languageVersion.set(JavaLanguageVersion.of(javaVersion))
+        })
+    }
+
+tasks.addRule("Pattern: testGradle<ID>[onJava<Version>]") {
     val taskName = this
-    if (!taskName.startsWith("testGradle")) return@addRule
-    val task = tasks.register(taskName)
-    for (javaVersion in listOf(17)) {
-        val javaSpecificTask = tasks.register<Test>("${taskName}onJava${javaVersion}") {
-            val gradleVersion = taskName.substringAfter("testGradle")
-            systemProperty("gradle.under.test", gradleVersion)
-            setTestNameIncludePatterns(listOf("*IntegrationTest"))
-            javaLauncher.set(javaToolchains.launcherFor {
-                languageVersion.set(JavaLanguageVersion.of(javaVersion))
-            })
-        }
-        task.configure {
-            dependsOn(javaSpecificTask)
+    perJavaPattern.matchEntire(taskName)?.let { match ->
+        val (gradleVersion, javaVersion) = match.destructured
+        registerJavaSpecificTestGradleTask(gradleVersion, javaVersion.toInt())
+        return@addRule
+    }
+    umbrellaPattern.matchEntire(taskName)?.let { match ->
+        val gradleVersion = match.groupValues[1]
+        val task = tasks.register(taskName)
+        for (javaVersion in javaVersions) {
+            val javaSpecificTask = registerJavaSpecificTestGradleTask(gradleVersion, javaVersion)
+            task.configure {
+                dependsOn(javaSpecificTask)
+            }
         }
     }
 }
