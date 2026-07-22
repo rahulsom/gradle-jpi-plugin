@@ -45,14 +45,14 @@ publishing {
             pom {
                 name.set("Gradle JPI Plugin V2")
                 description.set("V2 plugin for building Jenkins plugins with Gradle 8+")
-                url.set("http://github.com/jenkinsci/gradle-jpi-plugin")
+                url.set("https://github.com/jenkinsci/gradle-jpi-plugin")
                 scm {
                     url.set("https://github.com/jenkinsci/gradle-jpi-plugin")
                 }
                 licenses {
                     license {
                         name.set("Apache 2.0")
-                        url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                        url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
                         distribution.set("repo")
                     }
                 }
@@ -80,9 +80,9 @@ publishing {
 }
 
 signing {
-    val signingKeyId: String? by project
-    val signingKey: String? by project
-    val signingPassword: String? by project
+    val signingKeyId = project.stringProp("signingKeyId")
+    val signingKey = project.stringProp("signingKey")
+    val signingPassword = project.stringProp("signingPassword")
     useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
     setRequired { setOf("jenkins.username", "jenkins.password").all { project.hasProperty(it) } }
 }
