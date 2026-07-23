@@ -42,7 +42,7 @@ public class Neptune {
     private static void write(Path path, String contents) {
         try {
             Files.createDirectories(path.getParent());
-            Files.write(path, contents.getBytes(StandardCharsets.UTF_8));
+            Files.writeString(path, contents);
         } catch (IOException e) {
             LOGGER.error("Failed to write to " + path, e);
         }

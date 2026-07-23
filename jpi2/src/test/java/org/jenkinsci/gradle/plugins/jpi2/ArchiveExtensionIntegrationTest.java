@@ -36,11 +36,11 @@ class ArchiveExtensionIntegrationTest extends V2IntegrationTestBase {
         // given
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
-        Files.write(ith.inProjectDir("build.gradle.kts").toPath(), (getBasePluginConfig() + /* language=kotlin */ """
+        Files.writeString(ith.inProjectDir("build.gradle.kts").toPath(), getBasePluginConfig() + /* language=kotlin */ """
                 jenkinsPlugin {
                     archiveExtension.set("hpi")
                 }
-                """).getBytes(StandardCharsets.UTF_8));
+                """);
 
         // when
         ith.gradleRunner().withArguments("jpi").build();
@@ -57,11 +57,11 @@ class ArchiveExtensionIntegrationTest extends V2IntegrationTestBase {
         // given
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
-        Files.write(ith.inProjectDir("build.gradle.kts").toPath(), (getBasePluginConfig() + /* language=kotlin */ """
+        Files.writeString(ith.inProjectDir("build.gradle.kts").toPath(), getBasePluginConfig() + /* language=kotlin */ """
                 jenkinsPlugin {
                     archiveExtension.set("hpi")
                 }
-                """).getBytes(StandardCharsets.UTF_8));
+                """);
 
         // when
         ith.gradleRunner().withArguments("publish").build();
@@ -83,11 +83,11 @@ class ArchiveExtensionIntegrationTest extends V2IntegrationTestBase {
         // given
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
-        Files.write(ith.inProjectDir("build.gradle.kts").toPath(), (getBasePluginConfig() + /* language=kotlin */ """
+        Files.writeString(ith.inProjectDir("build.gradle.kts").toPath(), getBasePluginConfig() + /* language=kotlin */ """
                 jenkinsPlugin {
                     archiveExtension.set("hpi")
                 }
-                """).getBytes(StandardCharsets.UTF_8));
+                """);
 
         // when
         ith.gradleRunner().withArguments("prepareServer").build();
