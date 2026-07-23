@@ -24,9 +24,9 @@ class DependencyResolutionIntegrationTest extends V2IntegrationTestBase {
         // given
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
-        Files.write(ith.inProjectDir("build.gradle.kts").toPath(), (getBasePluginConfig()).getBytes(StandardCharsets.UTF_8));
+        Files.writeString(ith.inProjectDir("build.gradle.kts").toPath(), getBasePluginConfig());
         ith.mkDirInProjectDir("src/main/java/com/example/plugin");
-        Files.write(ith.inProjectDir("src/main/java/com/example/plugin/SomeExtension.java").toPath(), (/* language=java */ """
+        Files.writeString(ith.inProjectDir("src/main/java/com/example/plugin/SomeExtension.java").toPath(), /* language=java */ """
                 package com.example.plugin;
                 @hudson.Extension
                 public class SomeExtension {
@@ -34,7 +34,7 @@ class DependencyResolutionIntegrationTest extends V2IntegrationTestBase {
                         System.out.println("Hello from SomeExtension");
                     }
                 }
-                """).getBytes(StandardCharsets.UTF_8));
+                """);
 
         GradleRunner gradleRunner = ith.gradleRunner();
 
@@ -54,16 +54,16 @@ class DependencyResolutionIntegrationTest extends V2IntegrationTestBase {
         // given
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
-        Files.write(ith.inProjectDir("build.gradle.kts").toPath(), (getBasePluginConfig() +/* language=kotlin */ """
+        Files.writeString(ith.inProjectDir("build.gradle.kts").toPath(), getBasePluginConfig() +/* language=kotlin */ """
                 dependencies {
                     annotationProcessor("org.projectlombok:lombok:1.18.38")
                     compileOnly("org.projectlombok:lombok:1.18.38")
                     runtimeOnly("com.google.inject:guice:5.1.0") // This is an older version of Guice that should get upgraded
                 }
                 configurations.getByName("compileClasspath").shouldResolveConsistentlyWith(configurations.getByName("runtimeClasspath"))
-                """).getBytes(StandardCharsets.UTF_8));
+                """);
         ith.mkDirInProjectDir("src/main/java/com/example/plugin");
-        Files.write(ith.inProjectDir("src/main/java/com/example/plugin/PluginAction.java").toPath(), /* language=java */ """
+        Files.writeString(ith.inProjectDir("src/main/java/com/example/plugin/PluginAction.java").toPath(), /* language=java */ """
                 package com.example.plugin;
                 import lombok.*;
                 import hudson.Extension;
@@ -81,7 +81,7 @@ class DependencyResolutionIntegrationTest extends V2IntegrationTestBase {
                     public String getDisplayName() { return "Example plugin"; }
                     public String getIconFileName() { return null; }
                 }
-                """.getBytes(StandardCharsets.UTF_8));
+                """);
 
         // when
         var gradleRunner = ith.gradleRunner();
@@ -116,12 +116,12 @@ class DependencyResolutionIntegrationTest extends V2IntegrationTestBase {
         // given
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
-        Files.write(ith.inProjectDir("build.gradle.kts").toPath(), (getBasePluginConfig() + /* language=kotlin */ """
+        Files.writeString(ith.inProjectDir("build.gradle.kts").toPath(), getBasePluginConfig() + /* language=kotlin */ """
                 dependencies {
                     implementation("org.jenkins-ci.plugins:git:5.7.0")
                     implementation("com.github.rahulsom:nothing-java:0.2.0")
                 }
-                """).getBytes(StandardCharsets.UTF_8));
+                """);
 
         var gradleRunner = ith.gradleRunner();
 
@@ -143,12 +143,12 @@ class DependencyResolutionIntegrationTest extends V2IntegrationTestBase {
         // given
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
-        Files.write(ith.inProjectDir("build.gradle.kts").toPath(), (getBasePluginConfig() + /* language=kotlin */ """
+        Files.writeString(ith.inProjectDir("build.gradle.kts").toPath(), getBasePluginConfig() + /* language=kotlin */ """
                 dependencies {
                     implementation("org.jenkins-ci.plugins:git:5.7.0")
                     implementation("com.github.rahulsom:nothing-java:0.2.0")
                 }
-                """).getBytes(StandardCharsets.UTF_8));
+                """);
 
         var gradleRunner = ith.gradleRunner();
 
@@ -170,13 +170,13 @@ class DependencyResolutionIntegrationTest extends V2IntegrationTestBase {
         // given
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
-        Files.write(ith.inProjectDir("build.gradle.kts").toPath(), (getBasePluginConfig() + /* language=kotlin */ """
+        Files.writeString(ith.inProjectDir("build.gradle.kts").toPath(), getBasePluginConfig() + /* language=kotlin */ """
                 dependencies {
                     implementation("com.github.rahulsom:nothing-java:0.2.0") {
                         exclude(group = "org.apache.commons", module = "commons-lang3")
                     }
                 }
-                """).getBytes(StandardCharsets.UTF_8));
+                """);
 
         var gradleRunner = ith.gradleRunner();
 

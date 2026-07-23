@@ -52,8 +52,7 @@ class MetadataIntegrationTest extends V2IntegrationTestBase {
     void manifestContainsHomePageAndCompatibleSinceVersion() throws IOException {
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
-        Files.write(ith.inProjectDir("build.gradle.kts").toPath(), (getBasePluginConfig() + FULL_METADATA_CONFIG)
-                .getBytes(StandardCharsets.UTF_8));
+        Files.writeString(ith.inProjectDir("build.gradle.kts").toPath(), getBasePluginConfig() + FULL_METADATA_CONFIG);
 
         ith.gradleRunner().withArguments("build").build();
 
@@ -72,8 +71,7 @@ class MetadataIntegrationTest extends V2IntegrationTestBase {
     void pomContainsDevelopersAndLicenses() throws IOException, XmlPullParserException {
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
-        Files.write(ith.inProjectDir("build.gradle.kts").toPath(), (getBasePluginConfig() + FULL_METADATA_CONFIG)
-                .getBytes(StandardCharsets.UTF_8));
+        Files.writeString(ith.inProjectDir("build.gradle.kts").toPath(), getBasePluginConfig() + FULL_METADATA_CONFIG);
 
         ith.gradleRunner().withArguments("publish").build();
 
@@ -104,7 +102,7 @@ class MetadataIntegrationTest extends V2IntegrationTestBase {
     void defaultsApplyWhenMetadataNotConfigured() throws IOException {
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
-        Files.write(ith.inProjectDir("build.gradle.kts").toPath(), getBasePluginConfig().getBytes(StandardCharsets.UTF_8));
+        Files.writeString(ith.inProjectDir("build.gradle.kts").toPath(), getBasePluginConfig());
 
         ith.gradleRunner().withArguments("build").build();
 

@@ -129,9 +129,9 @@ abstract class V2IntegrationTestBase {
     }
 
     static void initBuild(IntegrationTestHelper ith) throws IOException {
-        Files.write(ith.inProjectDir("settings.gradle.kts").toPath(), /* language=kotlin */ """
+        Files.writeString(ith.inProjectDir("settings.gradle.kts").toPath(), /* language=kotlin */ """
                 rootProject.name = "test-plugin"
-                """.getBytes(StandardCharsets.UTF_8));
+                """);
     }
 
     static class TapWriter extends Writer {
@@ -208,14 +208,14 @@ abstract class V2IntegrationTestBase {
 
     static void configureSimpleBuild(IntegrationTestHelper ith) throws IOException {
         initBuild(ith);
-        Files.write(ith.inProjectDir("build.gradle.kts").toPath(), getBasePluginConfig().getBytes(StandardCharsets.UTF_8));
+        Files.writeString(ith.inProjectDir("build.gradle.kts").toPath(), getBasePluginConfig());
     }
 
     static void configureSimpleBuildForVerification(IntegrationTestHelper ith) throws IOException {
         initBuild(ith);
         var pluginJar = materializePluginJar(ith.inProjectDir("plugin-under-test/jpi2-under-test.jar"));
-        Files.write(ith.inProjectDir("build.gradle.kts").toPath(),
-                getBasePluginConfigWithBuildscriptClasspath(pluginJar.getAbsolutePath()).getBytes(StandardCharsets.UTF_8));
+        Files.writeString(ith.inProjectDir("build.gradle.kts").toPath(),
+                getBasePluginConfigWithBuildscriptClasspath(pluginJar.getAbsolutePath()));
     }
 
     static void configureTwoPluginsForVerification(IntegrationTestHelper ith) throws IOException {
@@ -256,25 +256,25 @@ abstract class V2IntegrationTestBase {
 
     static void configureBuildWithOssPluginDependency(IntegrationTestHelper ith) throws IOException {
         initBuild(ith);
-        Files.write(ith.inProjectDir("build.gradle.kts").toPath(), (getBasePluginConfig() + /* language=kotlin */ """
+        Files.writeString(ith.inProjectDir("build.gradle.kts").toPath(), getBasePluginConfig() + /* language=kotlin */ """
                 dependencies {
                     implementation("org.jenkins-ci.plugins:git:5.7.0")
                 }
-                """).getBytes(StandardCharsets.UTF_8));
+                """);
     }
 
     static void configureBuildWithOssLibraryDependency(IntegrationTestHelper ith) throws IOException {
         initBuild(ith);
-        Files.write(ith.inProjectDir("build.gradle.kts").toPath(), (getBasePluginConfig() + /* language=kotlin */ """
+        Files.writeString(ith.inProjectDir("build.gradle.kts").toPath(), getBasePluginConfig() + /* language=kotlin */ """
                 dependencies {
                     implementation("com.github.rahulsom:nothing-java:0.2.0")
                 }
-                """).getBytes(StandardCharsets.UTF_8));
+                """);
     }
 
     static void configureBuildWithApplicationPlugin(IntegrationTestHelper ith) throws IOException {
         initBuild(ith);
-        Files.write(ith.inProjectDir("build.gradle.kts").toPath(), (/* language=kotlin */ """
+        Files.writeString(ith.inProjectDir("build.gradle.kts").toPath(), /* language=kotlin */ """
                 plugins {
                     application
                     id("org.jenkins-ci.jpi2")
@@ -292,27 +292,26 @@ abstract class V2IntegrationTestBase {
                 tasks.named<JavaExec>("hplRun") {
                     args("--httpPort=%d")
                 }
-                """.formatted(RandomPortProvider.findFreePort(), RandomPortProvider.findFreePort()) + getPublishingConfig())
-                .getBytes(StandardCharsets.UTF_8));
+                """.formatted(RandomPortProvider.findFreePort(), RandomPortProvider.findFreePort()) + getPublishingConfig());
     }
 
     static void configureModuleWithNestedDependencies(IntegrationTestHelper ith) throws IOException {
-        Files.write(ith.inProjectDir("settings.gradle.kts").toPath(), /* language=kotlin */ """
+        Files.writeString(ith.inProjectDir("settings.gradle.kts").toPath(), /* language=kotlin */ """
                 rootProject.name = "test-plugin"
                 include("library-one", "library-two", "plugin-three", "plugin-four")
-                """.getBytes(StandardCharsets.UTF_8));
-        Files.write(ith.inProjectDir("gradle.properties").toPath(), /* language=properties */ """
+                """);
+        Files.writeString(ith.inProjectDir("gradle.properties").toPath(), /* language=properties */ """
                 jenkins.version=2.492.3
-                """.getBytes(StandardCharsets.UTF_8));
-        Files.write(ith.inProjectDir("build.gradle.kts").toPath(), ("").getBytes(StandardCharsets.UTF_8));
+                """);
+        Files.writeString(ith.inProjectDir("build.gradle.kts").toPath(), "");
         ith.mkDirInProjectDir("library-one");
-        Files.write(ith.inProjectDir("library-one/build.gradle.kts").toPath(), (getBaseLibraryConfig() + /* language=kotlin */ """
+        Files.writeString(ith.inProjectDir("library-one/build.gradle.kts").toPath(), getBaseLibraryConfig() + /* language=kotlin */ """
                 dependencies {
                     implementation("com.github.rahulsom:nothing-java:0.2.0")
                 }
-                """).getBytes(StandardCharsets.UTF_8));
+                """);
         ith.mkDirInProjectDir("library-one/src/main/java/com/example/lib1");
-        Files.write(ith.inProjectDir("library-one/src/main/java/com/example/lib1/Example.java").toPath(), (/* language=java */ """
+        Files.writeString(ith.inProjectDir("library-one/src/main/java/com/example/lib1/Example.java").toPath(), /* language=java */ """
                 package com.example.lib1;
                 import com.github.rahulsom.nothing.java.Foo;
                 public class Example {
@@ -320,15 +319,15 @@ abstract class V2IntegrationTestBase {
                         return "Hello";
                     }
                 }
-                """).getBytes(StandardCharsets.UTF_8));
+                """);
         ith.mkDirInProjectDir("library-two");
-        Files.write(ith.inProjectDir("library-two/build.gradle.kts").toPath(), (getBaseLibraryConfig() + /* language=kotlin */ """
+        Files.writeString(ith.inProjectDir("library-two/build.gradle.kts").toPath(), getBaseLibraryConfig() + /* language=kotlin */ """
                 dependencies {
                     implementation(project(":library-one"))
                 }
-                """).getBytes(StandardCharsets.UTF_8));
+                """);
         ith.mkDirInProjectDir("library-two/src/main/java/com/example/lib2");
-        Files.write(ith.inProjectDir("library-two/src/main/java/com/example/lib2/ExampleTwo.java").toPath(), (/* language=java */ """
+        Files.writeString(ith.inProjectDir("library-two/src/main/java/com/example/lib2/ExampleTwo.java").toPath(), /* language=java */ """
                 package com.example.lib2;
                 import com.example.lib1.Example;
                 public class ExampleTwo {
@@ -336,16 +335,16 @@ abstract class V2IntegrationTestBase {
                         return new Example().hello();
                     }
                 }
-                """).getBytes(StandardCharsets.UTF_8));
+                """);
         ith.mkDirInProjectDir("plugin-three");
-        Files.write(ith.inProjectDir("plugin-three/build.gradle.kts").toPath(), (getBasePluginConfig() + /* language=kotlin */ """
+        Files.writeString(ith.inProjectDir("plugin-three/build.gradle.kts").toPath(), getBasePluginConfig() + /* language=kotlin */ """
                 dependencies {
                     implementation(project(":library-two"))
                     implementation("org.jenkins-ci.plugins:git:5.7.0")
                 }
-                """).getBytes(StandardCharsets.UTF_8));
+                """);
         ith.mkDirInProjectDir("plugin-three/src/main/java/com/example/plugin3");
-        Files.write(ith.inProjectDir("plugin-three/src/main/java/com/example/plugin3/ExampleThree.java").toPath(), (/* language=java */ """
+        Files.writeString(ith.inProjectDir("plugin-three/src/main/java/com/example/plugin3/ExampleThree.java").toPath(), /* language=java */ """
                 package com.example.plugin3;
                 import com.example.lib2.ExampleTwo;
                 /** Example simple class. */
@@ -362,15 +361,15 @@ abstract class V2IntegrationTestBase {
                         return new ExampleTwo().hello();
                     }
                 }
-                """).getBytes(StandardCharsets.UTF_8));
+                """);
         ith.mkDirInProjectDir("plugin-four");
-        Files.write(ith.inProjectDir("plugin-four/build.gradle.kts").toPath(), (getBasePluginConfig() + /* language=kotlin */ """
+        Files.writeString(ith.inProjectDir("plugin-four/build.gradle.kts").toPath(), getBasePluginConfig() + /* language=kotlin */ """
                 dependencies {
                     implementation(project(":plugin-three"))
                 }
-                """).getBytes(StandardCharsets.UTF_8));
+                """);
         ith.mkDirInProjectDir("plugin-four/src/main/java/com/example/plugin4");
-        Files.write(ith.inProjectDir("plugin-four/src/main/java/com/example/plugin4/ExampleFour.java").toPath(), (/* language=java */ """
+        Files.writeString(ith.inProjectDir("plugin-four/src/main/java/com/example/plugin4/ExampleFour.java").toPath(), /* language=java */ """
                 package com.example.plugin4;
                 import com.example.plugin3.ExampleThree;
                 /** Example simple class. */
@@ -387,7 +386,7 @@ abstract class V2IntegrationTestBase {
                         return new ExampleThree().hello();
                     }
                 }
-                """).getBytes(StandardCharsets.UTF_8));
+                """);
     }
 
     static void assertDependencyTreesMatch(List<String> actualList, List<String> expectedList) {
