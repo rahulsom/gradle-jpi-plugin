@@ -28,12 +28,6 @@ jobs:
       - uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6
       - name: Build
         run: ./gradlew clean build
-      - name: Archive Codenarc Report on Failure
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        if: ${{ failure() }}
-        with:
-          name: codenarc-results
-          path: build/reports/codenarc
       - name: Archive Test Results on Failure
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: ${{ failure() }}
