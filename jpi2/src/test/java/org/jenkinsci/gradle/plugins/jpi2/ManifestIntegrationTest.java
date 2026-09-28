@@ -6,7 +6,6 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
@@ -202,13 +201,12 @@ class ManifestIntegrationTest extends V2IntegrationTestBase {
         // manifest) outside of the per-project configuration lock that plain afterEvaluate holds.
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
-        Files.write(
-                ith.inProjectDir("build.gradle.kts").toPath(),
-                (getBasePluginConfig() + /* language=kotlin */ """
+        Files.writeString(
+                ith.inProjectDir("build.gradle.kts").toPath(), getBasePluginConfig() + /* language=kotlin */ """
                 gradle.projectsEvaluated {
                     (publishing.publications["mavenJpi"] as MavenPublication).artifacts.forEach { }
                 }
-                """).getBytes(StandardCharsets.UTF_8));
+                """);
 
         assertThatCode(() -> ith.gradleRunner().withArguments("help").build()).doesNotThrowAnyException();
     }
