@@ -207,12 +207,16 @@ class SimpleBuildIntegrationTest extends V2IntegrationTestBase {
         var first = runner.withArguments(
                         "testServer", "--init-script", scriptA, "--init-script", scriptB, "--build-cache")
                 .build();
-        assertThat(first.task(":testServer").getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
+        var firstTask = first.task(":testServer");
+        assertThat(firstTask).isNotNull();
+        assertThat(firstTask.getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
 
         var unchanged = runner.withArguments(
                         "testServer", "--init-script", scriptA, "--init-script", scriptB, "--build-cache")
                 .build();
-        assertThat(unchanged.task(":testServer").getOutcome())
+        var unchangedTask = unchanged.task(":testServer");
+        assertThat(unchangedTask).isNotNull();
+        assertThat(unchangedTask.getOutcome())
                 .as("unchanged init scripts should hit the cache")
                 .isEqualTo(TaskOutcome.UP_TO_DATE);
 
@@ -222,7 +226,9 @@ class SimpleBuildIntegrationTest extends V2IntegrationTestBase {
         var afterContentEdit = runner.withArguments(
                         "testServer", "--init-script", scriptA, "--init-script", scriptB, "--build-cache")
                 .build();
-        assertThat(afterContentEdit.task(":testServer").getOutcome())
+        var afterContentEditTask = afterContentEdit.task(":testServer");
+        assertThat(afterContentEditTask).isNotNull();
+        assertThat(afterContentEditTask.getOutcome())
                 .as("editing an init script's content must invalidate the cache")
                 .isEqualTo(TaskOutcome.SUCCESS);
 
@@ -231,7 +237,9 @@ class SimpleBuildIntegrationTest extends V2IntegrationTestBase {
         var afterReorder = runner.withArguments(
                         "testServer", "--init-script", scriptB, "--init-script", scriptA, "--build-cache")
                 .build();
-        assertThat(afterReorder.task(":testServer").getOutcome())
+        var afterReorderTask = afterReorder.task(":testServer");
+        assertThat(afterReorderTask).isNotNull();
+        assertThat(afterReorderTask.getOutcome())
                 .as("reordering init scripts must invalidate the cache")
                 .isEqualTo(TaskOutcome.SUCCESS);
     }
@@ -244,10 +252,14 @@ class SimpleBuildIntegrationTest extends V2IntegrationTestBase {
         var taskPath = ":" + task;
 
         var first = runner.withArguments(task).build();
-        assertThat(first.task(taskPath).getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
+        var firstTask = first.task(taskPath);
+        assertThat(firstTask).isNotNull();
+        assertThat(firstTask.getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
 
         var secondNoChange = runner.withArguments(task).build();
-        assertThat(secondNoChange.task(taskPath).getOutcome())
+        var secondNoChangeTask = secondNoChange.task(taskPath);
+        assertThat(secondNoChangeTask).isNotNull();
+        assertThat(secondNoChangeTask.getOutcome())
                 .as("unchanged inputs should hit the cache")
                 .isEqualTo(TaskOutcome.UP_TO_DATE);
 
@@ -258,7 +270,9 @@ class SimpleBuildIntegrationTest extends V2IntegrationTestBase {
                 StandardCharsets.UTF_8,
                 StandardOpenOption.APPEND);
         var afterBuildScriptEdit = runner.withArguments(task).build();
-        assertThat(afterBuildScriptEdit.task(taskPath).getOutcome())
+        var afterBuildScriptEditTask = afterBuildScriptEdit.task(taskPath);
+        assertThat(afterBuildScriptEditTask).isNotNull();
+        assertThat(afterBuildScriptEditTask.getOutcome())
                 .as("editing build.gradle.kts must invalidate the cache")
                 .isEqualTo(TaskOutcome.SUCCESS);
     }
@@ -281,11 +295,15 @@ class SimpleBuildIntegrationTest extends V2IntegrationTestBase {
         var taskPath = ":" + task;
 
         var first = runner.withArguments(task, "--build-cache").build();
-        assertThat(first.task(taskPath).getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
+        var firstTask = first.task(taskPath);
+        assertThat(firstTask).isNotNull();
+        assertThat(firstTask.getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
         assertThat(first.getOutput()).contains("Jenkins is fully up and running");
 
         var secondNoChange = runner.withArguments(task, "--build-cache").build();
-        assertThat(secondNoChange.task(taskPath).getOutcome())
+        var secondNoChangeTask = secondNoChange.task(taskPath);
+        assertThat(secondNoChangeTask).isNotNull();
+        assertThat(secondNoChangeTask.getOutcome())
                 .as("unchanged inputs should hit the cache and skip launching Jenkins")
                 .isEqualTo(TaskOutcome.UP_TO_DATE);
         assertThat(secondNoChange.getOutput()).doesNotContain("Jenkins is fully up and running");
@@ -293,7 +311,9 @@ class SimpleBuildIntegrationTest extends V2IntegrationTestBase {
         // Delete build outputs to force a cache lookup instead of an UP_TO_DATE check.
         deleteDirectory(ith.inProjectDir("build"));
         var fromCache = runner.withArguments(task, "--build-cache").build();
-        assertThat(fromCache.task(taskPath).getOutcome())
+        var fromCacheTask = fromCache.task(taskPath);
+        assertThat(fromCacheTask).isNotNull();
+        assertThat(fromCacheTask.getOutcome())
                 .as("after build dir is deleted, the task must be restored FROM_CACHE rather than re-executing")
                 .isEqualTo(TaskOutcome.FROM_CACHE);
         assertThat(fromCache.getOutput()).doesNotContain("Jenkins is fully up and running");
@@ -306,14 +326,18 @@ class SimpleBuildIntegrationTest extends V2IntegrationTestBase {
                 "package com.example; public class Example { public String hello() { return \"v2\"; } }\n",
                 StandardCharsets.UTF_8);
         var afterEdit = runner.withArguments(task).build();
-        assertThat(afterEdit.task(taskPath).getOutcome())
+        var afterEditTask = afterEdit.task(taskPath);
+        assertThat(afterEditTask).isNotNull();
+        assertThat(afterEditTask.getOutcome())
                 .as(
                         "editing main source must invalidate the cache (catches missing referencedFiles wiring on testHplRun)")
                 .isEqualTo(TaskOutcome.SUCCESS);
         assertThat(afterEdit.getOutput()).contains("Jenkins is fully up and running");
 
         var rerunTasks = runner.withArguments(task, "--rerun-tasks").build();
-        assertThat(rerunTasks.task(taskPath).getOutcome())
+        var rerunTask = rerunTasks.task(taskPath);
+        assertThat(rerunTask).isNotNull();
+        assertThat(rerunTask.getOutcome())
                 .as("--rerun-tasks must force the task to run regardless of cache state")
                 .isEqualTo(TaskOutcome.SUCCESS);
         assertThat(rerunTasks.getOutput()).contains("Jenkins is fully up and running");
