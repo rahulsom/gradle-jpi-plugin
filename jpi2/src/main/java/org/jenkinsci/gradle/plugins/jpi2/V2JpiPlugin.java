@@ -50,6 +50,7 @@ import org.jenkinsci.gradle.plugins.jpi2.accmod.PrefixedPropertiesProvider;
 import org.jenkinsci.gradle.plugins.jpi2.localization.LocalizationPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -498,6 +499,19 @@ public class V2JpiPlugin implements Plugin<Project> {
      */
     private static void addBuildConfigFiles(@NotNull Project project, @NotNull TestServerTask task) {
         var rootDir = project.getRootDir();
+        var files = findBuildConfigFiles(project, rootDir);
+        task.getBuildConfigFiles().from(files);
+        // The `gradle` and `buildSrc/src` directories hold no task outputs, so they are safe to
+        // walk as trees: version catalogs, script plugins and precompiled build logic.
+        task.getBuildConfigFiles()
+                .from(project.fileTree(
+                        new File(rootDir, "gradle"),
+                        tree -> tree.include("**/*.versions.toml", "**/*.gradle", "**/*.gradle.kts")));
+        task.getBuildConfigFiles().from(project.fileTree(new File(rootDir, "buildSrc/src")));
+    }
+
+    @NonNull
+    private static LinkedHashSet<File> findBuildConfigFiles(@NonNull Project project, File rootDir) {
         var files = new LinkedHashSet<File>();
         files.add(new File(rootDir, "settings.gradle"));
         files.add(new File(rootDir, "settings.gradle.kts"));
@@ -510,14 +524,7 @@ public class V2JpiPlugin implements Plugin<Project> {
             files.add(candidate.getBuildFile());
             files.add(new File(candidate.getProjectDir(), "gradle.properties"));
         }
-        task.getBuildConfigFiles().from(files);
-        // The `gradle` and `buildSrc/src` directories hold no task outputs, so they are safe to
-        // walk as trees: version catalogs, script plugins and precompiled build logic.
-        task.getBuildConfigFiles()
-                .from(project.fileTree(
-                        new File(rootDir, "gradle"),
-                        tree -> tree.include("**/*.versions.toml", "**/*.gradle", "**/*.gradle.kts")));
-        task.getBuildConfigFiles().from(project.fileTree(new File(rootDir, "buildSrc/src")));
+        return files;
     }
 
     private static void configureAccessModifier(@NotNull Project project) {
