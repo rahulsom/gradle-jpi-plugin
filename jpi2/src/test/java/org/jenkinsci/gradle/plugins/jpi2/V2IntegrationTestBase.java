@@ -146,9 +146,9 @@ abstract class V2IntegrationTestBase {
         }
 
         @Override
-        public void write(@NotNull char[] bytes, int off, int len) throws IOException {
-            writer1.write(bytes, off, len);
-            writer2.write(bytes, off, len);
+        public void write(char @NotNull [] cbuf, int off, int len) throws IOException {
+            writer1.write(cbuf, off, len);
+            writer2.write(cbuf, off, len);
         }
 
         @Override
