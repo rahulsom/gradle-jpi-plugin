@@ -100,19 +100,25 @@ class MultiModuleIntegrationTest extends V2IntegrationTestBase {
 
         var first =
                 runner.withArguments(":downstream:testHplRun", "--build-cache").build();
-        assertThat(first.task(taskPath).getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
+        var firstTask = first.task(taskPath);
+        assertThat(firstTask).isNotNull();
+        assertThat(firstTask.getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
         assertThat(first.getOutput()).contains("Jenkins is fully up and running");
 
         var noChange =
                 runner.withArguments(":downstream:testHplRun", "--build-cache").build();
-        assertThat(noChange.task(taskPath).getOutcome())
+        var noChangeTask = noChange.task(taskPath);
+        assertThat(noChangeTask).isNotNull();
+        assertThat(noChangeTask.getOutcome())
                 .as("unchanged inputs should hit the cache and skip launching Jenkins")
                 .isEqualTo(TaskOutcome.UP_TO_DATE);
 
         deleteDirectory(ith.inProjectDir("downstream/build"));
         var fromCache =
                 runner.withArguments(":downstream:testHplRun", "--build-cache").build();
-        assertThat(fromCache.task(taskPath).getOutcome())
+        var fromCacheTask = fromCache.task(taskPath);
+        assertThat(fromCacheTask).isNotNull();
+        assertThat(fromCacheTask.getOutcome())
                 .as("after build dir is deleted, the task must be restored FROM_CACHE rather than re-executing")
                 .isEqualTo(TaskOutcome.FROM_CACHE);
 
@@ -128,7 +134,9 @@ class MultiModuleIntegrationTest extends V2IntegrationTestBase {
                 """, StandardCharsets.UTF_8);
         var afterUpstreamEdit =
                 runner.withArguments(":downstream:testHplRun", "--build-cache").build();
-        assertThat(afterUpstreamEdit.task(taskPath).getOutcome())
+        var afterUpstreamEditTask = afterUpstreamEdit.task(taskPath);
+        assertThat(afterUpstreamEditTask).isNotNull();
+        assertThat(afterUpstreamEditTask.getOutcome())
                 .as("editing an upstream module's source must invalidate the downstream testHplRun cache")
                 .isEqualTo(TaskOutcome.SUCCESS);
         assertThat(afterUpstreamEdit.getOutput()).contains("Jenkins is fully up and running");
@@ -149,7 +157,9 @@ class MultiModuleIntegrationTest extends V2IntegrationTestBase {
                 .withArguments(":upstream:prepareServer", ":downstream:testServer", "--max-workers=1")
                 .build();
 
-        assertThat(result.task(":downstream:testServer").getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
+        var testServerTask = result.task(":downstream:testServer");
+        assertThat(testServerTask).isNotNull();
+        assertThat(testServerTask.getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
         assertThat(result.getOutput()).doesNotContain("implicit dependency");
     }
 

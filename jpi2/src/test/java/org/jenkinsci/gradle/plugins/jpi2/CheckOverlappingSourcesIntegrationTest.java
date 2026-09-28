@@ -18,8 +18,12 @@ class CheckOverlappingSourcesIntegrationTest extends V2IntegrationTestBase {
         var firstRun = ith.gradleRunner().withArguments("check").build();
         var secondRun = ith.gradleRunner().withArguments("check").build();
 
-        assertThat(firstRun.task(":checkOverlappingSources").getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
-        assertThat(secondRun.task(":checkOverlappingSources").getOutcome()).isEqualTo(TaskOutcome.UP_TO_DATE);
+        var firstTask = firstRun.task(":checkOverlappingSources");
+        assertThat(firstTask).isNotNull();
+        assertThat(firstTask.getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
+        var secondTask = secondRun.task(":checkOverlappingSources");
+        assertThat(secondTask).isNotNull();
+        assertThat(secondTask.getOutcome()).isEqualTo(TaskOutcome.UP_TO_DATE);
         assertThat(ith.inProjectDir("build/check-overlap/discovered.txt")).exists();
     }
 
