@@ -114,6 +114,8 @@ fun Project.registerJavaSpecificTestGradleTask(
     gradleVersion: String,
     javaVersion: Int,
 ) = tasks.register<Test>("testGradle${gradleVersion}onJava$javaVersion") {
+    description = "Runs integration tests against Gradle $gradleVersion on Java $javaVersion"
+    group = "verification"
     val testSourceSet = sourceSets.test.get()
     testClassesDirs = testSourceSet.output.classesDirs
     classpath = testSourceSet.runtimeClasspath
@@ -135,7 +137,11 @@ tasks.addRule("Pattern: testGradle<ID>[onJava<Version>]") {
     }
     umbrellaPattern.matchEntire(taskName)?.let { match ->
         val gradleVersion = match.groupValues[1]
-        val task = tasks.register(taskName)
+        val task =
+            tasks.register(taskName) {
+                description = "Runs integration tests against Gradle $gradleVersion on all supported Java versions"
+                group = "verification"
+            }
         for (javaVersion in javaVersions) {
             val javaSpecificTask = registerJavaSpecificTestGradleTask(gradleVersion, javaVersion)
             task.configure {
