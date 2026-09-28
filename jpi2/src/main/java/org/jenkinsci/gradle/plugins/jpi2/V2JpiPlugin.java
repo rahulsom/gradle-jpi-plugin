@@ -666,20 +666,10 @@ public class V2JpiPlugin implements Plugin<Project> {
         }
         project.getTasks().named("testHplRun", TestServerTask.class, task -> {
             for (var dep : hplProjectDeps) {
-                var depJava = dep.getExtensions().getByType(JavaPluginExtension.class);
-                var depMain = depJava.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-                task.getReferencedFiles().from(depMain.getResources().getSrcDirs());
-                task.getReferencedFiles().from(depMain.getOutput().getClassesDirs());
                 task.getReferencedFiles()
-                        .from(dep.provider(() -> depMain.getOutput().getResourcesDir()));
-                // The upstream .hpl also references the dep's bundled library JARs by path, so
-                // adding or removing a library in the upstream module must bust the cache here.
-                var depDefaultRuntime = dep.getConfigurations().getByName("defaultRuntime");
-                var depJenkinsCore = dep.getConfigurations().getByName("jenkinsCore");
-                task.getReferencedFiles()
-                        .from(new RuntimeClasspathArtifacts(dep, depDefaultRuntime, depJenkinsCore)
-                                .getBundledLibraries());
-                task.dependsOn(dep.getTasks().named("classes"));
+                        .from(dep.getTasks()
+                                .named(GenerateHplTask.TASK_NAME, GenerateHplTask.class)
+                                .map(GenerateHplTask::getLibraries));
             }
         });
     }
