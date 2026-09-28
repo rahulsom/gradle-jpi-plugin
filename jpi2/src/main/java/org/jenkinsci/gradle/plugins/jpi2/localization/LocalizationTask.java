@@ -7,6 +7,7 @@ import javax.inject.Inject;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputDirectory;
@@ -17,6 +18,7 @@ import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.workers.WorkQueue;
 import org.gradle.workers.WorkerExecutor;
+import org.jspecify.annotations.NonNull;
 
 /**
  * Task that generates Java classes from Messages.properties files.
@@ -84,7 +86,8 @@ public abstract class LocalizationTask extends SourceTask {
     @InputFiles
     @SkipWhenEmpty
     @PathSensitive(PathSensitivity.RELATIVE)
-    public org.gradle.api.file.FileTree getSource() {
+    @NonNull
+    public FileTree getSource() {
         return super.getSource();
     }
 }
