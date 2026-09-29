@@ -143,6 +143,19 @@ class MultiModuleIntegrationTest extends V2IntegrationTestBase {
     }
 
     @Test
+    void testHplRunCanBeRealizedInParallelBuild() throws IOException {
+        var ith = new IntegrationTestHelper(tempDir, "8.14");
+        configureTwoPluginsForVerification(ith);
+
+        // With --parallel, `tasks --all` realizes each project's tasks while holding only that
+        // project's lock, so wiring downstream's testHplRun must not resolve upstream's configurations.
+        var result =
+                ith.gradleRunner().withArguments("tasks", "--all", "--parallel").build();
+
+        assertThat(result.getOutput()).contains("downstream:testHplRun");
+    }
+
+    @Test
     @Timeout(value = 15, unit = TimeUnit.MINUTES)
     void testServerDoesNotClaimSiblingModuleOutputsAsItsOwnInputs() throws IOException {
         var ith = new IntegrationTestHelper(tempDir, "8.14");
