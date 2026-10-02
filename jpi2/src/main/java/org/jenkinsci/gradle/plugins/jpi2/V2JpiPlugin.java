@@ -255,6 +255,7 @@ public class V2JpiPlugin implements Plugin<Project> {
                 task.getLibraries().from(project.provider(main.getOutput()::getResourcesDir));
                 task.getLibraries().from(runtimeClasspathArtifacts.getBundledLibraries());
                 task.getUpstreamManifest().set(jpiDirectory.map(dir -> dir.file("META-INF/MANIFEST.MF")));
+                task.getPluginDependencies().set(project.provider(() -> resolvePluginDependencies(defaultRuntime)));
                 task.dependsOn(project.getTasks().named("classes"));
                 task.dependsOn(project.getTasks().named(EXPLODED_JPI_TASK));
             }
