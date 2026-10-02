@@ -177,6 +177,24 @@ class MultiModuleIntegrationTest extends V2IntegrationTestBase {
     }
 
     @Test
+    void hplDeclaresPluginDependenciesWithoutBuildingJpi() throws IOException {
+        var ith = new IntegrationTestHelper(tempDir, "8.14");
+        configureModuleWithNestedDependencies(ith);
+
+        // hplRun only generates HPLs, so the jpi task, which also sets Plugin-Dependencies, never runs.
+        var result = ith.gradleRunner()
+                .withArguments(":plugin-four:" + GenerateHplTask.TASK_NAME)
+                .build();
+
+        assertThat(result.task(":plugin-four:jpi")).isNull();
+        var hpl = ith.inProjectDir("plugin-four/build/hpl/plugin-four.hpl");
+        try (var is = Files.newInputStream(hpl.toPath())) {
+            assertThat(new Manifest(is).getMainAttributes().getValue("Plugin-Dependencies"))
+                    .isEqualTo("plugin-three:1.0.0");
+        }
+    }
+
+    @Test
     void multiModuleWithNestedDependenciesShouldLaunchRun() throws IOException, InterruptedException {
         // given
         var ith = new IntegrationTestHelper(tempDir, "8.14");

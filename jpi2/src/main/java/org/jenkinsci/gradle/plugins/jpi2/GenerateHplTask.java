@@ -16,6 +16,7 @@ import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
@@ -46,6 +47,11 @@ public abstract class GenerateHplTask extends DefaultTask {
     @PathSensitive(PathSensitivity.NONE)
     public abstract RegularFileProperty getUpstreamManifest();
 
+    /** @return value for the HPL {@code Plugin-Dependencies} attribute, absent if the plugin has none */
+    @Input
+    @Optional
+    public abstract Property<String> getPluginDependencies();
+
     @TaskAction
     void generate() {
         File destination = getHpl().getAsFile().get();
@@ -65,6 +71,11 @@ public abstract class GenerateHplTask extends DefaultTask {
                 }
             }
             manifest.getMainAttributes().putValue("Libraries", String.join(",", existing));
+            // The upstream manifest only has Plugin-Dependencies if the jpi task ran, which hplRun never needs.
+            if (getPluginDependencies().isPresent()) {
+                manifest.getMainAttributes()
+                        .putValue("Plugin-Dependencies", getPluginDependencies().get());
+            }
             manifest.write(os);
         } catch (IOException e) {
             throw new RuntimeException(e);
