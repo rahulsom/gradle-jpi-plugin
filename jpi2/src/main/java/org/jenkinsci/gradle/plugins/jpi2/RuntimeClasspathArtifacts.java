@@ -63,10 +63,10 @@ class RuntimeClasspathArtifacts {
         return resolvedDependencies.stream()
                 .filter(dependency -> isDependencyUnseen(dependency, jenkinsCoreModules))
                 .filter(dependency -> isDependencyUnseen(dependency, jpiPluginTransitives))
-                .flatMap(
-                        dependency -> dependency.getModuleArtifacts().stream()
-                                .filter(artifact -> "jar".equals(artifact.getExtension()))
-                                .flatMap(artifact -> requestedDependencies.stream()
+                .flatMap(dependency -> dependency.getModuleArtifacts().stream()
+                        .filter(artifact -> "jar".equals(artifact.getExtension()))
+                        .flatMap(
+                                artifact -> requestedDependencies.stream()
                                         .filter(reqDep -> matches(dependency, reqDep, projectPathMap))
                                         .findFirst()
                                         .stream()))

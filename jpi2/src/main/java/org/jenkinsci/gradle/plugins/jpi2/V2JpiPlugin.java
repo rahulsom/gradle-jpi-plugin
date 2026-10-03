@@ -370,8 +370,9 @@ public class V2JpiPlugin implements Plugin<Project> {
                 .map(spec -> JenkinsLaunchThrottle.resolveMaxParallelLaunches(spec, availableProcessors))
                 .orElse(JenkinsLaunchThrottle.resolveMaxParallelLaunches(null, availableProcessors));
         var launchThrottle = buildServices.registerIfAbsent(
-                "jenkinsLaunchThrottle", JenkinsLaunchThrottle.class, spec -> spec.getMaxParallelUsages()
-                        .set(maxParallelLaunches));
+                "jenkinsLaunchThrottle",
+                JenkinsLaunchThrottle.class,
+                spec -> spec.getMaxParallelUsages().set(maxParallelLaunches));
 
         var gradle = project.getGradle();
         var startParameter = gradle.getStartParameter();
