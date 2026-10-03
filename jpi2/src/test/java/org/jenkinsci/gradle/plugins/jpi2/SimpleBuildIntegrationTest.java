@@ -139,6 +139,30 @@ class SimpleBuildIntegrationTest extends V2IntegrationTestBase {
     }
 
     @Test
+    void testServerSharesGradleUserHomeWithOuterBuild() throws IOException {
+        var ith = new IntegrationTestHelper(tempDir, "8.14");
+        configureSimpleBuildForVerification(ith);
+        Files.writeString(
+                ith.inProjectDir("build.gradle.kts").toPath(), /* language=kotlin */ """
+                if (gradle.parent == null) {
+                    println("outer-user-home=" + gradle.gradleUserHomeDir.absolutePath.replace('\\\\', '/'))
+                }
+                """, StandardOpenOption.APPEND);
+
+        var result = ith.gradleRunner().withArguments("testServer", "--info").build();
+
+        var outerUserHome = result.getOutput()
+                .lines()
+                .filter(line -> line.startsWith("outer-user-home="))
+                .map(line -> line.substring("outer-user-home=".length()))
+                .findFirst()
+                .orElseThrow();
+        assertThat(result.getOutput())
+                .contains("Jenkins is fully up and running")
+                .contains("--gradle-user-home, " + outerUserHome);
+    }
+
+    @Test
     @Timeout(value = 15, unit = TimeUnit.MINUTES)
     void testServerRetriesThenReportsAnActionableTimeout() throws IOException {
         // given

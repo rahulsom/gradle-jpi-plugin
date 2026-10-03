@@ -2,16 +2,23 @@ package org.jenkinsci.gradle.plugins.jpi2;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Executors;
@@ -51,10 +58,14 @@ abstract class V2IntegrationTestBase {
                 """;
     }
 
+    /*
+     * Generated build scripts must be identical across tests: Gradle caches compiled Kotlin DSL
+     * scripts by content and classpath, so anything per-test (ports, temp-dir paths) forces a
+     * recompile of every script in every test. Ports go on the command line via -Pserver.port.
+     */
     @NotNull
     static String getBasePluginConfig() {
-        return String.format(
-                        /* language=kotlin */ """
+        return /* language=kotlin */ """
                 plugins {
                     id("org.jenkins-ci.jpi2")
                 }
@@ -63,24 +74,20 @@ abstract class V2IntegrationTestBase {
                     jenkinsPublic()
                 }
                 tasks.named<JavaExec>("server") {
-                    args("--httpPort=%d")
                     maxHeapSize = "512m"
                 }
                 tasks.named<JavaExec>("hplRun") {
-                    args("--httpPort=%d")
                     maxHeapSize = "512m"
                 }
                 tasks.withType(Test::class) {
                     useJUnitPlatform()
                 }
-                """, RandomPortProvider.findFreePort(), RandomPortProvider.findFreePort())
-                + getPublishingConfig();
+                """ + getPublishingConfig();
     }
 
     @NotNull
     static String getBasePluginConfigWithBuildscriptClasspath(String pluginJarPath) {
-        return String.format(
-                /* language=kotlin */ """
+        return String.format(/* language=kotlin */ """
                 buildscript {
                     dependencies {
                         classpath(files("%s"))
@@ -92,11 +99,9 @@ abstract class V2IntegrationTestBase {
                     jenkinsPublic()
                 }
                 tasks.named<JavaExec>("server") {
-                    args("--httpPort=%d")
                     maxHeapSize = "512m"
                 }
                 tasks.named<JavaExec>("hplRun") {
-                    args("--httpPort=%d")
                     maxHeapSize = "512m"
                 }
                 tasks.withType(Test::class) {
@@ -104,10 +109,7 @@ abstract class V2IntegrationTestBase {
                 }
                 group = "com.example"
                 version = "1.0.0"
-                """,
-                pluginJarPath.replace("\\", "\\\\"),
-                RandomPortProvider.findFreePort(),
-                RandomPortProvider.findFreePort());
+                """, pluginJarPath.replace("\\", "\\\\"));
     }
 
     @NotNull
@@ -174,13 +176,13 @@ abstract class V2IntegrationTestBase {
         var serverThread = Executors.newSingleThreadExecutor();
         final AtomicReference<BuildResult> buildResult = new AtomicReference<>();
         serverThread.submit(() -> buildResult.set(gradleRunner
-                .withArguments(task)
+                .withArguments(withServerPort(task))
                 .forwardStdError(stderr)
                 .forwardStdOutput(stdout)
                 .build()));
         Awaitility.await()
                 .atMost(3, TimeUnit.MINUTES)
-                .pollInterval(5, TimeUnit.SECONDS)
+                .pollInterval(200, TimeUnit.MILLISECONDS)
                 .conditionEvaluationListener(condition -> {
                     if (condition.getRemainingTimeInMS() <= 0 || condition.isSatisfied()) {
                         serverThread.shutdownNow();
@@ -203,6 +205,12 @@ abstract class V2IntegrationTestBase {
         assertThat(stderr2.toString()).contains("Jenkins is fully up and running");
     }
 
+    private static String[] withServerPort(String... args) {
+        var withPort = Arrays.copyOf(args, args.length + 1);
+        withPort[args.length] = "-Pserver.port=" + RandomPortProvider.findFreePort();
+        return withPort;
+    }
+
     static void testServerVerificationTask(GradleRunner gradleRunner, String task) {
         var result = gradleRunner.withArguments(task).build();
         assertThat(result.getOutput()).contains("Jenkins is fully up and running");
@@ -216,14 +224,14 @@ abstract class V2IntegrationTestBase {
 
     static void configureSimpleBuildForVerification(IntegrationTestHelper ith) throws IOException {
         initBuild(ith);
-        var pluginJar = materializePluginJar(ith.inProjectDir("plugin-under-test/jpi2-under-test.jar"));
+        var pluginJar = materializePluginJar();
         Files.writeString(
                 ith.inProjectDir("build.gradle.kts").toPath(),
                 getBasePluginConfigWithBuildscriptClasspath(pluginJar.getAbsolutePath()));
     }
 
     static void configureTwoPluginsForVerification(IntegrationTestHelper ith) throws IOException {
-        var pluginJar = materializePluginJar(ith.inProjectDir("plugin-under-test/jpi2-under-test.jar"));
+        var pluginJar = materializePluginJar();
         Files.writeString(
                 ith.inProjectDir("settings.gradle.kts").toPath(), /* language=kotlin */ """
                 rootProject.name = "test-plugin"
@@ -292,8 +300,7 @@ abstract class V2IntegrationTestBase {
     static void configureBuildWithApplicationPlugin(IntegrationTestHelper ith) throws IOException {
         initBuild(ith);
         Files.writeString(
-                ith.inProjectDir("build.gradle.kts").toPath(), /* language=kotlin */
-                """
+                ith.inProjectDir("build.gradle.kts").toPath(), /* language=kotlin */ """
                 plugins {
                     application
                     id("org.jenkins-ci.jpi2")
@@ -305,14 +312,7 @@ abstract class V2IntegrationTestBase {
                 application {
                     mainClass.set("com.example.Main")
                 }
-                tasks.named<JavaExec>("server") {
-                    args("--httpPort=%d")
-                }
-                tasks.named<JavaExec>("hplRun") {
-                    args("--httpPort=%d")
-                }
-                """.formatted(RandomPortProvider.findFreePort(), RandomPortProvider.findFreePort())
-                        + getPublishingConfig());
+                """ + getPublishingConfig());
     }
 
     static void configureModuleWithNestedDependencies(IntegrationTestHelper ith) throws IOException {
@@ -456,23 +456,54 @@ abstract class V2IntegrationTestBase {
         return file;
     }
 
+    private static File cachedPluginJar;
+
+    /**
+     * The jar's path ends up in the generated build script, so it lives at a content-addressed
+     * location shared by all tests instead of in each test's temp dir; that keeps the script text
+     * stable and lets Gradle reuse the compiled script. Entries are written in a fixed order with a
+     * fixed timestamp so unchanged plugin classes always produce the same jar.
+     */
     @NotNull
-    private static File materializePluginJar(File outputJar) throws IOException {
-        var parent = outputJar.getParentFile();
-        if (parent != null) {
-            Files.createDirectories(parent.toPath());
+    private static synchronized File materializePluginJar() throws IOException {
+        if (cachedPluginJar != null) {
+            return cachedPluginJar;
         }
         var roots = List.of(
                 getCodeSourceRoot(V2JpiPlugin.class),
                 getCodeSourceRoot(JenkinsPluginExtension.class),
                 getResourceRoot("META-INF/gradle-plugins/org.jenkins-ci.jpi2.properties"));
         var entries = new HashSet<String>();
-        try (var jarOutputStream = new JarOutputStream(Files.newOutputStream(outputJar.toPath()))) {
+        var bytes = new ByteArrayOutputStream();
+        try (var jarOutputStream = new JarOutputStream(bytes)) {
             for (var root : roots) {
-                addDirectoryToJar(root.toPath(), root.toPath(), jarOutputStream, entries);
+                addDirectoryToJar(root.toPath(), jarOutputStream, entries);
             }
         }
-        return outputJar;
+        var jarBytes = bytes.toByteArray();
+        var dir = Path.of(System.getProperty("java.io.tmpdir"), "jpi2-plugin-under-test");
+        Files.createDirectories(dir);
+        var jar = dir.resolve("jpi2-under-test-" + sha256(jarBytes) + ".jar");
+        if (!Files.exists(jar)) {
+            // Another test JVM may be writing the same jar; move atomically so readers never see a partial file.
+            var tmp = Files.createTempFile(dir, "jpi2-under-test-", ".tmp");
+            Files.write(tmp, jarBytes);
+            try {
+                Files.move(tmp, jar, StandardCopyOption.ATOMIC_MOVE);
+            } catch (FileAlreadyExistsException e) {
+                Files.deleteIfExists(tmp);
+            }
+        }
+        cachedPluginJar = jar.toFile();
+        return cachedPluginJar;
+    }
+
+    private static String sha256(byte[] bytes) {
+        try {
+            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes), 0, 16);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     private static File getCodeSourceRoot(Class<?> type) {
@@ -500,21 +531,22 @@ abstract class V2IntegrationTestBase {
         }
     }
 
-    private static void addDirectoryToJar(Path root, Path current, JarOutputStream jarOutputStream, Set<String> entries)
+    private static void addDirectoryToJar(Path root, JarOutputStream jarOutputStream, Set<String> entries)
             throws IOException {
-        try (var stream = Files.walk(current)) {
-            for (var path : (Iterable<Path>) stream::iterator) {
-                if (!Files.isRegularFile(path)) {
-                    continue;
-                }
-                var entryName = root.relativize(path).toString().replace(File.separatorChar, '/');
-                if (!entries.add(entryName)) {
-                    continue;
-                }
-                jarOutputStream.putNextEntry(new JarEntry(entryName));
-                Files.copy(path, jarOutputStream);
-                jarOutputStream.closeEntry();
+        List<Path> files;
+        try (var stream = Files.walk(root)) {
+            files = stream.filter(Files::isRegularFile).sorted().toList();
+        }
+        for (var path : files) {
+            var entryName = root.relativize(path).toString().replace(File.separatorChar, '/');
+            if (!entries.add(entryName)) {
+                continue;
             }
+            var entry = new JarEntry(entryName);
+            entry.setTime(0);
+            jarOutputStream.putNextEntry(entry);
+            Files.copy(path, jarOutputStream);
+            jarOutputStream.closeEntry();
         }
     }
 

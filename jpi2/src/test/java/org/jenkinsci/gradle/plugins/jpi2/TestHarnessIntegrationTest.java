@@ -256,9 +256,6 @@ class TestHarnessIntegrationTest extends V2IntegrationTestBase {
                     mavenCentral()
                     jenkinsPublic()
                 }
-                tasks.named("server") {
-                    args("--httpPort=%d")
-                }
                 tasks.withType(Test) {
                     useJUnitPlatform()
                 }

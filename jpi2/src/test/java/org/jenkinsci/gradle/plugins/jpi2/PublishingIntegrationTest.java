@@ -207,22 +207,13 @@ class PublishingIntegrationTest extends V2IntegrationTestBase {
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
         Files.writeString(
-                ith.inProjectDir("build.gradle.kts").toPath(),
-                PUBLISH_TO_JENKINS_IMPORT
-                        + String.format(
-                                /* language=kotlin */ """
+                ith.inProjectDir("build.gradle.kts").toPath(), PUBLISH_TO_JENKINS_IMPORT + /* language=kotlin */ """
                 plugins {
                     id("org.jenkins-ci.jpi2")
                 }
                 repositories {
                     mavenCentral()
                     jenkinsPublic()
-                }
-                tasks.named<JavaExec>("server") {
-                    args("--httpPort=%d")
-                }
-                tasks.named<JavaExec>("hplRun") {
-                    args("--httpPort=%d")
                 }
                 group = "com.example"
                 version = "1.0.0-SNAPSHOT"
@@ -235,8 +226,7 @@ class PublishingIntegrationTest extends V2IntegrationTestBase {
                         }
                     }
                 }
-                """,
-                                RandomPortProvider.findFreePort(), RandomPortProvider.findFreePort()));
+                """);
 
         // when
         var result = ith.gradleRunner()
@@ -257,22 +247,13 @@ class PublishingIntegrationTest extends V2IntegrationTestBase {
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
         Files.writeString(
-                ith.inProjectDir("build.gradle.kts").toPath(),
-                PUBLISH_TO_JENKINS_IMPORT
-                        + String.format(
-                                /* language=kotlin */ """
+                ith.inProjectDir("build.gradle.kts").toPath(), PUBLISH_TO_JENKINS_IMPORT + /* language=kotlin */ """
                 plugins {
                     id("org.jenkins-ci.jpi2")
                 }
                 repositories {
                     mavenCentral()
                     jenkinsPublic()
-                }
-                tasks.named<JavaExec>("server") {
-                    args("--httpPort=%d")
-                }
-                tasks.named<JavaExec>("hplRun") {
-                    args("--httpPort=%d")
                 }
                 group = "com.example"
                 version = "1.0-rc1234.abc123"
@@ -285,8 +266,7 @@ class PublishingIntegrationTest extends V2IntegrationTestBase {
                         }
                     }
                 }
-                """,
-                                RandomPortProvider.findFreePort(), RandomPortProvider.findFreePort()));
+                """);
 
         // when
         var result = ith.gradleRunner()
