@@ -13,6 +13,9 @@ jobs:
   build-jpi2:
     name: jpi2/${{ matrix.os }}/${{ matrix.gradle_version }}
     runs-on: ${{ matrix.os }}
+    env:
+      # Relative to the Gradle user home, so setup-gradle can cache TestKit's dependencies.
+      GRADLE_TESTKIT_DIR: test-kit
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
@@ -26,6 +29,14 @@ jobs:
           distribution: "temurin"
           cache: "gradle"
       - uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6
+        with:
+          gradle-home-cache-includes: |
+            caches
+            notifications
+            test-kit/caches
+          # A restored build cache could turn outcomes that tests assert on into FROM_CACHE.
+          gradle-home-cache-excludes: |
+            test-kit/caches/build-cache-1
       - name: Test ${{ matrix.gradle_version }}
         run: ./gradlew :jpi2:testGradle${{ matrix.gradle_version }}
       - name: Archive Test Results on Failure
