@@ -32,6 +32,17 @@ dependencies {
     testRuntimeOnly(libs.junit5.launcher)
 }
 
+/*
+ * TestKit defaults to a directory under build/, so CI starts every run with an empty one and
+ * re-downloads every dependency the generated builds use. GRADLE_TESTKIT_DIR lets CI move it into
+ * the Gradle user home, where setup-gradle can cache it. Relative paths resolve against the Gradle
+ * user home so the same value works on every runner OS.
+ */
+val testKitDir =
+    providers.environmentVariable("GRADLE_TESTKIT_DIR").map {
+        gradle.gradleUserHomeDir.resolve(it).absolutePath
+    }
+
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
     testLogging {
@@ -40,6 +51,14 @@ tasks.withType<Test>().configureEach {
     // This JVM mostly waits on nested Gradle/Jenkins processes rather than doing heap-heavy
     // work itself; capping it leaves more headroom for those nested processes.
     maxHeapSize = "512m"
+    jvmArgumentProviders.add(TestKitDirArgumentProvider(testKitDir))
+}
+
+/** Kept out of the test task's inputs: relocating TestKit's caches doesn't change test results. */
+class TestKitDirArgumentProvider(
+    @get:Internal val dir: Provider<String>,
+) : CommandLineArgumentProvider {
+    override fun asArguments(): Iterable<String> = dir.map { listOf("-Dorg.gradle.testkit.dir=$it") }.getOrElse(emptyList())
 }
 
 publishing {
