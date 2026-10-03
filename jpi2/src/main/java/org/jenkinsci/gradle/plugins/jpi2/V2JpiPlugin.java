@@ -460,6 +460,8 @@ public class V2JpiPlugin implements Plugin<Project> {
                         .set(startParameter.getIncludedBuilds().stream()
                                 .map(File::getPath)
                                 .toList());
+                task.getGradleUserHome()
+                        .set(startParameter.getGradleUserHomeDir().getAbsolutePath());
                 task.getOffline().set(startParameter.isOffline());
                 task.getBuildCacheEnabled().set(startParameter.isBuildCacheEnabled());
                 task.getRefreshDependencies().set(startParameter.isRefreshDependencies());

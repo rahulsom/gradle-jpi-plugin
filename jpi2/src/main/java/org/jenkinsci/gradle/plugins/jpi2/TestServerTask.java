@@ -105,6 +105,15 @@ public abstract class TestServerTask extends DefaultTask {
     @PathSensitive(PathSensitivity.RELATIVE)
     public abstract ConfigurableFileCollection getBuildConfigFiles();
 
+    /**
+     * @return Gradle user home forwarded via {@code --gradle-user-home}. Without it, a build started
+     * with {@code -g} would spawn a nested build that resolves dependencies and compiles build
+     * scripts into a different (default) user home. Not an input: it relocates caches without
+     * changing what the nested build does.
+     */
+    @Internal
+    public abstract Property<String> getGradleUserHome();
+
     /** @return composite-build inclusions forwarded via {@code --include-build} */
     @Input
     public abstract ListProperty<String> getIncludedBuilds();
@@ -441,6 +450,9 @@ public abstract class TestServerTask extends DefaultTask {
             commandLine.add("--include-build");
             commandLine.add(slashify(includedBuild));
         }
+
+        commandLine.add("--gradle-user-home");
+        commandLine.add(slashify(getGradleUserHome().get()));
 
         commandLine.add("--no-daemon");
         if (getOffline().get()) commandLine.add("--offline");
