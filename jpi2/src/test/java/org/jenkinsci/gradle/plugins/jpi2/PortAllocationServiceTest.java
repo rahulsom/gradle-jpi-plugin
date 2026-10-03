@@ -73,9 +73,10 @@ class PortAllocationServiceTest {
                 reserved.add(service.reservePort());
             }
 
-            assertThat(reserved).allSatisfy(port -> assertThatThrownBy(() -> new ServerSocket(port))
-                    .as("reservation for port %s must still be held", port)
-                    .isInstanceOf(BindException.class));
+            assertThat(reserved)
+                    .allSatisfy(port -> assertThatThrownBy(() -> new ServerSocket(port))
+                            .as("reservation for port %s must still be held", port)
+                            .isInstanceOf(BindException.class));
         } finally {
             reserved.forEach(service::releasePort);
         }
