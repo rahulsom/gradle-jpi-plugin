@@ -18,6 +18,7 @@ jobs:
       # Relative to the Gradle user home, so setup-gradle can cache TestKit's dependencies.
       GRADLE_TESTKIT_DIR: test-kit
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
     steps:
