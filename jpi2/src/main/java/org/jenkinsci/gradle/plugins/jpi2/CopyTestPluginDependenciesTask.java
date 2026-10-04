@@ -32,6 +32,7 @@ public abstract class CopyTestPluginDependenciesTask extends DefaultTask {
     /** Standard name under which this task is registered. */
     public static final String NAME = "copyTestPluginDependencies";
 
+    /** @return Gradle's injected file operations for copying plugin archives */
     @Inject
     protected abstract FileSystemOperations getFileSystemOperations();
 
