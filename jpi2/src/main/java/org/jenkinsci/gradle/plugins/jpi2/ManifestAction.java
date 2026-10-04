@@ -14,10 +14,13 @@ import org.jetbrains.annotations.NotNull;
  * execution time (see {@link V2JpiPlugin}).
  */
 class ManifestAction implements Action<Manifest> {
+    /** Minimum Java version used when no Java toolchain version is configured. */
     public static final int DEFAULT_MINIMUM_JAVA_VERSION = 17;
+
     private final Project project;
     private final JenkinsPluginExtension extension;
 
+    /** Creates an action using the project and its Jenkins plugin configuration. */
     public ManifestAction(Project project, JenkinsPluginExtension extension) {
         this.project = project;
         this.extension = extension;

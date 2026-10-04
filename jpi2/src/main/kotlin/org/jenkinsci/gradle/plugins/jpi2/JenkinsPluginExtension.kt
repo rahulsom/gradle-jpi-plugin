@@ -17,15 +17,25 @@ abstract class JenkinsPluginExtension
         private val project: Project,
     ) {
         companion object {
+            /** Gradle property used to select the Jenkins core version. */
             const val JENKINS_VERSION_PROPERTY = "jenkins.version"
+
+            /** Jenkins core version used when no property is supplied. */
             const val DEFAULT_JENKINS_VERSION = "2.492.3"
 
+            /** Gradle property used to select the Jenkins test harness version. */
             const val TEST_HARNESS_VERSION_PROPERTY = "jenkins.testharness.version"
+
+            /** Test harness version used when no property is supplied. */
             const val DEFAULT_TEST_HARNESS_VERSION = "2414.v185474555e66"
 
+            /** Gradle property used to select the localizer version. */
             const val LOCALIZER_VERSION_PROPERTY = "jenkins.localizer.version"
+
+            /** Localizer version used when no property is supplied. */
             const val DEFAULT_LOCALIZER_VERSION = "1.31"
 
+            /** Default file extension for the plugin archive. */
             const val DEFAULT_ARCHIVE_EXTENSION = "jpi"
         }
 

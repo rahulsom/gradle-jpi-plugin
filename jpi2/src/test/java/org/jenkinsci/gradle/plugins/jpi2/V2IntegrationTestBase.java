@@ -142,6 +142,7 @@ abstract class V2IntegrationTestBase {
         private final Writer writer1;
         private final Writer writer2;
 
+        /** Creates a writer that copies output to both destinations. */
         public TapWriter(Writer writer1, Writer writer2) {
             this.writer1 = writer1;
             this.writer2 = writer2;

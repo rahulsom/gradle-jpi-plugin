@@ -15,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 class SezpozJavaAction implements Action<JavaBasePlugin> {
     private final Project project;
 
+    /** Creates an action that configures SezPoz annotation processing for Java compilation. */
     public SezpozJavaAction(Project project) {
         this.project = project;
     }

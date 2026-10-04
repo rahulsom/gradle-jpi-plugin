@@ -23,6 +23,7 @@ class ServerAction implements Action<JavaExec> {
     private final Provider<String> workDir;
     private final TaskProvider<?> prepareServer;
 
+    /** Creates an action that configures the Jenkins server process. */
     public ServerAction(
             Configuration serverTaskClasspath,
             String projectRoot,

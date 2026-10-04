@@ -4,6 +4,12 @@ import java.io.IOException;
 import java.net.ServerSocket;
 
 public class RandomPortProvider {
+    /**
+     * Finds a free TCP port for tests that start an embedded server.
+     *
+     * @return a currently available port number
+     * @throws IllegalStateException if a free port cannot be found
+     */
     public static int findFreePort() {
         try (ServerSocket socket = new ServerSocket(0)) {
             socket.setReuseAddress(true);

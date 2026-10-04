@@ -24,7 +24,10 @@ abstract class GitVersionExtension
         providers: ProviderFactory,
     ) {
         companion object {
+            /** Default format for commit depth and abbreviated hash. */
             const val DEFAULT_VERSION_FORMAT = "%d.%s"
+
+            /** Default number of characters in the abbreviated Git hash. */
             const val DEFAULT_ABBREV_LENGTH = 12
         }
 
