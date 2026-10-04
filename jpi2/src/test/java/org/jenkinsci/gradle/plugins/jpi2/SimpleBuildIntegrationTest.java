@@ -50,6 +50,39 @@ class SimpleBuildIntegrationTest extends V2IntegrationTestBase {
     }
 
     @Test
+    void jpiAndJarRestoreFromBuildCache() throws IOException {
+        var ith = new IntegrationTestHelper(tempDir, "8.14");
+        configureSimpleBuild(ith);
+        // Archive tasks opt out of caching by default, so enable it to test the custom actions.
+        Files.writeString(ith.inProjectDir("build.gradle.kts").toPath(), """
+                tasks.named("jar") { outputs.cacheIf { true } }
+                tasks.named("jpi") { outputs.cacheIf { true } }
+                """, StandardOpenOption.APPEND);
+        var runner = ith.gradleRunner();
+
+        var first = runner.withArguments("jpi", "--build-cache", "--configuration-cache")
+                .build();
+        var firstJar = first.task(":jar");
+        var firstJpi = first.task(":jpi");
+        assertThat(firstJar).isNotNull();
+        assertThat(firstJpi).isNotNull();
+        assertThat(firstJar.getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
+        assertThat(firstJpi.getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
+
+        // Removing outputs forces Gradle to restore cached archives instead of reporting UP_TO_DATE.
+        deleteDirectory(ith.inProjectDir("build"));
+        var second = runner.withArguments("jpi", "--build-cache", "--configuration-cache")
+                .build();
+        var cachedJar = second.task(":jar");
+        var cachedJpi = second.task(":jpi");
+        assertThat(second.getOutput()).contains("Reusing configuration cache.");
+        assertThat(cachedJar).isNotNull();
+        assertThat(cachedJpi).isNotNull();
+        assertThat(cachedJar.getOutcome()).isEqualTo(TaskOutcome.FROM_CACHE);
+        assertThat(cachedJpi.getOutcome()).isEqualTo(TaskOutcome.FROM_CACHE);
+    }
+
+    @Test
     void simpleGradleBuildShouldGenerateHpl() throws IOException {
         // given
         var ith = new IntegrationTestHelper(tempDir, "8.14");

@@ -3,10 +3,8 @@ package org.jenkinsci.gradle.plugins.jpi2;
 import java.util.ArrayList;
 import java.util.List;
 import org.gradle.api.Action;
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.TaskProvider;
 import org.jetbrains.annotations.NotNull;
@@ -14,9 +12,6 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Action to configure the JavaExec task for running the Jenkins server.
  */
-@SuppressWarnings({
-    "Convert2Lambda", // Gradle doesn't like lambdas
-})
 class ServerAction implements Action<JavaExec> {
     private final Configuration serverTaskClasspath;
     private final String projectRoot;
@@ -58,11 +53,6 @@ class ServerAction implements Action<JavaExec> {
 
         spec.dependsOn(prepareServer);
 
-        spec.getOutputs().upToDateWhen(new Spec<>() {
-            @Override
-            public boolean isSatisfiedBy(Task element) {
-                return false;
-            }
-        });
+        spec.getOutputs().upToDateWhen(element -> false);
     }
 }

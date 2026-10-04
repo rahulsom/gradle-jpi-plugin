@@ -14,10 +14,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.gradle.StartParameter;
-import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ProjectDependency;
@@ -57,10 +55,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Gradle plugin for building Jenkins plugins (JPI files).
  */
-@SuppressWarnings({
-    "Convert2Lambda", // Gradle doesn't like lambdas
-    "unused" // This is tested in an acceptance test
-})
+@SuppressWarnings("unused") // This is tested in an acceptance test
 public class V2JpiPlugin implements Plugin<Project> {
 
     private static final Logger log = LoggerFactory.getLogger(V2JpiPlugin.class);
@@ -137,22 +132,19 @@ public class V2JpiPlugin implements Plugin<Project> {
 
         var pomFiles = resolvePomFiles(project, defaultRuntime);
         var licenseTask = project.getTasks()
-                .register(GenerateLicenseInfoTask.NAME, GenerateLicenseInfoTask.class, new Action<>() {
-                    @Override
-                    public void execute(@NotNull GenerateLicenseInfoTask task) {
-                        task.setGroup(BasePlugin.BUILD_GROUP);
-                        task.setDescription("Generates license information.");
-                        task.getOutputDirectory()
-                                .set(project.getLayout().getBuildDirectory().dir("licenses"));
-                        task.getPomFiles().from(pomFiles);
-                        task.getProjectVersion()
-                                .set(project.provider(() -> project.getVersion().toString()));
-                        task.getProjectName().set(project.getName());
-                        task.getProjectGroup()
-                                .set(project.provider(() -> project.getGroup().toString()));
-                        task.getProjectDescription().set(project.provider(project::getDescription));
-                        task.getProjectUrl().set(project.getProviders().gradleProperty("url"));
-                    }
+                .register(GenerateLicenseInfoTask.NAME, GenerateLicenseInfoTask.class, task -> {
+                    task.setGroup(BasePlugin.BUILD_GROUP);
+                    task.setDescription("Generates license information.");
+                    task.getOutputDirectory()
+                            .set(project.getLayout().getBuildDirectory().dir("licenses"));
+                    task.getPomFiles().from(pomFiles);
+                    task.getProjectVersion()
+                            .set(project.provider(() -> project.getVersion().toString()));
+                    task.getProjectName().set(project.getName());
+                    task.getProjectGroup()
+                            .set(project.provider(() -> project.getGroup().toString()));
+                    task.getProjectDescription().set(project.provider(project::getDescription));
+                    task.getProjectUrl().set(project.getProviders().gradleProperty("url"));
                 });
 
         var testCompileClasspath = configurations.getByName("testCompileClasspath");
@@ -187,85 +179,65 @@ public class V2JpiPlugin implements Plugin<Project> {
 
         var jpiTask = project.getTasks()
                 .register(JPI_TASK, War.class, new ConfigureJpiAction(project, defaultRuntime, jenkinsCore, extension));
-        jpiTask.configure(new Action<>() {
-            @Override
-            public void execute(@NotNull War war) {
-                war.dependsOn(licenseTask);
-                war.getInputs().file(optionalManifestFile);
-                war.getManifest().from(optionalManifestFile);
-                war.getWebInf().from(licenseTask.flatMap(GenerateLicenseInfoTask::getOutputDirectory));
-                war.getArchiveVersion().set(extension.getEffectiveVersion());
-                // Gradle's own default for these flipped between the 8.x and 9.x lines; pin them so the
-                // archive's bytes (and therefore testServer's build-cache key, which fingerprints this
-                // file) don't depend on which Gradle version is running.
-                war.setPreserveFileTimestamps(false);
-                war.setReproducibleFileOrder(true);
-            }
+        jpiTask.configure(war -> {
+            war.dependsOn(licenseTask);
+            war.getInputs().file(optionalManifestFile);
+            war.getManifest().from(optionalManifestFile);
+            war.getWebInf().from(licenseTask.flatMap(GenerateLicenseInfoTask::getOutputDirectory));
+            war.getArchiveVersion().set(extension.getEffectiveVersion());
+            // Gradle's own default for these flipped between the 8.x and 9.x lines; pin them so the
+            // archive's bytes (and therefore testServer's build-cache key, which fingerprints this
+            // file) don't depend on which Gradle version is running.
+            war.setPreserveFileTimestamps(false);
+            war.setReproducibleFileOrder(true);
         });
-        project.getTasks().named("jar", Jar.class).configure(new Action<>() {
-            @Override
-            public void execute(@NotNull Jar jarTask) {
-                jarTask.manifest(new ManifestAction(project, extension));
-                jarTask.getInputs().file(optionalManifestFile);
-                jarTask.getManifest().from(optionalManifestFile);
-                jarTask.setPreserveFileTimestamps(false);
-                jarTask.setReproducibleFileOrder(true);
+        project.getTasks().named("jar", Jar.class).configure(jarTask -> {
+            jarTask.manifest(new ManifestAction(project, extension));
+            jarTask.getInputs().file(optionalManifestFile);
+            jarTask.getManifest().from(optionalManifestFile);
+            jarTask.setPreserveFileTimestamps(false);
+            jarTask.setReproducibleFileOrder(true);
 
-                // Resolving defaultRuntime must wait until the jar task actually executes: some publishing
-                // plugins (e.g. com.jfrog.artifactory) realize this task from a gradle.projectsEvaluated
-                // listener, before projects are configured and before Gradle's exclusive project-execution
-                // lock is available, and an eager resolution there is rejected as unsafe.
-                var pluginDependencies = project.provider(() -> resolvePluginDependencies(defaultRuntime));
-                jarTask.getInputs()
-                        .property("pluginDependencies", pluginDependencies)
-                        .optional(true);
-                jarTask.doFirst(new Action<>() {
-                    @Override
-                    public void execute(@NotNull Task task) {
-                        var value = pluginDependencies.getOrNull();
-                        if (value != null) {
-                            jarTask.getManifest().getAttributes().put("Plugin-Dependencies", value);
-                        }
-                    }
-                });
-            }
+            // Resolving defaultRuntime must wait until the jar task actually executes: some publishing
+            // plugins (e.g. com.jfrog.artifactory) realize this task from a gradle.projectsEvaluated
+            // listener, before projects are configured and before Gradle's exclusive project-execution
+            // lock is available, and an eager resolution there is rejected as unsafe.
+            var pluginDependencies = project.provider(() -> resolvePluginDependencies(defaultRuntime));
+            jarTask.getInputs()
+                    .property("pluginDependencies", pluginDependencies)
+                    .optional(true);
+            jarTask.doFirst(task -> {
+                var value = pluginDependencies.getOrNull();
+                if (value != null) {
+                    jarTask.getManifest().getAttributes().put("Plugin-Dependencies", value);
+                }
+            });
         });
         Provider<Directory> jpiDirectory =
                 project.getLayout().getBuildDirectory().dir("jpi");
         var runtimeClasspathArtifacts = new RuntimeClasspathArtifacts(project, defaultRuntime, jenkinsCore);
-        project.getTasks().register(EXPLODED_JPI_TASK, Sync.class, new Action<>() {
-            @Override
-            public void execute(@NotNull Sync sync) {
-                sync.into(jpiDirectory);
-                sync.with(jpiTask.get());
-            }
+        project.getTasks().register(EXPLODED_JPI_TASK, Sync.class, sync -> {
+            sync.into(jpiDirectory);
+            sync.with(jpiTask.get());
         });
-        var generateHpl = project.getTasks().register(GenerateHplTask.TASK_NAME, GenerateHplTask.class, new Action<>() {
-            @Override
-            public void execute(@NotNull GenerateHplTask task) {
-                task.setGroup("Jenkins Server");
-                task.setDescription("Generate hpl (Hudson plugin link) for running locally");
-                task.getHpl()
-                        .set(project.getLayout()
-                                .getBuildDirectory()
-                                .file(extension.getPluginId().map(id -> "hpl/" + id + ".hpl")));
-                task.getResourcePath().set(project.file("src/main/webapp"));
-                task.getLibraries().from(main.getResources().getSrcDirs());
-                task.getLibraries().from(main.getOutput().getClassesDirs());
-                task.getLibraries().from(project.provider(main.getOutput()::getResourcesDir));
-                task.getLibraries().from(runtimeClasspathArtifacts.getBundledLibraries());
-                task.getUpstreamManifest().set(jpiDirectory.map(dir -> dir.file("META-INF/MANIFEST.MF")));
-                task.getPluginDependencies().set(project.provider(() -> resolvePluginDependencies(defaultRuntime)));
-                task.dependsOn(project.getTasks().named("classes"));
-                task.dependsOn(project.getTasks().named(EXPLODED_JPI_TASK));
-            }
+        var generateHpl = project.getTasks().register(GenerateHplTask.TASK_NAME, GenerateHplTask.class, task -> {
+            task.setGroup("Jenkins Server");
+            task.setDescription("Generate hpl (Hudson plugin link) for running locally");
+            task.getHpl()
+                    .set(project.getLayout()
+                            .getBuildDirectory()
+                            .file(extension.getPluginId().map(id -> "hpl/" + id + ".hpl")));
+            task.getResourcePath().set(project.file("src/main/webapp"));
+            task.getLibraries().from(main.getResources().getSrcDirs());
+            task.getLibraries().from(main.getOutput().getClassesDirs());
+            task.getLibraries().from(project.provider(main.getOutput()::getResourcesDir));
+            task.getLibraries().from(runtimeClasspathArtifacts.getBundledLibraries());
+            task.getUpstreamManifest().set(jpiDirectory.map(dir -> dir.file("META-INF/MANIFEST.MF")));
+            task.getPluginDependencies().set(project.provider(() -> resolvePluginDependencies(defaultRuntime)));
+            task.dependsOn(project.getTasks().named("classes"));
+            task.dependsOn(project.getTasks().named(EXPLODED_JPI_TASK));
         });
-        project.getTasks().named("assemble", new Action<>() {
-            @Override
-            public void execute(@NotNull Task task) {
-                task.dependsOn(jpiTask);
-            }
-        });
+        project.getTasks().named("assemble", task -> task.dependsOn(jpiTask));
 
         final var projectRoot =
                 project.getLayout().getProjectDirectory().getAsFile().getAbsolutePath();
@@ -445,44 +417,40 @@ public class V2JpiPlugin implements Plugin<Project> {
             @NotNull String taskName,
             @NotNull String description,
             @NotNull String taskSuffix) {
-        return project.getTasks().register(taskName, TestServerTask.class, new Action<>() {
-            @Override
-            public void execute(@NotNull TestServerTask task) {
-                task.setGroup("verification");
-                task.setDescription(description);
-                task.getRootDir().set(project.getRootDir().getAbsolutePath());
-                task.getGradleExecutable().set(gradleExecutable);
-                task.getJavaHome().set(System.getProperty("java.home"));
-                var initScripts = startParameter.getAllInitScripts();
-                task.getInitScriptFiles().from(initScripts);
-                task.getInitScriptPaths()
-                        .set(initScripts.stream().map(File::getAbsolutePath).toList());
-                addBuildConfigFiles(project, task);
-                task.getIncludedBuilds()
-                        .set(startParameter.getIncludedBuilds().stream()
-                                .map(File::getPath)
-                                .toList());
-                task.getGradleUserHome()
-                        .set(startParameter.getGradleUserHomeDir().getAbsolutePath());
-                task.getOffline().set(startParameter.isOffline());
-                task.getBuildCacheEnabled().set(startParameter.isBuildCacheEnabled());
-                task.getRefreshDependencies().set(startParameter.isRefreshDependencies());
-                task.getContinueOnFailure().set(startParameter.isContinueOnFailure());
-                task.getParallelExecution().set(startParameter.isParallelProjectExecutionEnabled());
-                task.getProfile().set(startParameter.isProfile());
-                task.getRerunTasks().set(startParameter.isRerunTasks());
-                task.getDryRun().set(startParameter.isDryRun());
-                task.getSystemProperties().set(startParameter.getSystemPropertiesArgs());
-                task.getProjectProperties().set(startParameter.getProjectProperties());
-                task.getServerTaskPath().set(isRootProject ? taskSuffix : projectPath + taskSuffix);
-                task.getSuccessMarker()
-                        .set(project.getLayout().getBuildDirectory().file("test-server/" + taskName + ".success"));
-                task.getPortAllocationService().set(portAllocationService);
-                task.usesService(portAllocationService);
-                // Bounds concurrent Jenkins launches across the whole build (see JenkinsLaunchThrottle).
-                task.usesService(launchThrottle);
-                task.getMaxParallelLaunches().set(maxParallelLaunches);
-            }
+        return project.getTasks().register(taskName, TestServerTask.class, task -> {
+            task.setGroup("verification");
+            task.setDescription(description);
+            task.getRootDir().set(project.getRootDir().getAbsolutePath());
+            task.getGradleExecutable().set(gradleExecutable);
+            task.getJavaHome().set(System.getProperty("java.home"));
+            var initScripts = startParameter.getAllInitScripts();
+            task.getInitScriptFiles().from(initScripts);
+            task.getInitScriptPaths()
+                    .set(initScripts.stream().map(File::getAbsolutePath).toList());
+            addBuildConfigFiles(project, task);
+            task.getIncludedBuilds()
+                    .set(startParameter.getIncludedBuilds().stream()
+                            .map(File::getPath)
+                            .toList());
+            task.getGradleUserHome().set(startParameter.getGradleUserHomeDir().getAbsolutePath());
+            task.getOffline().set(startParameter.isOffline());
+            task.getBuildCacheEnabled().set(startParameter.isBuildCacheEnabled());
+            task.getRefreshDependencies().set(startParameter.isRefreshDependencies());
+            task.getContinueOnFailure().set(startParameter.isContinueOnFailure());
+            task.getParallelExecution().set(startParameter.isParallelProjectExecutionEnabled());
+            task.getProfile().set(startParameter.isProfile());
+            task.getRerunTasks().set(startParameter.isRerunTasks());
+            task.getDryRun().set(startParameter.isDryRun());
+            task.getSystemProperties().set(startParameter.getSystemPropertiesArgs());
+            task.getProjectProperties().set(startParameter.getProjectProperties());
+            task.getServerTaskPath().set(isRootProject ? taskSuffix : projectPath + taskSuffix);
+            task.getSuccessMarker()
+                    .set(project.getLayout().getBuildDirectory().file("test-server/" + taskName + ".success"));
+            task.getPortAllocationService().set(portAllocationService);
+            task.usesService(portAllocationService);
+            // Bounds concurrent Jenkins launches across the whole build (see JenkinsLaunchThrottle).
+            task.usesService(launchThrottle);
+            task.getMaxParallelLaunches().set(maxParallelLaunches);
         });
     }
 
@@ -590,12 +558,9 @@ public class V2JpiPlugin implements Plugin<Project> {
             configurePublication(publication, jpiTask, runtimeClasspath, project, extension);
             return publication.getName();
         } else {
-            publishingExtension.getPublications().create("mavenJpi", MavenPublication.class, new Action<>() {
-                @Override
-                public void execute(@NotNull MavenPublication publication) {
-                    publication.from(project.getComponents().getByName("java"));
-                    configurePublication(publication, jpiTask, runtimeClasspath, project, extension);
-                }
+            publishingExtension.getPublications().create("mavenJpi", MavenPublication.class, publication -> {
+                publication.from(project.getComponents().getByName("java"));
+                configurePublication(publication, jpiTask, runtimeClasspath, project, extension);
             });
             return "mavenJpi";
         }
@@ -762,12 +727,9 @@ public class V2JpiPlugin implements Plugin<Project> {
 
     @NotNull
     private static Configuration createServerTaskClasspathConfiguration(@NotNull Project project) {
-        return project.getConfigurations().create("serverTaskClasspath", new Action<>() {
-            @Override
-            public void execute(@NotNull Configuration c) {
-                c.setCanBeConsumed(false);
-                c.setTransitive(false);
-            }
+        return project.getConfigurations().create("serverTaskClasspath", c -> {
+            c.setCanBeConsumed(false);
+            c.setTransitive(false);
         });
     }
 

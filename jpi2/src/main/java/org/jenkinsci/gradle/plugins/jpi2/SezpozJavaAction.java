@@ -9,9 +9,6 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Action to configure the Java compile task for SezPoz.
  */
-@SuppressWarnings({
-    "Convert2Lambda", // Gradle doesn't like lambdas
-})
 class SezpozJavaAction implements Action<JavaBasePlugin> {
     private final Project project;
 
@@ -22,17 +19,14 @@ class SezpozJavaAction implements Action<JavaBasePlugin> {
 
     @Override
     public void execute(@NotNull JavaBasePlugin plugin) {
-        project.getTasks().named("compileJava", JavaCompile.class).configure(new Action<>() {
-            @Override
-            public void execute(@NotNull JavaCompile javaCompile) {
-                javaCompile.getOptions().getCompilerArgs().add("-Asezpoz.quiet=true");
-            }
-        });
-        project.getTasks().withType(JavaCompile.class, new Action<>() {
-            @Override
-            public void execute(@NotNull JavaCompile javaCompile) {
-                javaCompile.getOptions().getCompilerArgs().add("-parameters");
-            }
-        });
+        project.getTasks()
+                .named("compileJava", JavaCompile.class)
+                .configure(javaCompile ->
+                        javaCompile.getOptions().getCompilerArgs().add("-Asezpoz.quiet=true"));
+        project.getTasks()
+                .withType(
+                        JavaCompile.class,
+                        javaCompile ->
+                                javaCompile.getOptions().getCompilerArgs().add("-parameters"));
     }
 }
