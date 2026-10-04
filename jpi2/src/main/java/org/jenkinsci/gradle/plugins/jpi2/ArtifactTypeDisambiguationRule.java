@@ -14,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
  */
 abstract class ArtifactTypeDisambiguationRule implements AttributeDisambiguationRule<ArtifactType> {
 
+    /** Constructor used by Gradle's attribute disambiguation rule injection. */
     @Inject
     public ArtifactTypeDisambiguationRule() {}
 

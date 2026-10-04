@@ -20,6 +20,7 @@ class ConfigurePrepareServerAction implements Action<Sync> {
     private final Provider<String> projectVersion;
     private final Provider<String> targetExtension;
 
+    /** Creates an action that stages the plugin and its dependencies for a Jenkins server. */
     public ConfigurePrepareServerAction(
             TaskProvider<?> jpiTaskProvider,
             Provider<String> workDir,

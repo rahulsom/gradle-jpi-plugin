@@ -8,8 +8,11 @@ import org.jenkinsci.gradle.plugins.jpi2.jenkinsIncrementals as jpi2JenkinsIncre
 import org.jenkinsci.gradle.plugins.jpi2.jenkinsPublic as jpi2JenkinsPublic
 import org.jenkinsci.gradle.plugins.jpi2.jenkinsSnapshots as jpi2JenkinsSnapshots
 
+/** Adds the Jenkins public Maven repository from a Kotlin build script. */
 fun RepositoryHandler.jenkinsPublic(): MavenArtifactRepository = jpi2JenkinsPublic()
 
+/** Adds the Jenkins incrementals Maven repository from a Kotlin build script. */
 fun RepositoryHandler.jenkinsIncrementals(): MavenArtifactRepository = jpi2JenkinsIncrementals()
 
+/** Adds the Jenkins snapshots Maven repository from a Kotlin build script. */
 fun RepositoryHandler.jenkinsSnapshots(): MavenArtifactRepository = jpi2JenkinsSnapshots()

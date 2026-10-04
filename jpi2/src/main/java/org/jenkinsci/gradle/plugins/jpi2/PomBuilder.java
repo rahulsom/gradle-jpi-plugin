@@ -26,6 +26,7 @@ class PomBuilder implements Action<XmlProvider> {
     private final JenkinsPluginExtension extension;
     private final Logger logger;
 
+    /** Creates an action that updates a publication POM from the resolved runtime classpath. */
     public PomBuilder(
             Configuration runtimeClasspath, Project project, JenkinsPluginExtension extension, Logger logger) {
         this.runtimeClasspath = runtimeClasspath;

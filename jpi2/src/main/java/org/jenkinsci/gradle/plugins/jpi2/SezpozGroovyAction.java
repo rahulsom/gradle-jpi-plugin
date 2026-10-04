@@ -15,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 class SezpozGroovyAction implements Action<GroovyBasePlugin> {
     private final Project project;
 
+    /** Creates an action that enables SezPoz annotation processing for Groovy compilation. */
     public SezpozGroovyAction(Project project) {
         this.project = project;
     }

@@ -22,18 +22,21 @@ internal val JENKINS_RELEASES_REPO_URL = URI("https://repo.jenkins-ci.org/releas
 internal const val JENKINS_PUBLISH_REPO_NAME = "jenkinsPublish"
 private val INCREMENTALS_PATTERN = Regex(".*-rc\\d+\\.\\w+")
 
+/** Adds the Jenkins public Maven repository for plugin and core dependencies. */
 fun RepositoryHandler.jenkinsPublic(): MavenArtifactRepository =
     maven {
         name = JENKINS_PUBLIC_REPO_NAME
         url = JENKINS_PUBLIC_REPO_URL
     }
 
+/** Adds the Jenkins incrementals Maven repository. */
 fun RepositoryHandler.jenkinsIncrementals(): MavenArtifactRepository =
     maven {
         name = JENKINS_INCREMENTALS_REPO_NAME
         url = JENKINS_INCREMENTALS_REPO_URL
     }
 
+/** Adds the Jenkins snapshots Maven repository. */
 fun RepositoryHandler.jenkinsSnapshots(): MavenArtifactRepository =
     maven {
         name = JENKINS_SNAPSHOTS_REPO_NAME
@@ -42,6 +45,7 @@ fun RepositoryHandler.jenkinsSnapshots(): MavenArtifactRepository =
 
 private const val PROJECT_EXTRA_KEY = "org.jenkinsci.gradle.plugins.jpi2.project"
 
+/** Adds the Jenkins publishing repository selected by the project version. */
 fun RepositoryHandler.publishToJenkins(): MavenArtifactRepository {
     val project = (this as ExtensionAware).extensions.extraProperties[PROJECT_EXTRA_KEY] as Project
     val repo =
@@ -68,6 +72,7 @@ fun RepositoryHandler.publishToJenkins(): MavenArtifactRepository {
     return repo
 }
 
+/** Registers repository shortcuts, including publishing, for the given project. */
 fun registerRepositoryShortcuts(
     repositories: RepositoryHandler,
     project: Project,
@@ -87,6 +92,7 @@ fun registerRepositoryShortcuts(
     registerRepositoryShortcuts(repositories)
 }
 
+/** Registers Jenkins dependency repository shortcuts on the repository handler. */
 fun registerRepositoryShortcuts(repositories: RepositoryHandler) {
     if (repositories is ExtensionAware) {
         val extensions = repositories.extensions

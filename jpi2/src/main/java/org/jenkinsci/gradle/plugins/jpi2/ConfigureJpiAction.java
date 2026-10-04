@@ -20,6 +20,7 @@ class ConfigureJpiAction implements Action<War> {
     private final Configuration jenkinsCore;
     private final JenkinsPluginExtension extension;
 
+    /** Creates an action that packages the plugin and its runtime dependencies. */
     public ConfigureJpiAction(
             Project project, Configuration configuration, Configuration jenkinsCore, JenkinsPluginExtension extension) {
         this.project = project;

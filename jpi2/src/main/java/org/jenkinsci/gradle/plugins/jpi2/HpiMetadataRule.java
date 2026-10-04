@@ -20,12 +20,16 @@ import org.jetbrains.annotations.NotNull;
 })
 abstract class HpiMetadataRule implements ComponentMetadataRule {
 
+    /** Maven packaging types that identify Jenkins plugins. */
     public static final Set<String> PLUGIN_PACKAGINGS = Set.of("hpi", "jpi");
+    /** Variant retaining the plugin archive for runtime use. */
     public static final String DEFAULT_RUNTIME_VARIANT = "defaultRuntime";
 
+    /** Constructor used by Gradle's component metadata rule injection. */
     @Inject
     public HpiMetadataRule() {}
 
+    /** @return the factory used to create artifact type attribute values */
     @Inject
     public abstract ObjectFactory getObjects();
 
@@ -58,6 +62,7 @@ abstract class HpiMetadataRule implements ComponentMetadataRule {
         private final String extension;
         private final ArtifactType artifactType;
 
+        /** Creates an action that selects an artifact file and its Gradle artifact type. */
         public DefaultSelectionAction(ComponentMetadataDetails details, String extension, ArtifactType artifactType) {
             this.details = details;
             this.extension = extension;
