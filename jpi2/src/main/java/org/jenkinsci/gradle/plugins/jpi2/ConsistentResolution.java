@@ -1,10 +1,8 @@
 package org.jenkinsci.gradle.plugins.jpi2;
 
 import java.util.Objects;
-import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
@@ -48,24 +46,21 @@ final class ConsistentResolution {
         alignment.setDescription("Strict version constraints matching what Jenkins core resolves.");
         // Deferred to resolution time: resolving `source` while declaring the alignment would force
         // every consumer to know the Jenkins version before the build script has finished configuring.
-        alignment.withDependencies(new Action<>() {
-            @Override
-            public void execute(@NotNull DependencySet dependencies) {
-                if (!alignment.getDependencyConstraints().isEmpty()) {
-                    return; // withDependencies runs once per resolution of each extending configuration
-                }
-                source.getIncoming().getResolutionResult().getAllComponents().stream()
-                        .filter(component -> component.getId() instanceof ModuleComponentIdentifier)
-                        .filter(component -> !isPlatform(component))
-                        .map(ResolvedComponentResult::getModuleVersion)
-                        .filter(Objects::nonNull)
-                        .forEach(module -> alignment
-                                .getDependencyConstraints()
-                                .add(constraints.create(module.getGroup() + ":" + module.getName(), constraint -> {
-                                    constraint.version(version -> version.strictly(module.getVersion()));
-                                    constraint.because(reason);
-                                })));
+        alignment.withDependencies(dependencies -> {
+            if (!alignment.getDependencyConstraints().isEmpty()) {
+                return; // withDependencies runs once per resolution of each extending configuration
             }
+            source.getIncoming().getResolutionResult().getAllComponents().stream()
+                    .filter(component -> component.getId() instanceof ModuleComponentIdentifier)
+                    .filter(component -> !isPlatform(component))
+                    .map(ResolvedComponentResult::getModuleVersion)
+                    .filter(Objects::nonNull)
+                    .forEach(module -> alignment
+                            .getDependencyConstraints()
+                            .add(constraints.create(module.getGroup() + ":" + module.getName(), constraint -> {
+                                constraint.version(version -> version.strictly(module.getVersion()));
+                                constraint.because(reason);
+                            })));
         });
         return alignment;
     }

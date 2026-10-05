@@ -6,7 +6,6 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.ComponentMetadataContext;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
 import org.gradle.api.artifacts.ComponentMetadataRule;
-import org.gradle.api.artifacts.MutableVariantFilesMetadata;
 import org.gradle.api.artifacts.VariantMetadata;
 import org.gradle.api.artifacts.maven.PomModuleDescriptor;
 import org.gradle.api.model.ObjectFactory;
@@ -15,9 +14,6 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Rule to make compile configurations use jar instead of hpi/jpi.
  */
-@SuppressWarnings({
-    "Convert2Lambda", // Gradle doesn't like lambdas
-})
 abstract class HpiMetadataRule implements ComponentMetadataRule {
 
     /** Maven packaging types that identify Jenkins plugins. */
@@ -71,13 +67,9 @@ abstract class HpiMetadataRule implements ComponentMetadataRule {
 
         @Override
         public void execute(@NotNull VariantMetadata variantMetadata) {
-            variantMetadata.withFiles(new Action<>() {
-                @Override
-                public void execute(@NotNull MutableVariantFilesMetadata mutableVariantFilesMetadata) {
-                    mutableVariantFilesMetadata.removeAllFiles();
-                    mutableVariantFilesMetadata.addFile(
-                            details.getId().getName() + "-" + details.getId().getVersion() + "." + extension);
-                }
+            variantMetadata.withFiles(files -> {
+                files.removeAllFiles();
+                files.addFile(details.getId().getName() + "-" + details.getId().getVersion() + "." + extension);
             });
             if (artifactType != null) {
                 variantMetadata.getAttributes().attribute(ArtifactType.ARTIFACT_TYPE_ATTRIBUTE, artifactType);

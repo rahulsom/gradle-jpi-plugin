@@ -2,18 +2,13 @@ package org.jenkinsci.gradle.plugins.jpi2;
 
 import org.gradle.api.Action;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.file.CopySpec;
 import org.gradle.api.tasks.bundling.War;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Action to configure the JPI task for a Jenkins plugin.
  */
-@SuppressWarnings({
-    "Convert2Lambda", // Gradle doesn't like lambdas
-})
 class ConfigureJpiAction implements Action<War> {
     private final Project project;
     private final Configuration configuration;
@@ -40,27 +35,14 @@ class ConfigureJpiAction implements Action<War> {
         // lock is available, and an eager resolution there is rejected as unsafe.
         var pluginDependencies = project.provider(() -> V2JpiPlugin.resolvePluginDependencies(configuration));
         jpi.getInputs().property("pluginDependencies", pluginDependencies).optional(true);
-        jpi.doFirst(new Action<>() {
-            @Override
-            public void execute(@NotNull Task task) {
-                var value = pluginDependencies.getOrNull();
-                if (value != null) {
-                    jpi.getManifest().getAttributes().put("Plugin-Dependencies", value);
-                }
+        jpi.doFirst(task -> {
+            var value = pluginDependencies.getOrNull();
+            if (value != null) {
+                jpi.getManifest().getAttributes().put("Plugin-Dependencies", value);
             }
         });
-        jpi.from(project.getTasks().named("jar"), new Action<>() {
-            @Override
-            public void execute(@NotNull CopySpec copySpec) {
-                copySpec.into("WEB-INF/lib");
-            }
-        });
-        jpi.from(project.file("src/main/webapp"), new Action<>() {
-            @Override
-            public void execute(@NotNull CopySpec copySpec) {
-                copySpec.into("");
-            }
-        });
+        jpi.from(project.getTasks().named("jar"), copySpec -> copySpec.into("WEB-INF/lib"));
+        jpi.from(project.file("src/main/webapp"), copySpec -> copySpec.into(""));
         var runtimeClasspathArtifacts = new RuntimeClasspathArtifacts(project, configuration, jenkinsCore);
         jpi.setClasspath(runtimeClasspathArtifacts.getBundledLibraries());
         jpi.finalizedBy(V2JpiPlugin.EXPLODED_JPI_TASK);
