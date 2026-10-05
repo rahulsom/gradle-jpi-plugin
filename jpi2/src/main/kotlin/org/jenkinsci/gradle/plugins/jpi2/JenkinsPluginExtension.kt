@@ -189,12 +189,10 @@ abstract class JenkinsPluginExtension
          */
         fun developers(action: Action<in PluginDeveloperSpec>) {
             action.execute(
-                object : PluginDeveloperSpec {
-                    override fun developer(action: Action<in PluginDeveloper>) {
-                        val dev = project.objects.newInstance(PluginDeveloper::class.java)
-                        action.execute(dev)
-                        pluginDevelopers.add(dev)
-                    }
+                PluginDeveloperSpec { developerAction ->
+                    val dev = project.objects.newInstance(PluginDeveloper::class.java)
+                    developerAction.execute(dev)
+                    pluginDevelopers.add(dev)
                 },
             )
         }
@@ -216,12 +214,10 @@ abstract class JenkinsPluginExtension
          */
         fun licenses(action: Action<in PluginLicenseSpec>) {
             action.execute(
-                object : PluginLicenseSpec {
-                    override fun license(action: Action<in PluginLicense>) {
-                        val lic = project.objects.newInstance(PluginLicense::class.java)
-                        action.execute(lic)
-                        pluginLicenses.add(lic)
-                    }
+                PluginLicenseSpec { licenseAction ->
+                    val lic = project.objects.newInstance(PluginLicense::class.java)
+                    licenseAction.execute(lic)
+                    pluginLicenses.add(lic)
                 },
             )
         }

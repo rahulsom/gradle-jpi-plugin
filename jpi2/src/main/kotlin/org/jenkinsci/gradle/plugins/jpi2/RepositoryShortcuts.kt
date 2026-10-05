@@ -57,16 +57,14 @@ fun RepositoryHandler.publishToJenkins(): MavenArtifactRepository {
             credentials(PasswordCredentials::class.java)
         }
     project.afterEvaluate(
-        object : Action<Project> {
-            override fun execute(p: Project) {
-                val version = p.version.toString()
-                repo.url =
-                    when {
-                        version.endsWith("-SNAPSHOT") -> JENKINS_SNAPSHOTS_REPO_URL
-                        INCREMENTALS_PATTERN.matches(version) -> JENKINS_INCREMENTALS_REPO_URL
-                        else -> JENKINS_RELEASES_REPO_URL
-                    }
-            }
+        Action<Project> {
+            val projectVersion = version.toString()
+            repo.url =
+                when {
+                    projectVersion.endsWith("-SNAPSHOT") -> JENKINS_SNAPSHOTS_REPO_URL
+                    INCREMENTALS_PATTERN.matches(projectVersion) -> JENKINS_INCREMENTALS_REPO_URL
+                    else -> JENKINS_RELEASES_REPO_URL
+                }
         },
     )
     return repo
