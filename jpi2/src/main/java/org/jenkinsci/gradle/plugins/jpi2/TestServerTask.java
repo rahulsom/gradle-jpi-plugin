@@ -202,7 +202,7 @@ public abstract class TestServerTask extends DefaultTask {
     public abstract Property<Integer> getMaxParallelLaunches();
 
     /** Outcome of a single Jenkins launch attempt. */
-    private enum Status {
+    enum Status {
         /** Jenkins reported "fully up and running". */
         SUCCESS,
         /** Jenkins printed a deterministic startup failure (e.g. a plugin failed to load). */
@@ -213,7 +213,7 @@ public abstract class TestServerTask extends DefaultTask {
         EXITED
     }
 
-    private record LaunchResult(Status status, int exitCode, String detail) {
+    record LaunchResult(Status status, int exitCode, String detail) {
         static LaunchResult success() {
             return new LaunchResult(Status.SUCCESS, 0, null);
         }
@@ -386,16 +386,23 @@ public abstract class TestServerTask extends DefaultTask {
 
         while ((stdout = stdoutReader.readLine()) != null) {
             getLogger().lifecycle("    {}", stdout);
-            if (stdout.contains("Jenkins is fully up and running")) {
+            var verdict = verdictForLine(stdout);
+            if (verdict != null) {
                 destroyTree(process);
-                return LaunchResult.success();
-            }
-            if (FAILURE_MESSAGES.stream().anyMatch(stdout::contains)) {
-                destroyTree(process);
-                return new LaunchResult(Status.CRASH, -1, stdout);
+                return verdict;
             }
         }
         return new LaunchResult(Status.EXITED, -1, null);
+    }
+
+    static LaunchResult verdictForLine(String stdout) {
+        if (stdout.contains("Jenkins is fully up and running")) {
+            return LaunchResult.success();
+        }
+        if (FAILURE_MESSAGES.stream().anyMatch(stdout::contains)) {
+            return new LaunchResult(Status.CRASH, -1, stdout);
+        }
+        return null;
     }
 
     private String timeoutMessage(int timeout, int maxAttempts) {
