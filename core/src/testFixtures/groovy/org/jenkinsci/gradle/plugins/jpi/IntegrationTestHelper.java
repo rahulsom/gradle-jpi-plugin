@@ -20,10 +20,6 @@ public class IntegrationTestHelper {
         this.minimumGradleVersion = minimumGradleVersion;
     }
 
-    public IntegrationTestHelper(File projectDir) {
-        this(projectDir, null);
-    }
-
     public GradleRunner gradleRunner() throws IOException {
         return gradleRunner(WarningMode.ALL);
     }
@@ -59,18 +55,6 @@ public class IntegrationTestHelper {
         return targetVersion.compareTo(minimumVersion) < 0 ? minimumVersion : targetVersion;
     }
 
-    public static boolean isBeforeJavaConventionDeprecation() {
-        return getGradleVersionForTest(null).compareTo(GradleVersion.version("8.2")) < 0;
-    }
-
-    public static boolean isAfterJavaConventionDeprecation() {
-        return !isBeforeJavaConventionDeprecation();
-    }
-
-    public static boolean isWindows() {
-        return System.getProperty("os.name").toLowerCase().contains("windows");
-    }
-
     public boolean existsRelativeToProjectDir(String path) {
         return inProjectDir(path).exists();
     }
@@ -81,9 +65,5 @@ public class IntegrationTestHelper {
 
     public File mkDirInProjectDir(String path) throws IOException {
         return Files.createDirectories(projectDir.toPath().resolve(path)).toFile();
-    }
-
-    public File touchInProjectDir(String path) throws IOException {
-        return Files.createFile(projectDir.toPath().resolve(path)).toFile();
     }
 }

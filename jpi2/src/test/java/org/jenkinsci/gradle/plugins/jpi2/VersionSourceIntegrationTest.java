@@ -10,7 +10,6 @@ import java.nio.file.Files;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.jar.JarFile;
-import java.util.regex.Pattern;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
@@ -20,8 +19,6 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
 class VersionSourceIntegrationTest extends V2IntegrationTestBase {
-
-    private static final Pattern GIT_HASH = Pattern.compile("[a-f0-9]{40}");
 
     @Test
     void projectVersionIsUsedByDefault() throws IOException {
