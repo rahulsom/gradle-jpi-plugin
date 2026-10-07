@@ -14,7 +14,6 @@ import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.jenkinsci.gradle.plugins.jpi.IntegrationTestHelper;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 class PluginDeveloperIntegrationTest extends V2IntegrationTestBase {
@@ -60,8 +59,6 @@ class PluginDeveloperIntegrationTest extends V2IntegrationTestBase {
     }
 
     @Test
-    @Disabled(
-            "PluginDeveloperSpec is a plain Kotlin lambda, so Groovy closures passed to developer {} are not delegated to PluginDeveloper")
     void groovyDslWritesDevelopersToPomAndManifest() throws IOException, XmlPullParserException {
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);

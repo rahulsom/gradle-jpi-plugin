@@ -91,6 +91,49 @@ class MetadataIntegrationTest extends V2IntegrationTestBase {
     }
 
     @Test
+    void groovyDslWritesLicensesToPom() throws IOException, XmlPullParserException {
+        var ith = new IntegrationTestHelper(tempDir, "8.14");
+        initBuild(ith);
+        Files.writeString(ith.inProjectDir("build.gradle").toPath(), /* language=groovy */ """
+                plugins {
+                    id "org.jenkins-ci.jpi2"
+                }
+                repositories {
+                    mavenCentral()
+                    jenkinsPublic()
+                }
+                group = "com.example"
+                version = "1.0.0"
+                publishing {
+                    repositories {
+                        maven {
+                            name = "local"
+                            url = uri("${rootDir}/build/repo")
+                        }
+                    }
+                }
+                jenkinsPlugin {
+                    licenses {
+                        license {
+                            name = "Apache License, Version 2.0"
+                            url = "https://www.apache.org/licenses/LICENSE-2.0"
+                            distribution = "repo"
+                        }
+                    }
+                }
+                """);
+
+        ith.gradleRunner().withArguments("publish").build();
+
+        var pom = ith.inProjectDir("build/repo/com/example/test-plugin/1.0.0/test-plugin-1.0.0.pom");
+        var model = new MavenXpp3Reader().read(new FileReader(pom));
+        assertThat(model.getLicenses())
+                .extracting(License::getName, License::getUrl, License::getDistribution)
+                .containsExactly(org.assertj.core.groups.Tuple.tuple(
+                        "Apache License, Version 2.0", "https://www.apache.org/licenses/LICENSE-2.0", "repo"));
+    }
+
+    @Test
     void defaultsApplyWhenMetadataNotConfigured() throws IOException {
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         initBuild(ith);
