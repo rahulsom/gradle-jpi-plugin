@@ -89,7 +89,7 @@ abstract class GitVersionExtension
         /**
          * Provider for the Git-derived version string (commit depth + abbreviated hash per [versionFormat]).
          * Resolved on demand when the value is read; no task required. Use this as the source of truth
-         * for the plugin version when [VersionSource.GIT]. The [generateGitVersion] task still writes
+         * for the plugin version when [VersionSource.GIT]. The `generateGitVersion` task still writes
          * this value (and the full hash) to [outputFile] for scripts and compatibility.
          */
         val version: Provider<String> =

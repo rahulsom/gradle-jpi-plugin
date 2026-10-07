@@ -78,7 +78,9 @@ class GenerateLicenseInfoTaskTest {
 
     private GenerateLicenseInfoTask task() {
         var project = ProjectBuilder.builder().withProjectDir(tempDir.toFile()).build();
-        var task = project.getTasks().create("generateLicenseInfoTest", GenerateLicenseInfoTask.class);
+        var task = project.getTasks()
+                .register("generateLicenseInfoTest", GenerateLicenseInfoTask.class)
+                .get();
         task.getOutputDirectory().set(tempDir.resolve("licenses").toFile());
         task.getProjectGroup().set("com.example");
         task.getProjectName().set("plugin");

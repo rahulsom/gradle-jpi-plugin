@@ -250,9 +250,12 @@ public abstract class TestServerTask extends DefaultTask {
                                 "Jenkins failed to report a successful start (exit code " + result.exitCode() + ")");
                     case TIMEOUT -> {
                         getLogger()
-                                .warn("testServer: Jenkins did not start within " + timeout
-                                        + "s (attempt " + attempt + " of " + maxAttempts + ")"
-                                        + (attempt < maxAttempts ? "; retrying" : ""));
+                                .warn(
+                                        "testServer: Jenkins did not start within {}s (attempt {} of {}){}",
+                                        timeout,
+                                        attempt,
+                                        maxAttempts,
+                                        attempt < maxAttempts ? "; retrying" : "");
                         if (attempt == maxAttempts) {
                             throw new GradleException(timeoutMessage(timeout, maxAttempts));
                         }
