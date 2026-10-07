@@ -57,7 +57,7 @@ fun RepositoryHandler.publishToJenkins(): MavenArtifactRepository {
             credentials(PasswordCredentials::class.java)
         }
     project.afterEvaluate(
-        Action<Project> {
+        Action {
             val projectVersion = version.toString()
             repo.url =
                 when {

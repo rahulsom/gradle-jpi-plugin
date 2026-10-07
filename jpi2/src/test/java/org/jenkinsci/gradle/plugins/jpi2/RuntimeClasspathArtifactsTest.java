@@ -22,6 +22,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.testfixtures.ProjectBuilder;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 
 class RuntimeClasspathArtifactsTest {
 
@@ -41,7 +42,7 @@ class RuntimeClasspathArtifactsTest {
 
         fixture.artifacts().getBundledLibraries();
 
-        var dependencies = ArgumentCaptor.forClass(Dependency[].class);
+        var dependencies = ArgumentCaptor.<Dependency[]>captor();
         verify(fixture.configurations()).detachedConfiguration(dependencies.capture());
         assertThat(dependencies.getValue()).containsExactly(bundledRequest);
     }
@@ -54,8 +55,7 @@ class RuntimeClasspathArtifactsTest {
 
         fixture.artifacts().getBundledLibraries();
 
-        @SuppressWarnings("unchecked")
-        var filter = ArgumentCaptor.forClass(Spec.class);
+        var filter = ArgumentCaptor.<Spec<File>>captor();
         verify(fixture.detached()).filter(filter.capture());
         assertThat(filter.getValue().isSatisfiedBy(new File("provided-library.jar")))
                 .isFalse();
@@ -80,7 +80,7 @@ class RuntimeClasspathArtifactsTest {
         when(dependencySet.stream()).thenAnswer(ignored -> requestedDependencies.stream());
         when(configurations.detachedConfiguration(any(Dependency[].class))).thenReturn(detached);
         when(detached.getAttributes()).thenReturn(attributes);
-        when(detached.filter(any(Spec.class))).thenReturn(mock(FileCollection.class));
+        when(detached.filter(ArgumentMatchers.<Spec<File>>any())).thenReturn(mock(FileCollection.class));
         return new Fixture(new RuntimeClasspathArtifacts(project, runtime, core), configurations, detached);
     }
 

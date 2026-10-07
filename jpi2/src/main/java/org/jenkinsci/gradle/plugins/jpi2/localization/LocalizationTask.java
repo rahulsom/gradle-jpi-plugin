@@ -82,6 +82,7 @@ public abstract class LocalizationTask extends SourceTask {
         }
     }
 
+    @SuppressWarnings("EmptyMethod") // We're changing the PathSensitivity here.
     @Override
     @InputFiles
     @SkipWhenEmpty
