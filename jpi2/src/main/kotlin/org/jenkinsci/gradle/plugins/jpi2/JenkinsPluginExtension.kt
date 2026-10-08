@@ -188,13 +188,7 @@ abstract class JenkinsPluginExtension
          * ```
          */
         fun developers(action: Action<in PluginDeveloperSpec>) {
-            action.execute(
-                PluginDeveloperSpec { developerAction ->
-                    val dev = project.objects.newInstance(PluginDeveloper::class.java)
-                    developerAction.execute(dev)
-                    pluginDevelopers.add(dev)
-                },
-            )
+            action.execute(project.objects.newInstance(DefaultPluginDeveloperSpec::class.java, pluginDevelopers))
         }
 
         /**
@@ -213,13 +207,7 @@ abstract class JenkinsPluginExtension
          * ```
          */
         fun licenses(action: Action<in PluginLicenseSpec>) {
-            action.execute(
-                PluginLicenseSpec { licenseAction ->
-                    val lic = project.objects.newInstance(PluginLicense::class.java)
-                    licenseAction.execute(lic)
-                    pluginLicenses.add(lic)
-                },
-            )
+            action.execute(project.objects.newInstance(DefaultPluginLicenseSpec::class.java, pluginLicenses))
         }
 
         /**
