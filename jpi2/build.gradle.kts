@@ -51,14 +51,7 @@ tasks.withType<Test>().configureEach {
     // This JVM mostly waits on nested Gradle/Jenkins processes rather than doing heap-heavy
     // work itself; capping it leaves more headroom for those nested processes.
     maxHeapSize = "512m"
-    jvmArgumentProviders.add(TestKitDirArgumentProvider(testKitDir))
-}
-
-/** Kept out of the test task's inputs: relocating TestKit's caches doesn't change test results. */
-class TestKitDirArgumentProvider(
-    @get:Internal val dir: Provider<String>,
-) : CommandLineArgumentProvider {
-    override fun asArguments(): Iterable<String> = dir.map { listOf("-Dorg.gradle.testkit.dir=$it") }.getOrElse(emptyList())
+    testKitDir.orNull?.let { systemProperty("org.gradle.testkit.dir", it) }
 }
 
 publishing {
