@@ -189,10 +189,6 @@ public abstract class TestServerTask extends DefaultTask {
     @OutputFile
     public abstract RegularFileProperty getSuccessMarker();
 
-    /** @return build service that allocates a free TCP port for the Jenkins test server */
-    @Internal
-    public abstract Property<PortAllocationService> getPortAllocationService();
-
     /**
      * @return the configured cap on concurrent Jenkins launches, used only to make the timeout
      * diagnostic actionable. Not an input: it does not affect the produced marker, and folding it
@@ -274,10 +270,10 @@ public abstract class TestServerTask extends DefaultTask {
 
     /**
      * Launches the nested build once and waits for a verdict, terminating Jenkins after either a
-     * successful start or the timeout. A fresh work directory and port are used per attempt.
+     * successful start or the timeout. A fresh work directory is used per attempt.
      */
     private LaunchResult attemptLaunch(Path workDir, int timeout) throws IOException, InterruptedException {
-        var process = launchWithReservedPort(workDir);
+        var process = launchProcess(getCommandLine(workDir));
         var timedOut = new java.util.concurrent.atomic.AtomicBoolean(false);
 
         var timerThread = new Thread(() -> {
@@ -344,29 +340,6 @@ public abstract class TestServerTask extends DefaultTask {
                 .directory(new File(getRootDir().get()))
                 .redirectErrorStream(true)
                 .start();
-    }
-
-    /**
-     * Reserves the Jenkins server port and holds it open (see {@link PortAllocationService})
-     * while the command line is assembled, releasing it as late as possible -- immediately before
-     * the nested Gradle build is spawned to actually bind it -- to keep the window in which
-     * another process could steal the port as small as possible. See
-     * <a href="https://github.com/jenkinsci/gradle-jpi-plugin/issues/344">#344</a>.
-     */
-    @NotNull
-    private Process launchWithReservedPort(Path workDir) throws IOException {
-        var portAllocationService = getPortAllocationService().get();
-        int port = portAllocationService.reservePort();
-        try {
-            var commandLine = getCommandLine(workDir, port);
-            portAllocationService.releasePort(port);
-            return launchProcess(commandLine);
-        } finally {
-            // Safety net: if reservePort() succeeded but something above threw before the
-            // explicit release, don't leak the held socket for the rest of the build. A no-op if
-            // the port was already released on the success path.
-            portAllocationService.releasePort(port);
-        }
     }
 
     /**
@@ -446,7 +419,7 @@ public abstract class TestServerTask extends DefaultTask {
     }
 
     @NotNull
-    private List<String> getCommandLine(@NotNull Path workDir, int serverPort) {
+    private List<String> getCommandLine(@NotNull Path workDir) {
         List<String> commandLine = new ArrayList<>();
         commandLine.add(slashify(getGradleExecutable().get()));
         commandLine.add("-Dorg.gradle.java.home=" + slashify(getJavaHome().get()));
@@ -486,7 +459,11 @@ public abstract class TestServerTask extends DefaultTask {
         });
 
         commandLine.add(getServerTaskPath().get());
-        commandLine.add("-Pserver.port=" + serverPort);
+        // Port 0 lets Jetty bind an ephemeral port atomically. Picking a free port up front can't
+        // be made safe: the nested build takes seconds to configure before Jenkins binds, and
+        // anything on the machine can claim the port in that window. Nothing here needs to know
+        // the port, since success is detected from the log.
+        commandLine.add("-Pserver.port=0");
         commandLine.add("-P" + WorkDirectorySettings.PROPERTY + "="
                 + slashify(workDir.toAbsolutePath().toString()));
         getLogger().info("Command: {}", commandLine);
