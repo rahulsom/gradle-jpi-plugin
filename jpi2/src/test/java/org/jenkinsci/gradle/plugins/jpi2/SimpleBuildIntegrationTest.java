@@ -391,13 +391,25 @@ class SimpleBuildIntegrationTest extends V2IntegrationTestBase {
                 .isEqualTo(TaskOutcome.SUCCESS);
         assertThat(afterEdit.getOutput()).contains("Jenkins is fully up and running");
 
-        var rerunTasks = runner.withArguments(task, "--rerun-tasks").build();
+        var rerunTasks = runner.withArguments(task, "--rerun-tasks", "--info").build();
         var rerunTask = rerunTasks.task(taskPath);
         assertThat(rerunTask).isNotNull();
         assertThat(rerunTask.getOutcome())
                 .as("--rerun-tasks must force the task to run regardless of cache state")
                 .isEqualTo(TaskOutcome.SUCCESS);
         assertThat(rerunTasks.getOutput()).contains("Jenkins is fully up and running");
+        assertThat(rerunTasks.getOutput().lines().filter(line -> line.contains("Command: ")))
+                .as("--rerun-tasks must not be forwarded to the nested build, which would rebuild everything")
+                .isNotEmpty()
+                .noneMatch(line -> line.contains("--rerun-tasks"));
+
+        var rerun = runner.withArguments(task, "--rerun").build();
+        var rerunOnlyTask = rerun.task(taskPath);
+        assertThat(rerunOnlyTask).isNotNull();
+        assertThat(rerunOnlyTask.getOutcome())
+                .as("--rerun must force a fresh launch of just this task")
+                .isEqualTo(TaskOutcome.SUCCESS);
+        assertThat(rerun.getOutput()).contains("Jenkins is fully up and running");
     }
 
     @Test
