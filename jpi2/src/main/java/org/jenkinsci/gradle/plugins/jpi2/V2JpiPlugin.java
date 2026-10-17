@@ -327,8 +327,6 @@ public class V2JpiPlugin implements Plugin<Project> {
                 .configure(t -> t.dependsOn(resolveVersion));
 
         BuildServiceRegistry buildServices = project.getGradle().getSharedServices();
-        var portAllocationService =
-                buildServices.registerIfAbsent("portAllocation", PortAllocationService.class, spec -> {});
 
         // Cap how many Jenkins servers boot at once. Each launch is a nested Gradle build plus a
         // Jenkins JVM, so unbounded parallelism saturates the machine and Jenkins misses its startup
@@ -358,7 +356,6 @@ public class V2JpiPlugin implements Plugin<Project> {
 
         var testServerTask = registerTestTask(
                 project,
-                portAllocationService,
                 launchThrottle,
                 maxParallelLaunches,
                 gradleExecutable,
@@ -379,7 +376,6 @@ public class V2JpiPlugin implements Plugin<Project> {
 
         var testHplRunTask = registerTestTask(
                 project,
-                portAllocationService,
                 launchThrottle,
                 maxParallelLaunches,
                 gradleExecutable,
@@ -407,7 +403,6 @@ public class V2JpiPlugin implements Plugin<Project> {
     @NotNull
     private static TaskProvider<TestServerTask> registerTestTask(
             @NotNull Project project,
-            @NotNull Provider<PortAllocationService> portAllocationService,
             @NotNull Provider<JenkinsLaunchThrottle> launchThrottle,
             @NotNull Provider<Integer> maxParallelLaunches,
             @NotNull String gradleExecutable,
@@ -446,8 +441,6 @@ public class V2JpiPlugin implements Plugin<Project> {
             task.getServerTaskPath().set(isRootProject ? taskSuffix : projectPath + taskSuffix);
             task.getSuccessMarker()
                     .set(project.getLayout().getBuildDirectory().file("test-server/" + taskName + ".success"));
-            task.getPortAllocationService().set(portAllocationService);
-            task.usesService(portAllocationService);
             // Bounds concurrent Jenkins launches across the whole build (see JenkinsLaunchThrottle).
             task.usesService(launchThrottle);
             task.getMaxParallelLaunches().set(maxParallelLaunches);
