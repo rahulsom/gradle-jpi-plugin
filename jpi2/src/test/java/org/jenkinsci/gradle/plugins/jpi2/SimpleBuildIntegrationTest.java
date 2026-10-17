@@ -220,26 +220,14 @@ class SimpleBuildIntegrationTest extends V2IntegrationTestBase {
 
     @Test
     @Timeout(value = 15, unit = TimeUnit.MINUTES)
-    void testServerIsCacheableAndInvalidatesOnSourceChange() throws IOException {
+    void testServerIsCacheableAndInvalidatesOnSourceAndBuildScriptChange() throws IOException {
         assertVerificationTaskCachingBehavior("testServer", "prepareServer");
     }
 
     @Test
     @Timeout(value = 15, unit = TimeUnit.MINUTES)
-    void testHplRunIsCacheableAndInvalidatesOnSourceChange() throws IOException {
+    void testHplRunIsCacheableAndInvalidatesOnSourceAndBuildScriptChange() throws IOException {
         assertVerificationTaskCachingBehavior("testHplRun", "prepareRun");
-    }
-
-    @Test
-    @Timeout(value = 15, unit = TimeUnit.MINUTES)
-    void testServerInvalidatesOnBuildScriptChange() throws IOException {
-        assertVerificationTaskInvalidatesOnBuildScriptChange("testServer");
-    }
-
-    @Test
-    @Timeout(value = 15, unit = TimeUnit.MINUTES)
-    void testHplRunInvalidatesOnBuildScriptChange() throws IOException {
-        assertVerificationTaskInvalidatesOnBuildScriptChange("testHplRun");
     }
 
     @Test
@@ -298,39 +286,6 @@ class SimpleBuildIntegrationTest extends V2IntegrationTestBase {
         assertThat(afterReorderTask).isNotNull();
         assertThat(afterReorderTask.getOutcome())
                 .as("reordering init scripts must invalidate the cache")
-                .isEqualTo(TaskOutcome.SUCCESS);
-    }
-
-    private void assertVerificationTaskInvalidatesOnBuildScriptChange(String task) throws IOException {
-        var ith = new IntegrationTestHelper(tempDir, "8.14");
-        configureSimpleBuildForVerification(ith);
-
-        GradleRunner runner = ith.gradleRunner();
-        var taskPath = ":" + task;
-
-        var first = runner.withArguments(task).build();
-        var firstTask = first.task(taskPath);
-        assertThat(firstTask).isNotNull();
-        assertThat(firstTask.getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
-
-        var secondNoChange = runner.withArguments(task).build();
-        var secondNoChangeTask = secondNoChange.task(taskPath);
-        assertThat(secondNoChangeTask).isNotNull();
-        assertThat(secondNoChangeTask.getOutcome())
-                .as("unchanged inputs should hit the cache")
-                .isEqualTo(TaskOutcome.UP_TO_DATE);
-
-        // Append a comment to build.gradle.kts — changes file content without affecting behavior.
-        Files.writeString(
-                ith.inProjectDir("build.gradle.kts").toPath(),
-                "\n// cache-invalidation marker\n",
-                StandardCharsets.UTF_8,
-                StandardOpenOption.APPEND);
-        var afterBuildScriptEdit = runner.withArguments(task).build();
-        var afterBuildScriptEditTask = afterBuildScriptEdit.task(taskPath);
-        assertThat(afterBuildScriptEditTask).isNotNull();
-        assertThat(afterBuildScriptEditTask.getOutcome())
-                .as("editing build.gradle.kts must invalidate the cache")
                 .isEqualTo(TaskOutcome.SUCCESS);
     }
 
@@ -393,6 +348,19 @@ class SimpleBuildIntegrationTest extends V2IntegrationTestBase {
                         "editing main source must invalidate the cache (catches missing referencedFiles wiring on testHplRun)")
                 .isEqualTo(TaskOutcome.SUCCESS);
         assertThat(afterEdit.getOutput()).contains("Jenkins is fully up and running");
+
+        // Append a comment to build.gradle.kts — changes file content without affecting behavior.
+        Files.writeString(
+                ith.inProjectDir("build.gradle.kts").toPath(),
+                "\n// cache-invalidation marker\n",
+                StandardCharsets.UTF_8,
+                StandardOpenOption.APPEND);
+        var afterBuildScriptEdit = runner.withArguments(task).build();
+        var afterBuildScriptEditTask = afterBuildScriptEdit.task(taskPath);
+        assertThat(afterBuildScriptEditTask).isNotNull();
+        assertThat(afterBuildScriptEditTask.getOutcome())
+                .as("editing build.gradle.kts must invalidate the cache")
+                .isEqualTo(TaskOutcome.SUCCESS);
 
         var rerunTasks = runner.withArguments(task, "--rerun-tasks", "--info").build();
         var rerunTask = rerunTasks.task(taskPath);
