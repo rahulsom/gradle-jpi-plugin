@@ -434,7 +434,6 @@ public class V2JpiPlugin implements Plugin<Project> {
             task.getContinueOnFailure().set(startParameter.isContinueOnFailure());
             task.getParallelExecution().set(startParameter.isParallelProjectExecutionEnabled());
             task.getProfile().set(startParameter.isProfile());
-            task.getRerunTasks().set(startParameter.isRerunTasks());
             task.getDryRun().set(startParameter.isDryRun());
             task.getSystemProperties().set(startParameter.getSystemPropertiesArgs());
             task.getProjectProperties().set(startParameter.getProjectProperties());

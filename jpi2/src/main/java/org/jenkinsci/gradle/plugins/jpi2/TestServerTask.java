@@ -53,7 +53,7 @@ import org.jetbrains.annotations.NotNull;
  * outside {@code gradle/}, included builds located
  * outside the project tree, environment variables, {@code ~/.gradle/gradle.properties}, the Gradle or
  * wrapper version, and dynamic dependency versions resolved from the network. When in doubt, run with
- * {@code --rerun-tasks} to force a fresh launch.
+ * {@code --rerun} (e.g. {@code ./gradlew testServer --rerun}) to force a fresh launch.
  */
 @CacheableTask
 public abstract class TestServerTask extends DefaultTask {
@@ -141,10 +141,6 @@ public abstract class TestServerTask extends DefaultTask {
     /** @return {@code true} to pass {@code --profile} to the spawned Gradle */
     @Input
     public abstract Property<Boolean> getProfile();
-
-    /** @return {@code true} to pass {@code --rerun-tasks} to the spawned Gradle */
-    @Input
-    public abstract Property<Boolean> getRerunTasks();
 
     /** @return {@code true} to pass {@code --dry-run} to the spawned Gradle */
     @Input
@@ -444,7 +440,6 @@ public abstract class TestServerTask extends DefaultTask {
         if (getContinueOnFailure().get()) commandLine.add("--continue");
         if (getParallelExecution().get()) commandLine.add("--parallel");
         if (getProfile().get()) commandLine.add("--profile");
-        if (getRerunTasks().get()) commandLine.add("--rerun-tasks");
         if (getDryRun().get()) commandLine.add("--dry-run");
 
         getSystemProperties().get().forEach((k, v) -> {
