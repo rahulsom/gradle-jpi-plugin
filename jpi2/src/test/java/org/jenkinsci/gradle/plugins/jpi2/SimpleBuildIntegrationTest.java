@@ -172,30 +172,6 @@ class SimpleBuildIntegrationTest extends V2IntegrationTestBase {
     }
 
     @Test
-    void testServerSharesGradleUserHomeWithOuterBuild() throws IOException {
-        var ith = new IntegrationTestHelper(tempDir, "8.14");
-        configureSimpleBuildForVerification(ith);
-        Files.writeString(
-                ith.inProjectDir("build.gradle.kts").toPath(), /* language=kotlin */ """
-                if (gradle.parent == null) {
-                    println("outer-user-home=" + gradle.gradleUserHomeDir.absolutePath.replace('\\\\', '/'))
-                }
-                """, StandardOpenOption.APPEND);
-
-        var result = ith.gradleRunner().withArguments("testServer", "--info").build();
-
-        var outerUserHome = result.getOutput()
-                .lines()
-                .filter(line -> line.startsWith("outer-user-home="))
-                .map(line -> line.substring("outer-user-home=".length()))
-                .findFirst()
-                .orElseThrow();
-        assertThat(result.getOutput())
-                .contains("Jenkins is fully up and running")
-                .contains("--gradle-user-home, " + outerUserHome);
-    }
-
-    @Test
     @Timeout(value = 15, unit = TimeUnit.MINUTES)
     void testServerRetriesThenReportsAnActionableTimeout() throws IOException {
         // given
@@ -292,6 +268,12 @@ class SimpleBuildIntegrationTest extends V2IntegrationTestBase {
     private void assertVerificationTaskCachingBehavior(String task, String prepareTask) throws IOException {
         var ith = new IntegrationTestHelper(tempDir, "8.14");
         configureSimpleBuildForVerification(ith);
+        Files.writeString(
+                ith.inProjectDir("build.gradle.kts").toPath(), /* language=kotlin */ """
+                if (gradle.parent == null) {
+                    println("outer-user-home=" + gradle.gradleUserHomeDir.absolutePath.replace('\\\\', '/'))
+                }
+                """, StandardOpenOption.APPEND);
 
         // A non-empty source set ensures the testHplRun cache must track classes/resources
         // via referencedFiles — without that wiring, removing this file would not invalidate
@@ -373,6 +355,16 @@ class SimpleBuildIntegrationTest extends V2IntegrationTestBase {
                 .as("--rerun-tasks must not be forwarded to the nested build, which would rebuild everything")
                 .isNotEmpty()
                 .noneMatch(line -> line.contains("--rerun-tasks"));
+        var outerUserHome = rerunTasks
+                .getOutput()
+                .lines()
+                .filter(line -> line.startsWith("outer-user-home="))
+                .map(line -> line.substring("outer-user-home=".length()))
+                .findFirst()
+                .orElseThrow();
+        assertThat(rerunTasks.getOutput())
+                .as("the nested build must share the outer build's Gradle user home")
+                .contains("--gradle-user-home, " + outerUserHome);
 
         var rerun = runner.withArguments(task, "--rerun").build();
         var rerunOnlyTask = rerun.task(taskPath);
